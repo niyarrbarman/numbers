@@ -5,9 +5,10 @@
 #SBATCH -p small
 #SBATCH --ntasks-per-node=1
 #SBATCH --time=24:00:00
-#SBATCH -o np_emb_%j.log
-#SBATCH -e np_emb_%j.log
+#SBATCH -o slurm_logs/np_emb_%j.log
+#SBATCH -e slurm_logs/np_emb_%j.log
 
+mkdir -p slurm_logs
 set -euo pipefail
 
 REPO_DIR="${SLURM_SUBMIT_DIR:-$(pwd)}"

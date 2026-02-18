@@ -1,0 +1,173 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+NumPy 1.24.4
+Log: logs/run_20260218_150813_steps100000.log
+Seed: 42  |  Max steps: 100000
+
+======================================================================
+NUMBER EMBEDDING REPRESENTATION — DEMO
+======================================================================
+
+Architecture:  71 raw dims → 128d embedding
+  Fourier:    64 dims  |  Log-mag: 1  |  Sign: 1  |  Poly: 5
+
+Before training:
+     0.00000 → norm=11.634  [0.141, -0.347, -0.078, -0.707, -0.165...]
+     1.00000 → norm=11.349  [0.512, 1.231, -0.312, -0.681, -0.628...]
+     3.14159 → norm=11.405  [-1.579, -0.286, -1.160, -1.206, -1.754...]
+   -42.00000 → norm=11.423  [0.618, 0.076, 0.257, 1.253, 1.519...]
+   100.00000 → norm=11.441  [0.369, 0.707, -0.740, -0.139, -0.993...]
+     0.00100 → norm=11.457  [0.073, -0.238, -0.572, -1.069, -0.263...]
+
+Training (100000 steps)...
+  Step  1666/100000 | Loss: 14.596477 [P1]
+  Step  3332/100000 | Loss: 1.281016 [P1]
+  Step  4998/100000 | Loss: 0.564585 [P1]
+  Step  6664/100000 | Loss: 0.274468 [P1]
+  Step  8330/100000 | Loss: 0.140162 [P1]
+  Step  9996/100000 | Loss: 0.067771 [P1]
+  Step 11662/100000 | Loss: 0.030760 [P1]
+  Step 13328/100000 | Loss: 0.018981 [P1]
+  Step 14994/100000 | Loss: 0.016054 [P1]
+  Step 16660/100000 | Loss: 0.021249 [P1]
+  Step 18326/100000 | Loss: 0.011918 [P1]
+  Step 19992/100000 | Loss: 1.460934 [P1]
+  Step 21658/100000 | Loss: 0.008540 [P1]
+  Step 23324/100000 | Loss: 0.787516 [P1]
+  Step 24990/100000 | Loss: 0.064658 [P1]
+  Step 26656/100000 | Loss: 0.060526 [P1]
+  Step 28322/100000 | Loss: 0.275415 [P1]
+  Step 29988/100000 | Loss: 0.168670 [P1]
+  Step 31654/100000 | Loss: 0.122034 [P2]
+  Step 33320/100000 | Loss: 0.054798 [P2]
+  Step 34986/100000 | Loss: 0.003088 [P2]
+  Step 36652/100000 | Loss: 0.007177 [P2]
+  Step 38318/100000 | Loss: 0.061615 [P2]
+  Step 39984/100000 | Loss: 0.049454 [P2]
+  Step 41650/100000 | Loss: 0.031246 [P2]
+  Step 43316/100000 | Loss: 0.017711 [P2]
+  Step 44982/100000 | Loss: 0.009969 [P2]
+  Step 46648/100000 | Loss: 0.022722 [P2]
+  Step 48314/100000 | Loss: 0.002288 [P2]
+  Step 49980/100000 | Loss: 0.057058 [P2]
+  Step 51646/100000 | Loss: 0.010633 [P2]
+  Step 53312/100000 | Loss: 0.015814 [P2]
+  Step 54978/100000 | Loss: 0.005671 [P2]
+  Step 56644/100000 | Loss: 0.004717 [P2]
+  Step 58310/100000 | Loss: 0.017926 [P2]
+  Step 59976/100000 | Loss: 0.035898 [P2]
+  Step 61642/100000 | Loss: 0.002331 [P2]
+  Step 63308/100000 | Loss: 0.012734 [P2]
+  Step 64974/100000 | Loss: 0.006075 [P2]
+  Step 66640/100000 | Loss: 0.000699 [P2]
+  Step 68306/100000 | Loss: 0.002924 [P2]
+  Step 69972/100000 | Loss: 0.002626 [P2]
+  Step 71638/100000 | Loss: 0.001307 [P2]
+  Step 73304/100000 | Loss: 0.005921 [P2]
+  Step 74970/100000 | Loss: 0.000391 [P2]
+  Step 76636/100000 | Loss: 0.007870 [P2]
+  Step 78302/100000 | Loss: 0.003101 [P2]
+  Step 79968/100000 | Loss: 0.000445 [P2]
+  Step 81634/100000 | Loss: 0.000333 [P2]
+  Step 83300/100000 | Loss: 0.000269 [P2]
+  Step 84966/100000 | Loss: 0.000257 [P2]
+  Step 86632/100000 | Loss: 0.000241 [P2]
+  Step 88298/100000 | Loss: 0.000224 [P2]
+  Step 89964/100000 | Loss: 0.000215 [P2]
+  Step 91630/100000 | Loss: 0.000142 [P2]
+  Step 93296/100000 | Loss: 0.000157 [P2]
+  Step 94962/100000 | Loss: 0.000168 [P2]
+  Step 96628/100000 | Loss: 0.000152 [P2]
+  Step 98294/100000 | Loss: 0.000136 [P2]
+  Step 99960/100000 | Loss: 0.000158 [P2]
+  Done in 1347.5s
+
+After training:
+         Input  →         Decoded       Error
+  ────────────     ──────────────  ──────────
+       0.00000  →        -0.00000     0.00000
+       1.00000  →         0.99720     0.00280
+       3.14159  →         3.14587     0.00428
+     -42.00000  →       -42.02748     0.02748
+     100.00000  →        99.53615     0.46385
+       0.00100  →         0.00100     0.00000
+
+
+----------------------------------------------------------------------
+TEST 1: UNIQUENESS — Distinct numbers → distinct embeddings
+----------------------------------------------------------------------
+  [PASS] Max cosine sim < 0.99
+         Max cosine sim: 0.9061
+  [PASS] All pairwise L2 distances > 0
+         Min L2 dist: 4.967230
+  [PASS] 1.0000 vs 1.0001 distinguishable
+         L2 dist: 10.05474473
+----------------------------------------------------------------------
+TEST 2: CONTINUITY — Small perturbations → small embedding changes
+----------------------------------------------------------------------
+  [PASS] ε=0.1: bounded relative change
+         Max Δ: 15.6224, Relative: 1.3601
+  [PASS] ε=0.01: bounded relative change
+         Max Δ: 14.1102, Relative: 1.2284
+  [PASS] ε=0.001: bounded relative change
+         Max Δ: 10.7887, Relative: 0.9393
+  [PASS] Smaller ε → smaller (or comparable) embedding Δ
+         Deltas: ['15.6224', '14.1102', '10.7887']
+  [PASS] Distance monotonicity
+         Dists: ['4.2479', '6.0413', '5.6690', '5.7894']
+----------------------------------------------------------------------
+TEST 3: REVERSIBILITY — Round-trip reconstruction accuracy
+----------------------------------------------------------------------
+  [PASS] Reconstruction [Small positive]
+         |err|_max: 0.0004, rel_max: 0.0077
+  [PASS] Reconstruction [Medium]
+         |err|_max: 0.0043, rel_max: 0.0028
+  [PASS] Reconstruction [Large]
+         |err|_max: 0.4638, rel_max: 0.0079
+  [PASS] Reconstruction [Negative]
+         |err|_max: 0.2883, rel_max: 0.0058
+  [PASS] Reconstruction [Near zero]
+         |err|_max: 0.0000, rel_max: 6.2941
+  [PASS] Reconstruction [Integers]
+         |err|_max: 0.5057, rel_max: 0.0093
+
+         Input  →         Decoded     Abs Err     Rel Err
+  ────────────     ──────────────  ──────────  ──────────
+       0.00012  →         0.00012     0.00000    0.2282%
+       0.01000  →         0.01003     0.00003    0.3107%
+       1.00000  →         0.99720     0.00280    0.2805%
+       3.14159  →         3.14587     0.00428    0.1363%
+       7.00000  →         7.00328     0.00328    0.0468%
+      42.00000  →        41.60915     0.39085    0.9306%
+      99.00000  →        98.49434     0.50566    0.5108%
+     500.00000  →       497.49838     2.50162    0.5003%
+  100000.00000  →     99401.89515   598.10485    0.5981%
+      -0.50000  →        -0.49654     0.00346    0.6920%
+     -10.00000  →        -9.96633     0.03367    0.3367%
+     -42.00000  →       -42.02748     0.02748    0.0654%
+   -1234.50000  →     -1231.49382     3.00618    0.2435%
+       0.00000  →         0.00000     0.00000    0.0024%
+       0.00000  →        -0.00000     0.00000  629.4145%
+
+----------------------------------------------------------------------
+TEST 4: EXPRESSIVENESS — Structural properties of embedding space
+----------------------------------------------------------------------
+  [PASS] High effective dimensionality (>20)
+         Effective dims: 71/128
+  [PASS] PC1 correlates with ordering
+         Spearman ρ = 0.9381
+  [FAIL] Similar numbers cluster tighter
+         Intra max: 10.5692, Inter min: 7.4025
+----------------------------------------------------------------------
+TEST 5: MODEL COMPATIBILITY — Standard ops & integration
+----------------------------------------------------------------------
+  [PASS] Batch (64,) → (64, d)
+  [PASS] Single number works
+  [PASS] Downstream linear layer
+  [PASS] Dot-product attention
+  [PASS] Deterministic
+======================================================================
+RESULTS: 21/22 PASSED, 1/22 FAILED
+======================================================================
+
+Output saved to: logs/run_20260218_150813_steps100000.log
