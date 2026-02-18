@@ -1,0 +1,2 @@
+|x| = exp(log_mag_dim × log_scale) − ε
+x   = sign(sign_dim) × |x|

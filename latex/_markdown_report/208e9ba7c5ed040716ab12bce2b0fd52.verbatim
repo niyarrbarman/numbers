@@ -1,0 +1,9 @@
+# Number head: linear projection from transformer hidden state
+number_proj = nn.Linear(d_model, 2)  # outputs (log_mag, sign_logit)
+
+# At inference:
+log_mag, sign_logit = number_proj(hidden_state).split(1, dim=-1)
+x_hat = torch.sign(sign_logit) * torch.exp(torch.clamp(log_mag, -14, 14))
+
+# At training:
+# Loss directly on x_hat vs target number — gradients flow through exp and sign

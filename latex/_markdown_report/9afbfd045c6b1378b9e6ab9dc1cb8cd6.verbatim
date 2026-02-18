@@ -1,0 +1,4 @@
+projected = W_proj @ raw + b          # (N, 127)
+log_norm  = log(‖projected‖ + ε)      # (N, 1)  ← magnitude preserved
+direction = LayerNorm(projected)      # (N, 127)
+e(x)      = [direction ‖ log_norm]    # (N, 128)

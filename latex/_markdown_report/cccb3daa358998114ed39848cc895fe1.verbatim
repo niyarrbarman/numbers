@@ -1,0 +1,2 @@
+target = 1 if x > 0, 0 if x < 0, 0.5 if x = 0
+L_bce  = -[t·log(σ(sign_logit)) + (1-t)·log(1-σ(sign_logit))]

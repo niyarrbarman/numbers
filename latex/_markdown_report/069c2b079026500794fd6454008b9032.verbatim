@@ -1,0 +1,28 @@
+x ∈ ℝ
+│
+├─ Fourier Channel ───────── 64 dims   sin/cos at 32 geometrically-spaced ω
+├─ Log-Magnitude Channel ──── 1 dim    log(|x| + 1e-8) / log(10)
+├─ Sign Channel ──────────── 1 dim    tanh(10x)
+└─ Polynomial Channel ─────── 5 dims   LayerNorm([x…x⁵]), clamped [-50, 50]
+              │
+              └── concat → 71 dims (analytic, no learned params)
+                        │
+                  Linear (71 → 127)    ← learned
+                        │
+                  LayerNorm → 127-dim direction
+                        │
+                  concat log(‖proj‖) → +1 magnitude dim
+                        │
+                   e(x) ∈ ℝ¹²⁸
+                        │
+                  Linear (128 → 192) + GELU
+                        │
+                  Linear (192 → 192) + GELU
+                        │
+                  Linear (192 → 2)
+                  /              \
+           log_magnitude      sign_logit
+                 │                  │
+      exp(clip(·, -14, 14))      tanh(·)
+                  \               /
+                   x̂ = sign × magnitude

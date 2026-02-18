@@ -1,0 +1,8 @@
+# Ignore LaTeX log files generated under latex/
+latex/**/*.log
+
+# Keep runtime/training logs tracked
+!logs/
+!logs/**
+!slurm_logs/
+!slurm_logs/**
