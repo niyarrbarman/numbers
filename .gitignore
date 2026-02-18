@@ -1,6 +1,6 @@
 # Ignore LaTeX log files generated under latex/
 latex/**/*.log
-
+latex/_markdown_report/*
 # Keep runtime/training logs tracked
 !logs/
 !logs/**
