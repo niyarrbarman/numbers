@@ -1,0 +1,168 @@
+Log: logs/run_20260218_041115_steps5000.log
+Seed: 42  |  Max steps: 5000
+
+======================================================================
+NUMBER EMBEDDING REPRESENTATION — DEMO
+======================================================================
+
+Architecture:  71 raw dims → 128d embedding
+  Fourier:    64 dims  |  Log-mag: 1  |  Sign: 1  |  Poly: 5
+
+Before training:
+     0.00000 → norm=11.634  [0.141, -0.347, -0.078, -0.707, -0.165...]
+     1.00000 → norm=11.349  [0.512, 1.231, -0.312, -0.681, -0.628...]
+     3.14159 → norm=11.405  [-1.579, -0.286, -1.160, -1.206, -1.754...]
+   -42.00000 → norm=11.423  [0.618, 0.076, 0.257, 1.253, 1.519...]
+   100.00000 → norm=11.441  [0.369, 0.707, -0.740, -0.139, -0.993...]
+     0.00100 → norm=11.457  [0.073, -0.238, -0.572, -1.069, -0.263...]
+
+Training (5000 steps)...
+  Step    83/5000 | Loss: 8.160896
+  Step   166/5000 | Loss: 5.393935
+  Step   249/5000 | Loss: 0.994013
+  Step   332/5000 | Loss: 0.183009
+  Step   415/5000 | Loss: 0.114644
+  Step   498/5000 | Loss: 0.081961
+  Step   581/5000 | Loss: 0.062002
+  Step   664/5000 | Loss: 0.050569
+  Step   747/5000 | Loss: 0.043291
+  Step   830/5000 | Loss: 0.038469
+  Step   913/5000 | Loss: 0.032943
+  Step   996/5000 | Loss: 0.031180
+  Step  1079/5000 | Loss: 0.028535
+  Step  1162/5000 | Loss: 0.025835
+  Step  1245/5000 | Loss: 0.023391
+  Step  1328/5000 | Loss: 0.021908
+  Step  1411/5000 | Loss: 0.020809
+  Step  1494/5000 | Loss: 0.019649
+  Step  1577/5000 | Loss: 0.017914
+  Step  1660/5000 | Loss: 0.017405
+  Step  1743/5000 | Loss: 0.016812
+  Step  1826/5000 | Loss: 0.016209
+  Step  1909/5000 | Loss: 0.015244
+  Step  1992/5000 | Loss: 0.015077
+  Step  2075/5000 | Loss: 0.014302
+  Step  2158/5000 | Loss: 0.013978
+  Step  2241/5000 | Loss: 0.014032
+  Step  2324/5000 | Loss: 0.013400
+  Step  2407/5000 | Loss: 0.013675
+  Step  2490/5000 | Loss: 0.012924
+  Step  2573/5000 | Loss: 0.012845
+  Step  2656/5000 | Loss: 0.012802
+  Step  2739/5000 | Loss: 0.012201
+  Step  2822/5000 | Loss: 0.012469
+  Step  2905/5000 | Loss: 0.012268
+  Step  2988/5000 | Loss: 0.012331
+  Step  3071/5000 | Loss: 0.012348
+  Step  3154/5000 | Loss: 0.011960
+  Step  3237/5000 | Loss: 0.012345
+  Step  3320/5000 | Loss: 0.012072
+  Step  3403/5000 | Loss: 0.012448
+  Step  3486/5000 | Loss: 0.011514
+  Step  3569/5000 | Loss: 0.011855
+  Step  3652/5000 | Loss: 0.010870
+  Step  3735/5000 | Loss: 0.011466
+  Step  3818/5000 | Loss: 0.011831
+  Step  3901/5000 | Loss: 0.011154
+  Step  3984/5000 | Loss: 0.011486
+  Step  4067/5000 | Loss: 0.011157
+  Step  4150/5000 | Loss: 0.012259
+  Step  4233/5000 | Loss: 0.011188
+  Step  4316/5000 | Loss: 0.011326
+  Step  4399/5000 | Loss: 0.010995
+  Step  4482/5000 | Loss: 0.010708
+  Step  4565/5000 | Loss: 0.010861
+  Step  4648/5000 | Loss: 0.010906
+  Step  4731/5000 | Loss: 0.010679
+  Step  4814/5000 | Loss: 0.011068
+  Step  4897/5000 | Loss: 0.011025
+  Step  4980/5000 | Loss: 0.011066
+  Done in 49.0s
+
+After training:
+         Input  →         Decoded       Error
+  ────────────     ──────────────  ──────────
+       0.00000  →        -0.00267     0.00267
+       1.00000  →         0.23413     0.76587
+       3.14159  →         3.31261     0.17102
+     -42.00000  →       -39.81475     2.18525
+     100.00000  →        97.16677     2.83323
+       0.00100  →        -0.00075     0.00175
+
+
+----------------------------------------------------------------------
+TEST 1: UNIQUENESS — Distinct numbers → distinct embeddings
+----------------------------------------------------------------------
+  [PASS] Max cosine sim < 0.99
+         Max cosine sim: 0.9556
+  [PASS] All pairwise L2 distances > 0
+         Min L2 dist: 3.443847
+  [PASS] 1.0000 vs 1.0001 distinguishable
+         L2 dist: 2.49572456
+----------------------------------------------------------------------
+TEST 2: CONTINUITY — Small perturbations → small embedding changes
+----------------------------------------------------------------------
+  [PASS] ε=0.1: bounded relative change
+         Max Δ: 11.7761, Relative: 1.0279
+  [PASS] ε=0.01: bounded relative change
+         Max Δ: 9.1355, Relative: 0.7974
+  [PASS] ε=0.001: bounded relative change
+         Max Δ: 6.5007, Relative: 0.5674
+  [PASS] Smaller ε → smaller (or comparable) embedding Δ
+         Deltas: ['11.7761', '9.1355', '6.5007']
+  [PASS] Distance monotonicity
+         Dists: ['3.4686', '4.8444', '6.3464', '8.3878']
+----------------------------------------------------------------------
+TEST 3: REVERSIBILITY — Round-trip reconstruction accuracy
+----------------------------------------------------------------------
+  [PASS] Reconstruction [Small positive]
+         |err|_max: 0.1003, rel_max: 1.0258
+  [PASS] Reconstruction [Medium]
+         |err|_max: 0.7659, rel_max: 0.7659
+  [PASS] Reconstruction [Large]
+         |err|_max: 2.8332, rel_max: 0.0437
+  [PASS] Reconstruction [Negative]
+         |err|_max: 0.8339, rel_max: 0.0415
+  [PASS] Reconstruction [Near zero]
+         |err|_max: 0.0103, rel_max: 267301.7888
+  [PASS] Reconstruction [Integers]
+         |err|_max: 0.7659, rel_max: 0.7659
+
+         Input  →         Decoded     Abs Err     Rel Err
+  ────────────     ──────────────  ──────────  ──────────
+       0.00012  →        -0.00093     0.00105  855.5574%
+       0.01000  →        -0.00026     0.01026  102.5780%
+       1.00000  →         0.23413     0.76587   76.5872%
+       3.14159  →         3.31261     0.17102    5.4439%
+       7.00000  →         6.55214     0.44786    6.3980%
+      42.00000  →        42.35153     0.35153    0.8370%
+      99.00000  →        99.45754     0.45754    0.4622%
+     500.00000  →       528.74958    28.74958    5.7499%
+  100000.00000  →      2968.76248  97031.23752   97.0312%
+      -0.50000  →        -0.50649     0.00649    1.2989%
+     -10.00000  →       -10.04522     0.04522    0.4522%
+     -42.00000  →       -39.81475     2.18525    5.2030%
+   -1234.50000  →     -1231.40962     3.09038    0.2503%
+       0.00000  →        -0.00192     0.00192  190364.2014%
+       0.00000  →        -0.00267     0.00267  26730178.8781%
+
+----------------------------------------------------------------------
+TEST 4: EXPRESSIVENESS — Structural properties of embedding space
+----------------------------------------------------------------------
+  [PASS] High effective dimensionality (>20)
+         Effective dims: 70/128
+  [PASS] PC1 correlates with ordering
+         Spearman ρ = 0.8529
+  [PASS] Similar numbers cluster tighter
+         Intra max: 9.9521, Inter min: 12.0292
+----------------------------------------------------------------------
+TEST 5: MODEL COMPATIBILITY — Standard ops & integration
+----------------------------------------------------------------------
+  [PASS] Batch (64,) → (64, d)
+  [PASS] Single number works
+  [PASS] Downstream linear layer
+  [PASS] Dot-product attention
+  [PASS] Deterministic
+======================================================================
+RESULTS: 22/22 PASSED, 0/22 FAILED
+======================================================================
