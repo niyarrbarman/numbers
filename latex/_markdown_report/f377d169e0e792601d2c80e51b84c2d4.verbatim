@@ -1,2 +1,0 @@
-f(x) = sign(x) · log(|x| + 1)
-L    = mean( (f(x) − f(x̂))² )

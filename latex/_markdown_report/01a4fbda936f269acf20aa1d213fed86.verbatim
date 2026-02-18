@@ -1,8 +1,0 @@
-# Direction path (full LN backward)
-y = (projected - mean) * invstd
-grad_proj_ln = invstd * (grad_normed - mean(grad_normed) - y * mean(grad_normed * y))
-
-# Magnitude path
-grad_proj_lognorm = grad_log_norm * projected / (proj_norm * (proj_norm + ε))
-
-grad_proj = grad_proj_ln + grad_proj_lognorm

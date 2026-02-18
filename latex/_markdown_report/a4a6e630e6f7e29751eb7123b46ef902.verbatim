@@ -1,1 +1,0 @@
-python3 np_emb.py [--max-steps N] [--seed S] [--test-only] [--demo-only]

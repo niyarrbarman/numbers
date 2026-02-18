@@ -1,4 +1,0 @@
-"347 × 892"
-→ "347 × 900 =" embed(312300)     ← number embedding output, fed back as input
-→ "347 × 8 ="   embed(2776)       ← same
-→ "312300 - 2776 =" embed(309524) ← final answer
