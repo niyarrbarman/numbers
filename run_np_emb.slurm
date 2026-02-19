@@ -17,16 +17,16 @@ SCRIPT_PATH="${REPO_DIR}/np_emb_torch.py"
 IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest.sif"
 
 module load gnu/11.2.0
-module load cuda
 
 apptainer exec \
   --nv \
+  --cleanenv \
   --bind /tmpdir,/work \
   "${IMAGE}" \
   env \
     REPO_DIR="${REPO_DIR}" \
     SCRIPT_PATH="${SCRIPT_PATH}" \
-  bash -lc '
+  bash -c '
     set -euo pipefail
     cd "${REPO_DIR}"
     python3 -c "import torch; print(f\"PyTorch {torch.__version__}, CUDA: {torch.cuda.is_available()}, GPU: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else None}\")"
