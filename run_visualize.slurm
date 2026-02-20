@@ -27,7 +27,7 @@ module load gnu/11.2.0
 
 apptainer exec \
   --nv \
-  --cleanenv \
+  --env "PYTHONUSERBASE=${MYENVS}/numbers" \
   --bind /tmpdir,/work \
   "${IMAGE}" \
   env \
@@ -56,3 +56,4 @@ apptainer exec \
     echo "Plots:"
     ls -la "${PLOT_DIR}"/*.png 2>/dev/null
   '
+  

@@ -6,3 +6,5 @@ latex/_markdown_report/*
 !logs/**
 !slurm_logs/
 !slurm_logs/**
+checkpoints/
+plots/

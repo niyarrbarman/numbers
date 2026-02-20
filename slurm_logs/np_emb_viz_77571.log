@@ -1,0 +1,35 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+Available packages:
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+  torch 2.5.0a0+e000cf0ad9.nv24.10
+  sklearn 1.7.2
+  umap 0.5.11
+  matplotlib 3.9.2
+
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+/tmpdir/m24047brmn/envs/numbers/lib/python3.10/site-packages/umap/umap_.py:1952: UserWarning: n_jobs value 1 overridden to 1 by setting random_state. Use no seed for parallelism.
+  warn(
+Loaded: /tmpdir/m24047brmn/numbers/checkpoints/np_emb_v8_500k_model.pt
+  Embedding dim: 128, trained for 500000 steps
+
+  Generated 2000 numbers from U(-1000.0, 1000.0)
+  Encoded 2000 numbers → (2000, 128)
+  Reconstruction: mean rel err 0.2911%, max 2.8805%
+
+  Projecting with UMAP...
+  Saved: /tmpdir/m24047brmn/numbers/plots/embeddings_umap.png
+  Saved: /tmpdir/m24047brmn/numbers/plots/embeddings_umap_error.png
+
+  Projecting with PCA...
+  PCA variance explained: PC1=5.3%, PC2=4.4%
+  Saved: /tmpdir/m24047brmn/numbers/plots/embeddings_pca.png
+  Saved: /tmpdir/m24047brmn/numbers/plots/embeddings_pca_error.png
+
+All plots saved to: /tmpdir/m24047brmn/numbers/plots
+
+Plots:
+-rw------- 1 m24047brmn m24047  905255 Feb 20 02:00 /tmpdir/m24047brmn/numbers/plots/embeddings_pca.png
+-rw------- 1 m24047brmn m24047  221762 Feb 20 02:00 /tmpdir/m24047brmn/numbers/plots/embeddings_pca_error.png
+-rw------- 1 m24047brmn m24047 1447728 Feb 20 02:00 /tmpdir/m24047brmn/numbers/plots/embeddings_umap.png
+-rw------- 1 m24047brmn m24047  239581 Feb 20 02:00 /tmpdir/m24047brmn/numbers/plots/embeddings_umap_error.png
