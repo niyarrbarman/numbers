@@ -47,10 +47,10 @@ dataset = 'openwebtext'
 data_dir = ''  # override to set absolute path; if empty, uses data/{dataset}
 gradient_accumulation_steps = 5 * 8
 batch_size = 12
-block_size = 1024
+block_size = 256
 # model
-n_layer = 12
-n_head = 12
+n_layer = 11
+n_head = 8
 n_embd = 768
 dropout = 0.0
 bias = False

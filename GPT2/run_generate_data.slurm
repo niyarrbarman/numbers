@@ -13,6 +13,7 @@ set -euo pipefail
 
 REPO_DIR="${SLURM_SUBMIT_DIR:-$(pwd)}"
 GPT2_DIR="${REPO_DIR}"
+# IMAGE="/work/conteneurs/sessions-interactives/pytorch-24.02-py3-calmip-si.sif"
 IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest.sif"
 
 # Configurable parameters (pass as env vars or edit here)
@@ -26,6 +27,7 @@ module load gnu/11.2.0
 
 apptainer exec \
   --env "PYTHONUSERBASE=${MYENVS}/numbers" \
+  --env "TIKTOKEN_CACHE_DIR=/tmpdir/m24047brmn/tiktoken_cache" \
   --bind /tmpdir,/work \
   "${IMAGE}" \
   env \

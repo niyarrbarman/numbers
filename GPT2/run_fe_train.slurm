@@ -17,14 +17,14 @@ TRAIN_DIR="${REPO_DIR}/GPT2/fe"
 IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest.sif"
 
 # Path to pretrained NumberEncoder checkpoint
-NUM_EMB_CHECKPOINT="${NUM_EMB_CHECKPOINT:-${REPO_DIR}/checkpoints/np_emb_v8_500k_model.pt}"
+NUM_EMB_CHECKPOINT="/tmpdir/m24047brmn/numbers/checkpoints/np_emb_v8_500k_model.pt"
 
 # Dataset: 'sorting' for synthetic sorting data, 'openwebtext' for OWT
 DATASET="${DATASET:-sorting}"
 
 # Data directory: absolute path to the folder containing {train,val}.bin
 # Default: GPT2/fe/data/{DATASET}
-DATA_DIR="${DATA_DIR:-${TRAIN_DIR}/data/${DATASET}}"
+DATA_DIR="/tmpdir/m24047brmn/numbers/data/"
 
 module load gnu/11.2.0
 
