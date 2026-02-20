@@ -12,8 +12,7 @@
 mkdir -p slurm_logs
 set -euo pipefail
 
-REPO_DIR="${SLURM_SUBMIT_DIR:-$(pwd)}"
-TRAIN_DIR="${REPO_DIR}/GPT2/fe"
+TRAIN_DIR="/work/m24047/m24047brmn/numbers/GPT2/fe"
 IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest.sif"
 
 # Path to pretrained NumberEncoder checkpoint
