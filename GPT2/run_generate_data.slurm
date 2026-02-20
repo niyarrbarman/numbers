@@ -12,19 +12,20 @@ mkdir -p slurm_logs
 set -euo pipefail
 
 REPO_DIR="${SLURM_SUBMIT_DIR:-$(pwd)}"
-GPT2_DIR="${REPO_DIR}/GPT2"
+GPT2_DIR="${REPO_DIR}"
 IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest.sif"
 
 # Configurable parameters (pass as env vars or edit here)
-N_TRAIN="${N_TRAIN:-100000}"
-N_VAL="${N_VAL:-2000}"
-MAX_LEN="${MAX_LEN:-15}"
-NUMBER_RANGE="${NUMBER_RANGE:-10000}"
+N_TRAIN="${N_TRAIN:-1000000}"
+N_VAL="${N_VAL:-5000}"
+MAX_LEN="${MAX_LEN:-100}"
+NUMBER_RANGE="${NUMBER_RANGE:-100000}"
 
 module load gnu/11.2.0
 
+
 apptainer exec \
-  --cleanenv \
+  --env "PYTHONUSERBASE=${MYENVS}/numbers" \
   --bind /tmpdir,/work \
   "${IMAGE}" \
   env \
@@ -43,5 +44,6 @@ apptainer exec \
       --max-len "${MAX_LEN}" \
       --number-range "${NUMBER_RANGE}" \
       --allow-negative \
+      --out-dir "/tmpdir/m24047brmn/numbers/data" \
       --allow-float
   '

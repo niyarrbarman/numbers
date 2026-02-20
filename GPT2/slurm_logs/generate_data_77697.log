@@ -1,0 +1,68 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+tiktoken OK
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/dist-packages/urllib3/connection.py", line 203, in _new_conn
+    sock = connection.create_connection(
+  File "/usr/local/lib/python3.10/dist-packages/urllib3/util/connection.py", line 85, in create_connection
+    raise err
+  File "/usr/local/lib/python3.10/dist-packages/urllib3/util/connection.py", line 73, in create_connection
+    sock.connect(sa)
+OSError: [Errno 101] Network is unreachable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/dist-packages/urllib3/connectionpool.py", line 791, in urlopen
+    response = self._make_request(
+  File "/usr/local/lib/python3.10/dist-packages/urllib3/connectionpool.py", line 492, in _make_request
+    raise new_e
+  File "/usr/local/lib/python3.10/dist-packages/urllib3/connectionpool.py", line 468, in _make_request
+    self._validate_conn(conn)
+  File "/usr/local/lib/python3.10/dist-packages/urllib3/connectionpool.py", line 1097, in _validate_conn
+    conn.connect()
+  File "/usr/local/lib/python3.10/dist-packages/urllib3/connection.py", line 611, in connect
+    self.sock = sock = self._new_conn()
+  File "/usr/local/lib/python3.10/dist-packages/urllib3/connection.py", line 218, in _new_conn
+    raise NewConnectionError(
+urllib3.exceptions.NewConnectionError: <urllib3.connection.HTTPSConnection object at 0x4000b0f75f60>: Failed to establish a new connection: [Errno 101] Network is unreachable
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/dist-packages/requests/adapters.py", line 667, in send
+    resp = conn.urlopen(
+  File "/usr/local/lib/python3.10/dist-packages/urllib3/connectionpool.py", line 845, in urlopen
+    retries = retries.increment(
+  File "/usr/local/lib/python3.10/dist-packages/urllib3/util/retry.py", line 515, in increment
+    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
+urllib3.exceptions.MaxRetryError: HTTPSConnectionPool(host='openaipublic.blob.core.windows.net', port=443): Max retries exceeded with url: /gpt-2/encodings/main/vocab.bpe (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x4000b0f75f60>: Failed to establish a new connection: [Errno 101] Network is unreachable'))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/work/m24047/m24047brmn/numbers/GPT2/generate_data.py", line 29, in <module>
+    from fe.prepare import process_text_with_numbers, NUM_TOKEN_ID
+  File "/work/m24047/m24047brmn/numbers/GPT2/fe/prepare.py", line 25, in <module>
+    enc = tiktoken.get_encoding("gpt2")
+  File "/tmpdir/m24047brmn/envs/numbers/lib/python3.10/site-packages/tiktoken/registry.py", line 86, in get_encoding
+    enc = Encoding(**constructor())
+  File "/tmpdir/m24047brmn/envs/numbers/lib/python3.10/site-packages/tiktoken_ext/openai_public.py", line 18, in gpt2
+    mergeable_ranks = data_gym_to_mergeable_bpe_ranks(
+  File "/tmpdir/m24047brmn/envs/numbers/lib/python3.10/site-packages/tiktoken/load.py", line 110, in data_gym_to_mergeable_bpe_ranks
+    vocab_bpe_contents = read_file_cached(vocab_bpe_file, vocab_bpe_hash).decode()
+  File "/tmpdir/m24047brmn/envs/numbers/lib/python3.10/site-packages/tiktoken/load.py", line 67, in read_file_cached
+    contents = read_file(blobpath)
+  File "/tmpdir/m24047brmn/envs/numbers/lib/python3.10/site-packages/tiktoken/load.py", line 17, in read_file
+    resp = requests.get(blobpath)
+  File "/usr/local/lib/python3.10/dist-packages/requests/api.py", line 73, in get
+    return request("get", url, params=params, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/requests/api.py", line 59, in request
+    return session.request(method=method, url=url, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/requests/sessions.py", line 589, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/requests/sessions.py", line 703, in send
+    r = adapter.send(request, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/requests/adapters.py", line 700, in send
+    raise ConnectionError(e, request=request)
+requests.exceptions.ConnectionError: HTTPSConnectionPool(host='openaipublic.blob.core.windows.net', port=443): Max retries exceeded with url: /gpt-2/encodings/main/vocab.bpe (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x4000b0f75f60>: Failed to establish a new connection: [Errno 101] Network is unreachable'))
