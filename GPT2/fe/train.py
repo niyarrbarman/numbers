@@ -44,6 +44,7 @@ wandb_project = 'owt'
 wandb_run_name = 'gpt2-fe'
 # data
 dataset = 'openwebtext'
+data_dir = ''  # override to set absolute path; if empty, uses data/{dataset}
 gradient_accumulation_steps = 5 * 8
 batch_size = 12
 block_size = 1024
@@ -124,7 +125,9 @@ ptdtype = {'float32': torch.float32, 'bfloat16': torch.bfloat16, 'float16': torc
 ctx = nullcontext() if device_type == 'cpu' else torch.amp.autocast(device_type=device_type, dtype=ptdtype)
 
 # poor man's data loader (dual-stream: tokens + numbers)
-data_dir = os.path.join('data', dataset)
+if not data_dir:
+    data_dir = os.path.join('data', dataset)
+print(f"data directory: {data_dir}")
 
 
 def get_batch(split):

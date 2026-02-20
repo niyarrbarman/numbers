@@ -22,6 +22,10 @@ NUM_EMB_CHECKPOINT="${NUM_EMB_CHECKPOINT:-${REPO_DIR}/checkpoints/np_emb_v8_500k
 # Dataset: 'sorting' for synthetic sorting data, 'openwebtext' for OWT
 DATASET="${DATASET:-sorting}"
 
+# Data directory: absolute path to the folder containing {train,val}.bin
+# Default: GPT2/fe/data/{DATASET}
+DATA_DIR="${DATA_DIR:-${TRAIN_DIR}/data/${DATASET}}"
+
 module load gnu/11.2.0
 
 apptainer exec \
@@ -33,11 +37,13 @@ apptainer exec \
     TRAIN_DIR="${TRAIN_DIR}" \
     NUM_EMB_CHECKPOINT="${NUM_EMB_CHECKPOINT}" \
     DATASET="${DATASET}" \
+    DATA_DIR="${DATA_DIR}" \
   bash -c '
     set -euo pipefail
     cd "${TRAIN_DIR}"
     python3 -c "import torch; print(f\"PyTorch {torch.__version__}, CUDA: {torch.cuda.is_available()}, GPU: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else None}\")"
     python3 train.py \
       dataset="${DATASET}" \
+      data_dir="${DATA_DIR}" \
       num_emb_checkpoint="${NUM_EMB_CHECKPOINT}"
   '
