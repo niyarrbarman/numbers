@@ -24,6 +24,12 @@ DATASET="${DATASET:-sorting}"
 # Data directory: absolute path to the folder containing {train,val}.bin
 DATA_DIR="/tmpdir/m24047brmn/numbers/data/"
 
+# Training iterations (lr_decay_iters auto-set to match)
+MAX_ITERS="${MAX_ITERS:-50000}"
+
+# Output directory for checkpoints
+OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/model_checkpoints}"
+
 GPUS_PER_NODE=2
 
 # Multi-node coordination
@@ -40,6 +46,8 @@ echo "  Total GPUs:     $((SLURM_NNODES * GPUS_PER_NODE))"
 echo "  Dataset:        ${DATASET}"
 echo "  Data dir:       ${DATA_DIR}"
 echo "  Checkpoint:     ${NUM_EMB_CHECKPOINT}"
+echo "  Max iters:      ${MAX_ITERS}"
+echo "  Out dir:        ${OUT_DIR}"
 echo "  Master:         ${MASTER_ADDR}:${MASTER_PORT}"
 echo "=========================================="
 
@@ -60,7 +68,10 @@ srun apptainer exec \
     ${TRAIN_DIR}/train.py \
       dataset="${DATASET}" \
       data_dir="${DATA_DIR}" \
-      num_emb_checkpoint="${NUM_EMB_CHECKPOINT}"
+      num_emb_checkpoint="${NUM_EMB_CHECKPOINT}" \
+      out_dir="${OUT_DIR}" \
+      max_iters="${MAX_ITERS}" \
+      lr_decay_iters="${MAX_ITERS}"
 
 status=$?
 echo "=========================================="

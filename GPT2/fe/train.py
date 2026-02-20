@@ -31,8 +31,8 @@ from model import GPTConfig, GPT, NUM_TOKEN_ID
 # -----------------------------------------------------------------------------
 # default config values designed to train a gpt2 (124M) on OpenWebText
 # I/O
-out_dir = 'out'
-eval_interval = 2000
+out_dir = '/tmpdir/m24047brmn/numbers/model_checkpoints'
+eval_interval = 5000
 log_interval = 1
 eval_iters = 200
 eval_only = False
@@ -61,7 +61,7 @@ num_head_hidden = 256
 num_loss_lambda = 1.0
 # adamw optimizer
 learning_rate = 6e-4
-max_iters = 600000
+max_iters = 50000
 weight_decay = 1e-1
 beta1 = 0.9
 beta2 = 0.95
@@ -69,7 +69,7 @@ grad_clip = 1.0
 # learning rate decay settings
 decay_lr = True
 warmup_iters = 2000
-lr_decay_iters = 600000
+lr_decay_iters = 50000  # should match max_iters for full cosine schedule
 min_lr = 6e-5
 # DDP settings
 backend = 'nccl'
@@ -310,7 +310,6 @@ while True:
                 "mfu": running_mfu * 100,
             })
         if losses['val'] < best_val_loss or always_save_checkpoint:
-            best_val_loss = losses['val']
             if iter_num > 0:
                 checkpoint = {
                     'model': raw_model.state_dict(),
@@ -320,8 +319,16 @@ while True:
                     'best_val_loss': best_val_loss,
                     'config': config,
                 }
-                print(f"saving checkpoint to {out_dir}")
+                # Always save latest (for resume)
                 torch.save(checkpoint, os.path.join(out_dir, 'ckpt.pt'))
+                # Save periodic snapshot
+                torch.save(checkpoint, os.path.join(out_dir, f'ckpt_iter{iter_num}.pt'))
+                print(f"saving checkpoint to {out_dir}/ckpt_iter{iter_num}.pt")
+                # Save best separately
+                if losses['val'] < best_val_loss:
+                    torch.save(checkpoint, os.path.join(out_dir, 'ckpt_best.pt'))
+                    print(f"  new best val loss: {losses['val']:.4f}")
+            best_val_loss = losses['val']
     if iter_num == 0 and eval_only:
         break
 
