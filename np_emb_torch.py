@@ -539,12 +539,11 @@ def run_tests(system: Optional[NumberEmbeddingSystem] = None, device: torch.devi
 
 def save_checkpoint(system: NumberEmbeddingSystem, num_steps: int,
                     checkpoint_dir: str = "/tmpdir/m24047brmn/numbers/checkpoints"):
-    """Save model state dict and reference embeddings."""
+    """Save model state dict."""
     os.makedirs(checkpoint_dir, exist_ok=True)
 
     tag = f"np_emb_v8_{num_steps // 1000}k"
 
-    # Save model state dict
     model_path = os.path.join(checkpoint_dir, f"{tag}_model.pt")
     torch.save({
         'state_dict': system.state_dict(),
@@ -552,22 +551,6 @@ def save_checkpoint(system: NumberEmbeddingSystem, num_steps: int,
         'num_steps': num_steps,
     }, model_path)
     print(f"  Model saved: {model_path}")
-
-    # Save reference embeddings for visualization
-    ref_pos = np.exp(np.linspace(-14, 14, 1000))
-    ref_neg = -np.exp(np.linspace(-14, 14, 1000))
-    ref_zero = np.linspace(-1, 1, 200)
-    ref_numbers = np.concatenate([ref_neg[::-1], ref_zero, ref_pos])
-
-    ref_embs = _encode_np(system, ref_numbers)
-    _, ref_recon = _forward_np(system, ref_numbers)
-
-    emb_path = os.path.join(checkpoint_dir, f"{tag}_embeddings.npz")
-    np.savez(emb_path,
-             numbers=ref_numbers,
-             embeddings=ref_embs,
-             reconstructions=ref_recon)
-    print(f"  Embeddings saved: {emb_path} ({len(ref_numbers)} reference points)")
 
 
 # =============================================================================

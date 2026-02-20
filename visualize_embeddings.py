@@ -1,11 +1,14 @@
 """
 Number Embedding Visualization
 ================================
-Loads saved reference embeddings and produces UMAP/t-SNE + PCA plots.
+Loads a model checkpoint, encodes a custom number distribution,
+and produces UMAP/t-SNE + PCA plots.
 
 Usage:
-  python3 visualize_embeddings.py --embeddings /path/to/np_emb_v8_500k_embeddings.npz
-  python3 visualize_embeddings.py  # auto-finds latest checkpoint
+  python3 visualize_embeddings.py --checkpoint /path/to/np_emb_v8_500k_model.pt
+  python3 visualize_embeddings.py --range 5000        # U(-5000, 5000)
+  python3 visualize_embeddings.py --range 1000 --n 5000  # 5000 samples from U(-1000, 1000)
+  python3 visualize_embeddings.py                      # auto-finds latest checkpoint, U(-1000, 1000)
 
 Outputs saved to: /tmpdir/m24047brmn/numbers/plots/
 """
@@ -15,6 +18,7 @@ import sys
 import argparse
 import glob
 
+import torch
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')  # headless
@@ -30,29 +34,59 @@ except ImportError:
     HAS_UMAP = False
 from sklearn.manifold import TSNE
 
+# Add repo dir so we can import the model
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from np_emb_torch import NumberEmbeddingSystem
 
 PLOT_DIR = "/tmpdir/m24047brmn/numbers/plots"
 CHECKPOINT_DIR = "/tmpdir/m24047brmn/numbers/checkpoints"
 
 
-def find_latest_embeddings():
-    """Find the most recent embeddings .npz file."""
-    pattern = os.path.join(CHECKPOINT_DIR, "*_embeddings.npz")
+def find_latest_checkpoint():
+    """Find the most recent model .pt file."""
+    pattern = os.path.join(CHECKPOINT_DIR, "*_model.pt")
     files = sorted(glob.glob(pattern), key=os.path.getmtime)
     if not files:
-        print(f"No embedding files found in {CHECKPOINT_DIR}")
+        print(f"No checkpoint files found in {CHECKPOINT_DIR}")
         sys.exit(1)
     return files[-1]
 
 
-def load_embeddings(path):
-    """Load saved reference embeddings."""
-    data = np.load(path)
-    print(f"Loaded: {path}")
-    print(f"  Numbers: {data['numbers'].shape}")
-    print(f"  Embeddings: {data['embeddings'].shape}")
-    print(f"  Reconstructions: {data['reconstructions'].shape}")
-    return data['numbers'], data['embeddings'], data['reconstructions']
+def load_model(checkpoint_path, device):
+    """Load model from checkpoint."""
+    ckpt = torch.load(checkpoint_path, map_location=device, weights_only=False)
+    embedding_dim = ckpt.get('embedding_dim', 128)
+    system = NumberEmbeddingSystem(embedding_dim=embedding_dim, device=device)
+    system.load_state_dict(ckpt['state_dict'])
+    system.eval()
+    num_steps = ckpt.get('num_steps', '?')
+    print(f"Loaded: {checkpoint_path}")
+    print(f"  Embedding dim: {embedding_dim}, trained for {num_steps} steps")
+    return system
+
+
+def generate_numbers(range_max, n_samples, seed=42):
+    """Generate U(-range_max, range_max) samples."""
+    rng = np.random.RandomState(seed)
+    numbers = rng.uniform(-range_max, range_max, size=n_samples).astype(np.float32)
+    # Sort for nicer visualization
+    numbers.sort()
+    print(f"  Generated {n_samples} numbers from U(-{range_max}, {range_max})")
+    return numbers
+
+
+def encode_numbers(system, numbers):
+    """Encode numbers through model, return embeddings and reconstructions."""
+    with torch.no_grad():
+        x = torch.tensor(numbers, device=system.device)
+        emb, recon, _ = system.forward(x)
+        embeddings = emb.cpu().numpy()
+        reconstructions = recon.cpu().numpy()
+    abs_err = np.abs(numbers - reconstructions)
+    rel_err = abs_err / (np.abs(numbers) + 1e-8)
+    print(f"  Encoded {len(numbers)} numbers → {embeddings.shape}")
+    print(f"  Reconstruction: mean rel err {rel_err.mean():.4%}, max {rel_err.max():.4%}")
+    return embeddings, reconstructions
 
 
 def project_2d(embeddings, method="umap"):
@@ -168,7 +202,6 @@ def plot_reconstruction_error(coords_2d, numbers, reconstructions, method_name, 
 
     abs_err = np.abs(numbers - reconstructions)
     rel_err = abs_err / (np.abs(numbers) + 1e-8)
-    # Cap relative error for visualization
     rel_err_capped = np.clip(rel_err, 0, 1.0)
 
     sc = ax.scatter(coords_2d[:, 0], coords_2d[:, 1], c=rel_err_capped,
@@ -187,8 +220,14 @@ def plot_reconstruction_error(coords_2d, numbers, reconstructions, method_name, 
 
 def main():
     parser = argparse.ArgumentParser(description="Visualize number embeddings")
-    parser.add_argument("--embeddings", type=str, default=None,
-                        help="Path to embeddings .npz file (auto-detects if not given)")
+    parser.add_argument("--checkpoint", type=str, default=None,
+                        help="Path to model .pt checkpoint (auto-detects if not given)")
+    parser.add_argument("--range", type=float, default=1000.0, dest="range_max",
+                        help="Sample from U(-RANGE, RANGE) (default: 1000)")
+    parser.add_argument("--n", type=int, default=2000,
+                        help="Number of samples to encode (default: 2000)")
+    parser.add_argument("--seed", type=int, default=42,
+                        help="Random seed (default: 42)")
     parser.add_argument("--plot-dir", type=str, default=PLOT_DIR,
                         help=f"Output directory for plots (default: {PLOT_DIR})")
     args = parser.parse_args()
@@ -196,9 +235,16 @@ def main():
     plot_dir = args.plot_dir
     os.makedirs(plot_dir, exist_ok=True)
 
-    emb_path = args.embeddings or find_latest_embeddings()
-    numbers, embeddings, reconstructions = load_embeddings(emb_path)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    # Load model
+    ckpt_path = args.checkpoint or find_latest_checkpoint()
+    system = load_model(ckpt_path, device)
+    print()
+
+    # Generate and encode numbers
+    numbers = generate_numbers(args.range_max, args.n, args.seed)
+    embeddings, reconstructions = encode_numbers(system, numbers)
     print()
 
     # Non-linear projection (UMAP or t-SNE)
