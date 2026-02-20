@@ -10,20 +10,28 @@ Embeds numerical values into high-dimensional vectors preserving:
   4. Expressiveness — captures multi-scale numerical structure
   5. Compatibility  — standard arrays, differentiable, integrable
 
-Architecture (v7 — PyTorch port with improvements):
+Architecture (v8 — anti-collapse fixes):
   Encoder:  x ∈ ℝ  →  e(x) ∈ ℝ^d
-    Channel 1: Split Fourier — 16 linear-freq + 16 log-freq (64 dims)
+    Channel 1: Fourier — 32 linear-freq (64 dims)
     Channel 2: Log-magnitude (1 dim)
     Channel 3: Smooth sign (1 dim)
     Channel 4: Polynomial basis (5 dims)
-    → Learned linear (71 → 126) → LayerNorm → concat [log_norm, mean] → ℝ^128
+    → Learned linear (71 → 127) → LayerNorm → concat [log_norm] → ℝ^128
 
   Decoder:  e(x) ∈ ℝ^d  →  x̂ ∈ ℝ
     3-layer MLP with GELU + residual skip, predicts sign * exp(log_mag)
 
   Training:
-    L = signed_log_MSE + 0.1·BCE_sign + 0.3·log_mag_MSE + 0.5·rel_MSE (phase 2, ramped)
-    AdamW optimiser, trained on log-uniform samples, batch 4096, 500k steps.
+    L = signed_log_MSE + 0.1·BCE_sign + 0.3·log_mag_MSE
+        + 0.3·rel_MSE (phase 2, ramped) + 0.05·spread_loss
+    AdamW optimiser, trained on log-uniform samples, batch 512, 500k steps.
+
+  v8 changes from v7:
+    - Reverted to 32 linear-only Fourier (was split 16+16 log)
+    - 1 reserved dim (was 2) — dropped redundant proj_mean
+    - Batch 512 (was 4096) — prevents embedding collapse
+    - Spread loss (λ=0.05) — penalizes high pairwise cosine similarity
+    - Relative MSE weight 0.3 (was 0.5), ramp at 40-50% (was 30-40%)
 """
 
 import math
@@ -58,34 +66,24 @@ def get_device() -> torch.device:
 # =============================================================================
 
 class FourierChannel(nn.Module):
-    """Split Fourier encoding: 16 linear-freq + 16 log-freq channels.
+    """Fourier encoding: 32 linear-frequency channels.
 
-    Linear branch: sin/cos at geometrically-spaced ω applied to raw x.
-    Log branch: sin/cos at same ω applied to log(|x|+1).
-    Amplitude damping 1/√(1+k) on both branches.
+    sin/cos at geometrically-spaced ω applied to raw x.
+    Amplitude damping 1/√(1+k) for stability.
     Total output: 64 dims.
     """
-    def __init__(self, num_each: int = 16, freq_base: float = 0.1, freq_scale: float = 1.5):
+    def __init__(self, num_freq: int = 32, freq_base: float = 0.1, freq_scale: float = 1.5):
         super().__init__()
-        k = torch.arange(num_each, dtype=torch.float32)
+        k = torch.arange(num_freq, dtype=torch.float32)
         self.register_buffer('frequencies', freq_base * (freq_scale ** k))
         self.register_buffer('amplitudes', 1.0 / torch.sqrt(1.0 + k))
-        self.output_dim = 4 * num_each  # 64
+        self.output_dim = 2 * num_freq  # 64
 
     def forward(self, x: Tensor) -> Tensor:
-        log_x = torch.log1p(torch.abs(x))  # log(|x|+1), maps 0→0
-
-        # Linear branch
-        phases_lin = x.unsqueeze(-1) * self.frequencies
-        sin_lin = torch.sin(phases_lin) * self.amplitudes
-        cos_lin = torch.cos(phases_lin) * self.amplitudes
-
-        # Log-space branch
-        phases_log = log_x.unsqueeze(-1) * self.frequencies
-        sin_log = torch.sin(phases_log) * self.amplitudes
-        cos_log = torch.cos(phases_log) * self.amplitudes
-
-        return torch.cat([sin_lin, cos_lin, sin_log, cos_log], dim=-1)
+        phases = x.unsqueeze(-1) * self.frequencies
+        sin_f = torch.sin(phases) * self.amplitudes
+        cos_f = torch.cos(phases) * self.amplitudes
+        return torch.cat([sin_f, cos_f], dim=-1)
 
 
 class LogMagnitudeChannel(nn.Module):
@@ -131,17 +129,17 @@ class PolynomialChannel(nn.Module):
 # =============================================================================
 
 class NumberEncoder(nn.Module):
-    def __init__(self, embedding_dim: int = 128, num_frequencies: int = 16, poly_degree: int = 5):
+    def __init__(self, embedding_dim: int = 128, num_frequencies: int = 32, poly_degree: int = 5):
         super().__init__()
         self.embedding_dim = embedding_dim
-        self.fourier = FourierChannel(num_each=num_frequencies)
+        self.fourier = FourierChannel(num_freq=num_frequencies)
         self.log_mag = LogMagnitudeChannel()
         self.sign = SignChannel()
         self.poly = PolynomialChannel(poly_degree)
         self.raw_dim = (self.fourier.output_dim + self.log_mag.output_dim
                         + self.sign.output_dim + self.poly.output_dim)
-        # Project to (d-2) so we can append 2 reserved dims
-        self.proj = nn.Linear(self.raw_dim, embedding_dim - 2)
+        # Project to (d-1) so we can append 1 reserved dim (log_norm)
+        self.proj = nn.Linear(self.raw_dim, embedding_dim - 1)
         nn.init.kaiming_normal_(self.proj.weight, nonlinearity='relu')
         nn.init.zeros_(self.proj.bias)
 
@@ -153,19 +151,18 @@ class NumberEncoder(nn.Module):
             self.poly(x),
         ], dim=-1)                                          # (N, 71)
 
-        projected = self.proj(raw)                          # (N, 126)
+        projected = self.proj(raw)                          # (N, 127)
 
-        # Reserve 2 extra dims: log_norm and mean (computed BEFORE LayerNorm)
+        # Reserve 1 dim: log_norm (computed BEFORE LayerNorm)
         proj_norm = projected.norm(dim=-1, keepdim=True)    # (N, 1)
         log_norm = torch.log(proj_norm + 1e-8)              # (N, 1)
-        proj_mean = projected.mean(dim=-1, keepdim=True)    # (N, 1)
 
-        # Manual LayerNorm on 126 dims (no learnable γ/β)
+        # Manual LayerNorm on 127 dims (no learnable γ/β)
         p_mean = projected.mean(dim=-1, keepdim=True)
         p_var = projected.var(dim=-1, keepdim=True, unbiased=False)
         normed = (projected - p_mean) / torch.sqrt(p_var + 1e-5)
 
-        return torch.cat([normed, log_norm, proj_mean], dim=-1)  # (N, 128)
+        return torch.cat([normed, log_norm], dim=-1)        # (N, 128)
 
 
 # =============================================================================
@@ -202,7 +199,7 @@ class NumberDecoder(nn.Module):
 # =============================================================================
 
 class NumberEmbeddingSystem(nn.Module):
-    def __init__(self, embedding_dim: int = 128, num_frequencies: int = 16,
+    def __init__(self, embedding_dim: int = 128, num_frequencies: int = 32,
                  poly_degree: int = 5, device: torch.device = None):
         super().__init__()
         if device is None:
@@ -226,8 +223,8 @@ class NumberEmbeddingSystem(nn.Module):
         recon, sign_logit = self.decode(emb)
         return emb, recon, sign_logit
 
-    def compute_loss(self, x: Tensor, recon: Tensor, sign_logit: Tensor,
-                     lam_rel: float) -> Tensor:
+    def compute_loss(self, x: Tensor, emb: Tensor, recon: Tensor,
+                     sign_logit: Tensor, lam_rel: float) -> Tensor:
         eps_lm = 1e-8
         eps_bce = 1e-7
 
@@ -251,33 +248,43 @@ class NumberEmbeddingSystem(nn.Module):
         # Term 4: Relative MSE (phase 2, ramped)
         loss_rel = torch.mean((recon - x) ** 2 / (x * x + 1.0))
 
-        return loss_slog + 0.1 * loss_bce + 0.3 * loss_lm + lam_rel * loss_rel
+        # Term 5: Embedding spread loss — penalize high cosine similarity
+        # Sample a mini-batch of pairs to keep cost O(n) not O(n²)
+        n = emb.shape[0]
+        idx = torch.randperm(n, device=emb.device)
+        emb_shuffled = emb[idx]
+        cos_sim = F.cosine_similarity(emb, emb_shuffled, dim=-1)  # (N,)
+        # Push cosine similarity of different numbers toward 0
+        loss_spread = torch.mean(cos_sim ** 2)
 
-    def train_model(self, num_steps: int = 500000, batch_size: int = 4096,
+        return (loss_slog + 0.1 * loss_bce + 0.3 * loss_lm
+                + lam_rel * loss_rel + 0.05 * loss_spread)
+
+    def train_model(self, num_steps: int = 500000, batch_size: int = 512,
                     lr: float = 5e-4, log_interval: int = 5000,
                     warmup_steps: int = 2000, grad_clip: float = 1.0):
         optimizer = torch.optim.AdamW(self.parameters(), lr=lr,
                                        betas=(0.9, 0.999), eps=1e-8,
                                        weight_decay=1e-5)
         losses = []
-        phase2_start = int(num_steps * 0.30)
-        phase2_end = int(num_steps * 0.40)
+        phase2_start = int(num_steps * 0.40)
+        phase2_end = int(num_steps * 0.50)
 
         self.train()
         for step in range(1, num_steps + 1):
-            # Phase-2 lambda ramp
+            # Phase-2 lambda ramp (reduced weight: 0.3 max)
             if step < phase2_start:
                 lam_rel = 0.0
             elif step < phase2_end:
-                lam_rel = 0.5 * (step - phase2_start) / (phase2_end - phase2_start)
+                lam_rel = 0.3 * (step - phase2_start) / (phase2_end - phase2_start)
             else:
-                lam_rel = 0.5
+                lam_rel = 0.3
 
             x = sample_training_numbers(batch_size, self.device)
 
             optimizer.zero_grad()
             emb, recon, sign_logit = self.forward(x)
-            loss = self.compute_loss(x, recon, sign_logit, lam_rel)
+            loss = self.compute_loss(x, emb, recon, sign_logit, lam_rel)
             loss.backward()
             nn.utils.clip_grad_norm_(self.parameters(), grad_clip)
 
@@ -355,7 +362,7 @@ def run_tests(system: Optional[NumberEmbeddingSystem] = None, device: torch.devi
         print("TRAINING NUMBER EMBEDDING SYSTEM")
         print("=" * 70)
         system = NumberEmbeddingSystem(embedding_dim=128, device=device)
-        system.train_model(num_steps=500000, batch_size=4096, lr=5e-4,
+        system.train_model(num_steps=500000, batch_size=512, lr=5e-4,
                            log_interval=5000)
         print()
 
@@ -527,6 +534,43 @@ def run_tests(system: Optional[NumberEmbeddingSystem] = None, device: torch.devi
 
 
 # =============================================================================
+# Checkpoint Saving
+# =============================================================================
+
+def save_checkpoint(system: NumberEmbeddingSystem, num_steps: int,
+                    checkpoint_dir: str = "/tmpdir/m24047brmn/numbers/checkpoints"):
+    """Save model state dict and reference embeddings."""
+    os.makedirs(checkpoint_dir, exist_ok=True)
+
+    tag = f"np_emb_v8_{num_steps // 1000}k"
+
+    # Save model state dict
+    model_path = os.path.join(checkpoint_dir, f"{tag}_model.pt")
+    torch.save({
+        'state_dict': system.state_dict(),
+        'embedding_dim': system.embedding_dim,
+        'num_steps': num_steps,
+    }, model_path)
+    print(f"  Model saved: {model_path}")
+
+    # Save reference embeddings for visualization
+    ref_pos = np.exp(np.linspace(-14, 14, 1000))
+    ref_neg = -np.exp(np.linspace(-14, 14, 1000))
+    ref_zero = np.linspace(-1, 1, 200)
+    ref_numbers = np.concatenate([ref_neg[::-1], ref_zero, ref_pos])
+
+    ref_embs = _encode_np(system, ref_numbers)
+    _, ref_recon = _forward_np(system, ref_numbers)
+
+    emb_path = os.path.join(checkpoint_dir, f"{tag}_embeddings.npz")
+    np.savez(emb_path,
+             numbers=ref_numbers,
+             embeddings=ref_embs,
+             reconstructions=ref_recon)
+    print(f"  Embeddings saved: {emb_path} ({len(ref_numbers)} reference points)")
+
+
+# =============================================================================
 # Demo
 # =============================================================================
 
@@ -556,9 +600,9 @@ def demo(num_steps: int = 500000, device: torch.device = None):
               f"[{', '.join(f'{v:.3f}' for v in emb[:5])}...]")
     print()
 
-    print(f"Training ({num_steps} steps, batch 4096)...")
+    print(f"Training ({num_steps} steps, batch 512)...")
     t0 = time.time()
-    system.train_model(num_steps=num_steps, batch_size=4096, lr=5e-4,
+    system.train_model(num_steps=num_steps, batch_size=512, lr=5e-4,
                        log_interval=max(1, num_steps // 100))
     print(f"  Done in {time.time() - t0:.1f}s\n")
 
@@ -624,9 +668,11 @@ if __name__ == "__main__":
         if args.test_only:
             run_tests(device=device)
         elif args.demo_only:
-            demo(num_steps=args.max_steps, device=device)
+            system = demo(num_steps=args.max_steps, device=device)
+            save_checkpoint(system, args.max_steps)
         else:
             system = demo(num_steps=args.max_steps, device=device)
+            save_checkpoint(system, args.max_steps)
             print()
             run_tests(system, device=device)
     finally:
