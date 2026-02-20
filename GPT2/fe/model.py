@@ -270,7 +270,7 @@ class GPT(nn.Module):
                 num_emb = self.num_encoder(num_vals_flat.float())  # (K, 128)
             num_proj = self.num_adapter(num_emb)   # (K, n_embd)
             tok_emb = tok_emb.clone()
-            tok_emb[num_mask] = num_proj
+            tok_emb[num_mask] = num_proj.to(tok_emb.dtype)
 
         x = self.transformer.drop(tok_emb + pos_emb)
 
