@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -J gen-sort-data
+#SBATCH -J gen-numtasks
 #SBATCH -N 1
 #SBATCH -n 1
 #SBATCH -p small
@@ -45,6 +45,7 @@ apptainer exec \
       --n-val "${N_VAL}" \
       --max-len "${MAX_LEN}" \
       --number-range "${NUMBER_RANGE}" \
+      --block-size 256 \
       --allow-negative \
       --out-dir "/tmpdir/m24047brmn/numbers/data" \
       --allow-float
