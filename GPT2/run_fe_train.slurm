@@ -19,10 +19,10 @@ IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest
 NUM_EMB_CHECKPOINT="/tmpdir/m24047brmn/numbers/checkpoints/np_emb_v8_500k_model.pt"
 
 # Dataset: 'sorting' for synthetic sorting data, 'openwebtext' for OWT
-DATASET="${DATASET:-sorting}"
+DATASET="${DATASET:-numtasks}"
 
 # Data directory: absolute path to the folder containing {train,val}.bin
-DATA_DIR="/tmpdir/m24047brmn/numbers/data/"
+DATA_DIR="/tmpdir/m24047brmn/numbers/data/numtasks"
 
 # Training iterations (lr_decay_iters auto-set to match)
 MAX_ITERS="${MAX_ITERS:-50000}"

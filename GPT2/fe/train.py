@@ -34,6 +34,7 @@ from model import GPTConfig, GPT, NUM_TOKEN_ID
 out_dir = '/tmpdir/m24047brmn/numbers/model_checkpoints'
 eval_interval = 5000
 log_interval = 1
+diag_interval = 500
 eval_iters = 200
 eval_only = False
 always_save_checkpoint = True
@@ -364,6 +365,57 @@ while True:
             running_mfu = mfu if running_mfu == -1.0 else 0.9 * running_mfu + 0.1 * mfu
         print(f"iter {iter_num}: loss {lossf:.4f}, time {dt * 1000:.2f}ms, "
               f"mfu {running_mfu * 100:.2f}%")
+
+    # --- Detailed diagnostics every diag_interval steps ---
+    if iter_num % diag_interval == 0 and master_process:
+        text_loss_val = getattr(raw_model, '_last_text_loss', 0.0)
+        num_loss_val = getattr(raw_model, '_last_num_loss', 0.0)
+        num_count = getattr(raw_model, '_last_num_count', 0)
+        total_tokens = getattr(raw_model, '_last_total_tokens', 1)
+        num_pct = num_count / total_tokens * 100
+
+        # Gradient norms by component
+        grad_norm_total = 0.0
+        grad_norm_adapter = 0.0
+        grad_norm_numhead = 0.0
+        grad_norm_transformer = 0.0
+        for name, p in raw_model.named_parameters():
+            if p.grad is not None:
+                pnorm = p.grad.data.norm(2).item() ** 2
+                grad_norm_total += pnorm
+                if 'num_adapter' in name:
+                    grad_norm_adapter += pnorm
+                elif 'num_head' in name:
+                    grad_norm_numhead += pnorm
+                else:
+                    grad_norm_transformer += pnorm
+        grad_norm_total = grad_norm_total ** 0.5
+        grad_norm_adapter = grad_norm_adapter ** 0.5
+        grad_norm_numhead = grad_norm_numhead ** 0.5
+        grad_norm_transformer = grad_norm_transformer ** 0.5
+
+        print(f"  === DIAG iter {iter_num} ===")
+        print(f"  loss breakdown: text {text_loss_val:.4f} | num {num_loss_val:.4f} "
+              f"(lambda={num_loss_lambda})")
+        print(f"  grads: total {grad_norm_total:.4f}, "
+              f"transformer {grad_norm_transformer:.4f}, "
+              f"adapter {grad_norm_adapter:.4f}, "
+              f"num_head {grad_norm_numhead:.4f}")
+        print(f"  nums: {num_count}/{total_tokens} tokens ({num_pct:.1f}%)")
+        print(f"  lr: {lr:.2e}")
+
+        if wandb_log:
+            wandb.log({
+                "iter": iter_num,
+                "train/text_loss": text_loss_val,
+                "train/num_loss": num_loss_val,
+                "train/num_pct": num_pct,
+                "grad/total": grad_norm_total,
+                "grad/transformer": grad_norm_transformer,
+                "grad/adapter": grad_norm_adapter,
+                "grad/num_head": grad_norm_numhead,
+                "lr": lr,
+            })
     iter_num += 1
     local_iter_num += 1
 

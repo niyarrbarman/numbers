@@ -301,6 +301,12 @@ class GPT(nn.Module):
                 num_loss = F.mse_loss(slog_pred, slog_target)
 
             loss = text_loss + self.config.num_loss_lambda * num_loss
+
+            # Store decomposed losses for diagnostics
+            self._last_text_loss = text_loss.item()
+            self._last_num_loss = num_loss.item()
+            self._last_num_count = int(target_num_mask.sum().item())
+            self._last_total_tokens = b * t
         else:
             # --- Inference ---
             self._last_hidden = x  # cache for generate()
