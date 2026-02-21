@@ -35,7 +35,7 @@ from model import GPTConfig, GPT, NUM_TOKEN_ID
 from prepare import (
     SME_SIGN_POS, SME_SIGN_NEG, SME_EXP_BASE, SME_N_EXP,
     SME_DIGIT_BASE, SME_ALL_TOKENS, SME_TOKENS_PER_NUM,
-    sme_tokens_to_number,
+    SME_N_DIGITS, sme_tokens_to_number,
 )
 
 
