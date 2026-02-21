@@ -18,12 +18,11 @@ IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest
 # Path to pretrained NumberEncoder checkpoint
 NUM_EMB_CHECKPOINT="/tmpdir/m24047brmn/numbers/checkpoints/np_emb_v8_500k_model.pt"
 
-# Dataset: 'sorting' for synthetic sorting data, 'openwebtext' for OWT
-DATASET="${DATASET:-numtasks}"
+# Dataset
+DATASET="${DATASET:-numtasks_reasoning}"
 
-# Curriculum learning: base dir containing 100/, 1000/, 10000/, 100000/ subfolders
-CURRICULUM_BASE="/tmpdir/m24047brmn/numbers/data/numtasks"
-CURRICULUM_STAGES="100:0,1000:5000,10000:15000,100000:30000"
+# Data directory: absolute path to the folder containing {train,val}.bin
+DATA_DIR="/tmpdir/m24047brmn/numbers/data/numtasks_reasoning"
 
 # Training iterations (lr_decay_iters auto-set to match)
 MAX_ITERS="${MAX_ITERS:-50000}"
@@ -45,8 +44,7 @@ echo "  Nodes:          ${SLURM_NNODES}"
 echo "  GPUs/node:      ${GPUS_PER_NODE}"
 echo "  Total GPUs:     $((SLURM_NNODES * GPUS_PER_NODE))"
 echo "  Dataset:        ${DATASET}"
-echo "  Curriculum:     ${CURRICULUM_BASE}"
-echo "  Stages:         ${CURRICULUM_STAGES}"
+echo "  Data dir:       ${DATA_DIR}"
 echo "  Checkpoint:     ${NUM_EMB_CHECKPOINT}"
 echo "  Max iters:      ${MAX_ITERS}"
 echo "  Out dir:        ${OUT_DIR}"
@@ -69,8 +67,7 @@ srun apptainer exec \
     --rdzv_endpoint="${MASTER_ADDR}:${MASTER_PORT}" \
     ${TRAIN_DIR}/train.py \
       dataset="${DATASET}" \
-      curriculum_base_dir="${CURRICULUM_BASE}" \
-      curriculum_stages="${CURRICULUM_STAGES}" \
+      data_dir="${DATA_DIR}" \
       num_emb_checkpoint="${NUM_EMB_CHECKPOINT}" \
       out_dir="${OUT_DIR}" \
       max_iters="${MAX_ITERS}" \

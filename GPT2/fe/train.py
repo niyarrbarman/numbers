@@ -47,10 +47,6 @@ wandb_run_name = 'gpt2-fe'
 # data
 dataset = 'openwebtext'
 data_dir = ''  # override to set absolute path; if empty, uses data/{dataset}
-# curriculum learning: list of (start_iter, data_dir) pairs, sorted by start_iter
-# set via curriculum_base_dir + curriculum_stages, or leave empty to disable
-curriculum_base_dir = ''  # e.g. /tmpdir/m24047brmn/numbers/data/numtasks
-curriculum_stages = '100:0,1000:5000,10000:15000,100000:30000'  # subfolder:start_iter
 gradient_accumulation_steps = 5 * 8
 batch_size = 12
 block_size = 256
@@ -131,22 +127,8 @@ ptdtype = {'float32': torch.float32, 'bfloat16': torch.bfloat16, 'float16': torc
 ctx = nullcontext() if device_type == 'cpu' else torch.amp.autocast(device_type=device_type, dtype=ptdtype)
 
 # poor man's data loader (dual-stream: tokens + numbers)
-# --- Curriculum learning setup ---
-curriculum = []
-if curriculum_base_dir:
-    for entry in curriculum_stages.split(','):
-        subfolder, start_iter = entry.strip().split(':')
-        curriculum.append((int(start_iter), os.path.join(curriculum_base_dir, subfolder.strip())))
-    curriculum.sort(key=lambda x: x[0])
-    # start with the first stage
-    data_dir = curriculum[0][1]
-    if master_process:
-        print("Curriculum learning enabled:")
-        for start, path in curriculum:
-            print(f"  iter {start:>6d} -> {path}")
-elif not data_dir:
+if not data_dir:
     data_dir = os.path.join('data', dataset)
-current_curriculum_stage = 0
 print(f"data directory: {data_dir}")
 
 
@@ -316,20 +298,6 @@ while True:
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
-    # --- Curriculum: switch data_dir at stage boundaries ---
-    if curriculum:
-        new_stage = current_curriculum_stage
-        for i, (start, path) in enumerate(curriculum):
-            if iter_num >= start:
-                new_stage = i
-        if new_stage != current_curriculum_stage:
-            current_curriculum_stage = new_stage
-            data_dir = curriculum[new_stage][1]
-            if master_process:
-                print(f"=== CURRICULUM: switching to stage {new_stage} "
-                      f"(range {os.path.basename(data_dir)}) at iter {iter_num} ===")
-                print(f"  data_dir: {data_dir}")
-
     # evaluate the loss on train/val sets and write checkpoints
     if iter_num % eval_interval == 0 and master_process:
         losses = estimate_loss()
@@ -438,6 +406,11 @@ while True:
               f"num_head {grad_norm_numhead:.4f}")
         print(f"  nums: {num_count}/{total_tokens} tokens ({num_pct:.1f}%)")
         print(f"  lr: {lr:.2e}")
+        # Layer weights for number head
+        lw = getattr(raw_model, '_last_layer_weights', None)
+        if lw is not None:
+            lw_str = " ".join(f"L{i}:{w:.3f}" for i, w in enumerate(lw))
+            print(f"  layer_weights: [{lw_str}]")
 
         if wandb_log:
             wandb.log({

@@ -209,10 +209,18 @@ class GPT(nn.Module):
             p.requires_grad = False
         self.num_encoder.eval()
 
-        # 2. Learned adapter: 128d number embedding -> n_embd
-        self.num_adapter = nn.Linear(config.num_emb_dim, config.n_embd)
+        # 2. Learned adapter: 128d number embedding -> n_embd (2-layer with GELU)
+        self.num_adapter = nn.Sequential(
+            nn.Linear(config.num_emb_dim, config.n_embd),
+            nn.GELU(),
+            nn.Linear(config.n_embd, config.n_embd),
+        )
 
-        # 3. Number output head
+        # 3. Learned weighted layer combination for number prediction
+        # One weight per transformer layer — softmax gives the mix
+        self.num_layer_weights = nn.Parameter(torch.zeros(config.n_layer))
+
+        # 4. Number output head (reads weighted combo of all layers)
         self.num_head = NumberOutputHead(config.n_embd, config.num_head_hidden)
 
         # === Standard weight init ===
@@ -274,10 +282,19 @@ class GPT(nn.Module):
 
         x = self.transformer.drop(tok_emb + pos_emb)
 
-        # --- Transformer blocks ---
+        # --- Transformer blocks (collect all layer outputs) ---
+        layer_outputs = []
         for block in self.transformer.h:
             x = block(x)
+            layer_outputs.append(x)
         x = self.transformer.ln_f(x)
+
+        # --- Weighted layer combination for number head ---
+        # layer_outputs: list of n_layer tensors, each (B, T, n_embd)
+        w = F.softmax(self.num_layer_weights, dim=0)  # (n_layer,)
+        # Stack and weight: (n_layer, B, T, n_embd) -> (B, T, n_embd)
+        stacked = torch.stack(layer_outputs, dim=0)    # (n_layer, B, T, n_embd)
+        x_num = (w[:, None, None, None] * stacked).sum(dim=0)  # (B, T, n_embd)
 
         if targets is not None:
             # --- Training: compute combined loss ---
@@ -290,11 +307,11 @@ class GPT(nn.Module):
                 ignore_index=-1
             )
 
-            # 2. Number regression loss (positions predicting a <NUM>)
+            # 2. Number regression loss (using weighted layer combo)
             target_num_mask = (targets == NUM_TOKEN_ID)
             num_loss = torch.tensor(0.0, device=device)
             if target_num_mask.any() and target_num_values is not None:
-                h_num = x[target_num_mask]                          # (M, n_embd)
+                h_num = x_num[target_num_mask]                     # (M, n_embd)
                 slog_pred = self.num_head(h_num)                    # (M,)
                 target_vals = target_num_values[target_num_mask]    # (M,)
                 slog_target = NumberOutputHead.to_signed_log(target_vals)
@@ -307,9 +324,10 @@ class GPT(nn.Module):
             self._last_num_loss = num_loss.item()
             self._last_num_count = int(target_num_mask.sum().item())
             self._last_total_tokens = b * t
+            self._last_layer_weights = w.detach().cpu().tolist()
         else:
             # --- Inference ---
-            self._last_hidden = x  # cache for generate()
+            self._last_hidden = x_num  # use weighted combo for generate()
             logits = self.lm_head(x[:, [-1], :])   # (B, 1, vocab_size)
             loss = None
 
