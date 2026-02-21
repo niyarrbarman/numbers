@@ -46,6 +46,7 @@ out_dir = '/tmpdir/m24047brmn/numbers/model_checkpoints'
 eval_interval = 5000
 log_interval = 1
 diag_interval = 100
+sample_interval = 1000
 eval_iters = 200
 eval_only = False
 always_save_checkpoint = True
@@ -291,7 +292,8 @@ _sme_token_set = torch.tensor(sorted(SME_ALL_TOKENS), dtype=torch.long)
 def compute_sme_accuracy(logits, targets):
     """Compute accuracy of SME token predictions.
 
-    Returns dict with sign_acc, exp_acc, digit_acc, overall_acc, and num_sme.
+    Returns dict with sign, exp, d0, d1, d2, digit (avg), overall accuracies.
+    Digit positions are identified by offset from sign tokens in the target sequence.
     """
     # Move SME token set to same device
     sme_set = _sme_token_set.to(targets.device)
@@ -316,13 +318,164 @@ def compute_sme_accuracy(logits, targets):
             return 0.0
         return (sme_preds[mask] == sme_targets[mask]).float().mean().item()
 
+    # Per-digit breakdown: find sign positions in the FULL target tensor,
+    # then d0=sign+2, d1=sign+3, d2=sign+4
+    B, T = targets.shape
+    flat_targets = targets.view(-1)
+    flat_preds = logits.view(-1, logits.size(-1)).argmax(dim=-1)
+    sign_positions = ((flat_targets == SME_SIGN_POS) | (flat_targets == SME_SIGN_NEG)).nonzero(as_tuple=True)[0]
+
+    d_acc = {}
+    for di in range(SME_N_DIGITS):
+        d_positions = sign_positions + 2 + di  # sign=+0, exp=+1, d0=+2, d1=+3, d2=+4
+        # Filter out-of-bounds
+        valid = d_positions < flat_targets.numel()
+        d_positions = d_positions[valid]
+        if len(d_positions) == 0:
+            d_acc[f'd{di}'] = 0.0
+        else:
+            d_acc[f'd{di}'] = (flat_preds[d_positions] == flat_targets[d_positions]).float().mean().item()
+
     return {
         'overall': overall_acc,
         'sign': acc(sign_mask),
         'exp': acc(exp_mask),
         'digit': acc(digit_mask),
+        'd0': d_acc.get('d0', 0.0),
+        'd1': d_acc.get('d1', 0.0),
+        'd2': d_acc.get('d2', 0.0),
         'n_sme': n_sme,
     }
+
+
+def sme_token_label(tok_id):
+    """Convert SME token ID to human-readable label."""
+    if tok_id == SME_SIGN_POS: return 'S+'
+    if tok_id == SME_SIGN_NEG: return 'S-'
+    if SME_EXP_BASE <= tok_id < SME_EXP_BASE + SME_N_EXP:
+        exp = (tok_id - SME_EXP_BASE) - 5  # SME_EXP_OFFSET = 5
+        return f'E{exp}'
+    if SME_DIGIT_BASE <= tok_id <= SME_DIGIT_BASE + 9:
+        return f'D{tok_id - SME_DIGIT_BASE}'
+    return f'?{tok_id}'
+
+
+def decode_context(token_ids, num_values, enc):
+    """Decode a sequence of token IDs to readable text, showing <NUM:val> for number tokens."""
+    parts = []
+    for i, tok in enumerate(token_ids):
+        if tok == NUM_TOKEN_ID:
+            val = num_values[i]
+            parts.append(f"<{val:g}>")
+        elif tok in SME_ALL_TOKENS:
+            parts.append(sme_token_label(tok))
+        elif tok == 50256:  # EOT
+            break
+        else:
+            try:
+                parts.append(enc.decode([tok]))
+            except Exception:
+                parts.append(f"[{tok}]")
+    return ''.join(parts)
+
+
+@torch.no_grad()
+def eval_samples(max_samples=5):
+    """Run model on val batch, show full task context with predicted vs target numbers."""
+    # Lazy load tiktoken (needs TIKTOKEN_CACHE_DIR set)
+    try:
+        import tiktoken
+        enc = tiktoken.get_encoding("gpt2")
+    except Exception:
+        enc = None
+
+    model.eval()
+    X, Y, NV, NM = get_batch('val')
+    with ctx:
+        logits, loss = model(X, Y, num_values=NV, num_mask=NM)
+    model.train()
+
+    B, T, V = logits.shape
+    preds = logits.argmax(dim=-1)  # (B, T)
+
+    # Find complete task examples: scan for EOT boundaries in X
+    # then find SME numbers within each task
+    print(f"  --- Sample eval (val) ---")
+    n_shown = 0
+    for b in range(B):
+        if n_shown >= max_samples:
+            break
+
+        # Find first SME sign token in targets for this sequence
+        for t in range(T - SME_TOKENS_PER_NUM + 1):
+            if n_shown >= max_samples:
+                break
+            target_tok = Y[b, t].item()
+            if target_tok not in (SME_SIGN_POS, SME_SIGN_NEG):
+                continue
+
+            # Found an SME number — get context before it
+            # Scan backwards to find start of this task (EOT or beginning)
+            task_start = 0
+            for s in range(t - 1, -1, -1):
+                if X[b, s].item() == 50256:  # EOT
+                    task_start = s + 1
+                    break
+
+            # Collect all SME numbers in this task's output
+            target_nums = []
+            pred_nums = []
+            pos = t
+            while pos <= T - SME_TOKENS_PER_NUM:
+                tok = Y[b, pos].item()
+                if tok in (SME_SIGN_POS, SME_SIGN_NEG):
+                    t_sme = [Y[b, pos+i].item() for i in range(SME_TOKENS_PER_NUM)]
+                    p_sme = [preds[b, pos+i].item() for i in range(SME_TOKENS_PER_NUM)]
+                    t_val = sme_tokens_to_number(t_sme)
+                    p_val = sme_tokens_to_number(p_sme)
+                    if t_val is not None:
+                        target_nums.append((t_sme, t_val))
+                        pred_nums.append((p_sme, p_val))
+                    pos += SME_TOKENS_PER_NUM
+                elif tok == 50256:  # EOT — end of task
+                    break
+                else:
+                    pos += 1
+
+            if not target_nums:
+                continue
+
+            # Decode context (input portion up to the SME output)
+            if enc is not None:
+                ctx_ids = X[b, task_start:t].tolist()
+                ctx_nv = NV[b, task_start:t].tolist()
+                context = decode_context(ctx_ids, ctx_nv, enc)
+            else:
+                context = f"[tokens {task_start}:{t}]"
+
+            # Print
+            t_vals = [f"{v:.4g}" for _, v in target_nums]
+            p_strs = []
+            errs = []
+            for (p_sme, p_val), (_, t_val) in zip(pred_nums, target_nums):
+                if p_val is not None:
+                    p_strs.append(f"{p_val:.4g}")
+                    errs.append(abs(t_val - p_val))
+                else:
+                    p_labels = ' '.join(sme_token_label(t) for t in p_sme)
+                    p_strs.append(f"INVALID({p_labels})")
+                    errs.append(float('inf'))
+
+            print(f"  {context}")
+            print(f"    target: {' '.join(t_vals)}")
+            print(f"    pred:   {' '.join(p_strs)}")
+            if any(e != float('inf') for e in errs):
+                err_strs = [f"{e:.2f}" if e != float('inf') else "N/A" for e in errs]
+                print(f"    error:  {' '.join(err_strs)}")
+            print()
+
+            n_shown += 1
+            break  # one sample per batch row, move to next b
 
 
 # logging
@@ -454,6 +607,7 @@ while True:
                   f"sign {sme_acc['sign']:.3f}, "
                   f"exp {sme_acc['exp']:.3f}, "
                   f"digit {sme_acc['digit']:.3f} "
+                  f"[d0 {sme_acc['d0']:.3f} d1 {sme_acc['d1']:.3f} d2 {sme_acc['d2']:.3f}] "
                   f"({sme_acc['n_sme']} SME tokens)")
 
         if wandb_log:
@@ -470,8 +624,16 @@ while True:
                     "sme/sign": sme_acc['sign'],
                     "sme/exp": sme_acc['exp'],
                     "sme/digit": sme_acc['digit'],
+                    "sme/d0": sme_acc['d0'],
+                    "sme/d1": sme_acc['d1'],
+                    "sme/d2": sme_acc['d2'],
                 })
             wandb.log(log_dict)
+
+    # --- Sample evaluation every sample_interval steps ---
+    if iter_num % sample_interval == 0 and master_process and iter_num > 0:
+        eval_samples()
+
     iter_num += 1
     local_iter_num += 1
 

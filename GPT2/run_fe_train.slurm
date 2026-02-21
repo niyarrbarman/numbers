@@ -58,6 +58,7 @@ echo "=========================================="
 srun apptainer exec \
   --nv \
   --env "PYTHONUSERBASE=${MYENVS}/numbers" \
+  --env "TIKTOKEN_CACHE_DIR=/tmpdir/m24047brmn/tiktoken_cache" \
   --env "MASTER_ADDR=${MASTER_ADDR}" \
   --env "MASTER_PORT=${MASTER_PORT}" \
   --env "SLURM_NNODES=${SLURM_NNODES}" \
