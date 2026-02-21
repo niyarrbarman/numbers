@@ -271,8 +271,8 @@ class GPT(nn.Module):
         # One weight per transformer layer — softmax gives the mix
         self.num_layer_weights = nn.Parameter(torch.zeros(config.n_layer))
 
-        # 4. Number output head with skip connection
-        # Input: concat(transformer_weighted_hidden, adapter_output) = 2 * n_embd
+        # 4. Number output head with bypass
+        # Input: concat(transformer_weighted_hidden, mean_adapter_bypass) = 2 * n_embd
         num_head_input_dim = config.n_embd * 2  # skip connection doubles input
         self.num_head = NumberOutputHead(
             num_head_input_dim, config.num_head_hidden,
@@ -330,7 +330,7 @@ class GPT(nn.Module):
         pos_emb = self.transformer.wpe(pos)       # (T, n_embd)
 
         # --- Inject number embeddings at <NUM> positions ---
-        # Also store adapter output for skip connection to num_head
+        # Also store adapter output for bypass to num_head
         adapter_out = torch.zeros_like(tok_emb)   # (B, T, n_embd)
         if num_mask is not None and num_mask.any():
             num_vals_flat = num_values[num_mask]   # (K,)
@@ -355,6 +355,18 @@ class GPT(nn.Module):
         stacked = torch.stack(layer_outputs, dim=0)    # (n_layer, B, T, n_embd)
         x_num = (w[:, None, None, None] * stacked).sum(dim=0)  # (B, T, n_embd)
 
+        # --- Compute per-sample mean of input adapter outputs (bypass) ---
+        # For each sample in the batch, average all adapter outputs at NUM positions
+        # This gives num_head direct access to input number embeddings
+        if num_mask is not None and num_mask.any():
+            # Per-sample mean: sum adapter_out at NUM positions / count
+            num_mask_float = num_mask.float().unsqueeze(-1)  # (B, T, 1)
+            adapter_sum = (adapter_out * num_mask_float).sum(dim=1)  # (B, n_embd)
+            num_counts = num_mask_float.sum(dim=1).clamp(min=1.0)    # (B, 1)
+            adapter_mean = adapter_sum / num_counts                   # (B, n_embd)
+        else:
+            adapter_mean = torch.zeros(b, self.config.n_embd, device=device, dtype=tok_emb.dtype)
+
         if targets is not None:
             # --- Training: compute combined loss ---
             logits = self.lm_head(x)               # (B, T, vocab_size)
@@ -366,20 +378,16 @@ class GPT(nn.Module):
                 ignore_index=-1
             )
 
-            # 2. Number loss with skip connection
-            # num_head input = concat(transformer_hidden, adapter_skip)
+            # 2. Number loss with bypass
+            # num_head input = concat(transformer_hidden, mean_adapter_bypass)
             target_num_mask = (targets == NUM_TOKEN_ID)
             num_loss = torch.tensor(0.0, device=device)
             if target_num_mask.any() and target_num_values is not None:
                 h_transformer = x_num[target_num_mask]           # (M, n_embd)
-                # Skip: adapter output from INPUT positions (shifted -1 from targets)
-                # For target position t, the input position is t (since targets = inputs shifted +1)
-                # adapter_out is aligned with idx, target_num_mask is aligned with targets
-                # But target's NUM at position t means the model should predict a number
-                # at position t. The adapter_out for that prediction comes from the
-                # context up to position t. We use adapter_out aligned with targets.
-                h_skip = adapter_out[:, :target_num_mask.size(1), :][target_num_mask]  # (M, n_embd)
-                h_combined = torch.cat([h_transformer, h_skip], dim=-1)  # (M, 2*n_embd)
+                # Bypass: expand per-sample adapter mean to match target positions
+                # adapter_mean is (B, n_embd), need (M, n_embd) for each target NUM
+                h_bypass = adapter_mean.unsqueeze(1).expand(-1, t, -1)[target_num_mask]  # (M, n_embd)
+                h_combined = torch.cat([h_transformer, h_bypass], dim=-1)  # (M, 2*n_embd)
 
                 target_vals = target_num_values[target_num_mask]  # (M,)
 
@@ -403,7 +411,7 @@ class GPT(nn.Module):
         else:
             # --- Inference ---
             self._last_hidden = x_num
-            self._last_adapter_out = adapter_out  # for skip in generate()
+            self._last_adapter_mean = adapter_mean  # for bypass in generate()
             logits = self.lm_head(x[:, [-1], :])   # (B, 1, vocab_size)
             loss = None
 
@@ -562,10 +570,10 @@ class GPT(nn.Module):
             new_num_val = torch.zeros_like(idx_next, dtype=torch.float32)
 
             if is_num.any():
-                # Predict number using skip connection: concat(hidden, adapter)
-                h_last = self._last_hidden[:, -1, :]        # (B, n_embd)
-                a_last = self._last_adapter_out[:, -1, :]   # (B, n_embd)
-                h_combined = torch.cat([h_last, a_last], dim=-1)  # (B, 2*n_embd)
+                # Predict number using bypass: concat(hidden, mean_adapter)
+                h_last = self._last_hidden[:, -1, :]          # (B, n_embd)
+                h_bypass = self._last_adapter_mean             # (B, n_embd)
+                h_combined = torch.cat([h_last, h_bypass], dim=-1)  # (B, 2*n_embd)
 
                 if self.num_head.mode == 'bins':
                     bin_logits = self.num_head(h_combined)    # (B, n_bins)

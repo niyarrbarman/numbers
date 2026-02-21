@@ -38,12 +38,12 @@ NUM_OUTPUT_MODE="${NUM_OUTPUT_MODE:-bins}"
 NUM_RANGE="${NUM_RANGE:-1000}"
 
 # Freeze transformer (train only adapter + num_head)
-FREEZE_TRANSFORMER="${FREEZE_TRANSFORMER:-True}"
-INIT_FROM="${INIT_FROM:-resume}"
-RESUME_CKPT="${RESUME_CKPT:-/tmpdir/m24047brmn/numbers/model_checkpoints/qbins/ckpt_iter5000.pt}"
+FREEZE_TRANSFORMER="${FREEZE_TRANSFORMER:-False}"
+INIT_FROM="${INIT_FROM:-scratch}"
+RESUME_CKPT="${RESUME_CKPT:-}"
 
 # Output directory for checkpoints
-OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/model_checkpoints/qbins_frozen}"
+OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/model_checkpoints/qbins_bypass}"
 
 GPUS_PER_NODE=2
 
