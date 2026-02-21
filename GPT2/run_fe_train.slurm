@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -J gpt2-fe
-#SBATCH -N 2
-#SBATCH -n 2
+#SBATCH -N 4
+#SBATCH -n 4
 #SBATCH --ntasks-per-node=1
 #SBATCH --gres=gpu:2
 #SBATCH -p small
