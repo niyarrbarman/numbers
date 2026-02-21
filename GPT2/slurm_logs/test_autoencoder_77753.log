@@ -1,0 +1,80 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+==========================================
+Autoencoder Test: encoder → adapter → num_head → number
+==========================================
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Loaded encoder from /tmpdir/m24047brmn/numbers/checkpoints/np_emb_v8_500k_model.pt
+
+============================================================
+Testing mode: bins | range: [-1000, 1000]
+============================================================
+Trainable params: 296,192
+  step     0 | loss 5.5488 | exact_bin 0.017 | near_bin(±2) 0.038 | median_abs_err 73.86 | median_rel_err 1.339
+  step   500 | loss 0.1179 | exact_bin 0.972 | near_bin(±2) 0.994 | median_abs_err 0.39 | median_rel_err 0.015
+  step  1000 | loss 0.0392 | exact_bin 0.982 | near_bin(±2) 0.998 | median_abs_err 0.45 | median_rel_err 0.015
+  step  1500 | loss 0.0497 | exact_bin 0.989 | near_bin(±2) 1.000 | median_abs_err 0.42 | median_rel_err 0.016
+  step  2000 | loss 0.0242 | exact_bin 0.992 | near_bin(±2) 0.999 | median_abs_err 0.38 | median_rel_err 0.014
+  step  2500 | loss 0.0126 | exact_bin 0.995 | near_bin(±2) 0.999 | median_abs_err 0.39 | median_rel_err 0.014
+  step  3000 | loss 0.0488 | exact_bin 0.990 | near_bin(±2) 0.997 | median_abs_err 0.43 | median_rel_err 0.015
+  step  3500 | loss 0.0119 | exact_bin 0.994 | near_bin(±2) 1.000 | median_abs_err 0.41 | median_rel_err 0.015
+  step  4000 | loss 0.0190 | exact_bin 0.995 | near_bin(±2) 0.999 | median_abs_err 0.36 | median_rel_err 0.015
+  step  4500 | loss 0.0171 | exact_bin 0.995 | near_bin(±2) 1.000 | median_abs_err 0.43 | median_rel_err 0.014
+  step  4999 | loss 0.0233 | exact_bin 0.994 | near_bin(±2) 0.999 | median_abs_err 0.41 | median_rel_err 0.014
+
+--- Final eval (bins) ---
+        True |  Predicted |      Error
+  ------------------------------------
+        0.00 |      -0.29 |       0.29
+        1.00 |       0.98 |       0.02
+       -1.00 |      -0.98 |       0.02
+        5.00 |       4.85 |       0.15
+       10.00 |      10.01 |       0.01
+       42.00 |      42.68 |       0.68
+      100.00 |     101.90 |       1.90
+     -100.00 |    -101.90 |       1.90
+      500.00 |     502.43 |       2.43
+     -500.00 |    -502.43 |       2.43
+      999.00 |     965.02 |      33.98
+     -999.00 |    -965.02 |      33.98
+        0.50 |       0.51 |       0.01
+       -0.10 |      -0.10 |       0.00
+        3.14 |       3.14 |       0.00
+
+============================================================
+Testing mode: regression | range: [-1000, 1000]
+============================================================
+Trainable params: 230,657
+  step     0 | loss(MSE) 15.9035 | median_abs_err 30.21 | median_rel_err 0.967
+  step   500 | loss(MSE) 0.0436 | median_abs_err 2.38 | median_rel_err 0.090
+  step  1000 | loss(MSE) 0.0126 | median_abs_err 1.74 | median_rel_err 0.055
+  step  1500 | loss(MSE) 0.0081 | median_abs_err 1.11 | median_rel_err 0.040
+  step  2000 | loss(MSE) 0.0055 | median_abs_err 1.06 | median_rel_err 0.036
+  step  2500 | loss(MSE) 0.0040 | median_abs_err 0.93 | median_rel_err 0.031
+  step  3000 | loss(MSE) 0.0056 | median_abs_err 0.98 | median_rel_err 0.034
+  step  3500 | loss(MSE) 0.0019 | median_abs_err 0.41 | median_rel_err 0.020
+  step  4000 | loss(MSE) 0.0032 | median_abs_err 0.86 | median_rel_err 0.028
+  step  4500 | loss(MSE) 0.0029 | median_abs_err 0.77 | median_rel_err 0.025
+  step  4999 | loss(MSE) 0.0013 | median_abs_err 0.45 | median_rel_err 0.016
+
+--- Final eval (regression) ---
+        True |  Predicted |      Error
+  ------------------------------------
+        0.00 |      -0.01 |       0.01
+        1.00 |       1.10 |       0.10
+       -1.00 |      -0.99 |       0.01
+        5.00 |       5.07 |       0.07
+       10.00 |      10.13 |       0.13
+       42.00 |      44.44 |       2.44
+      100.00 |      96.84 |       3.16
+     -100.00 |    -106.62 |       6.62
+      500.00 |     500.36 |       0.36
+     -500.00 |    -521.01 |      21.01
+      999.00 |     965.76 |      33.24
+     -999.00 |   -1012.31 |      13.31
+        0.50 |       0.50 |       0.00
+       -0.10 |      -0.10 |       0.00
+        3.14 |       3.20 |       0.06
+==========================================
+Test complete
+==========================================
