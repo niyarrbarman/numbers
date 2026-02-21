@@ -1,13 +1,13 @@
 #!/bin/bash
-#SBATCH -J gpt2-fe
+#SBATCH -J gpt2-sme
 #SBATCH -N 4
 #SBATCH -n 4
 #SBATCH --ntasks-per-node=1
 #SBATCH --gres=gpu:2
 #SBATCH -p small
 #SBATCH --time=24:00:00
-#SBATCH -o slurm_logs/gpt2_fe_%j.log
-#SBATCH -e slurm_logs/gpt2_fe_%j.log
+#SBATCH -o slurm_logs/gpt2_sme_%j.log
+#SBATCH -e slurm_logs/gpt2_sme_%j.log
 
 mkdir -p slurm_logs
 set -euo pipefail
@@ -19,31 +19,19 @@ IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest
 NUM_EMB_CHECKPOINT="/tmpdir/m24047brmn/numbers/checkpoints/np_emb_v8_500k_model.pt"
 
 # Dataset
-DATASET="${DATASET:-numtasks_reasoning_1k}"
+DATASET="${DATASET:-numtasks_sme_1k}"
 
 # Data directory: absolute path to the folder containing {train,val}.bin
-DATA_DIR="/tmpdir/m24047brmn/numbers/data/numtasks_reasoning_1k"
+DATA_DIR="${DATA_DIR:-/tmpdir/m24047brmn/numbers/data/numtasks_sme_1k}"
 
 # Training iterations (lr_decay_iters auto-set to match)
 MAX_ITERS="${MAX_ITERS:-15000}"
 
-# Phase switch: bins -> regression at this iter (0 = no switch)
-PHASE2_ITER="${PHASE2_ITER:-10000}"
-
-# Number loss weight
-NUM_LOSS_LAMBDA="${NUM_LOSS_LAMBDA:-5.0}"
-
-# Number output mode and range
-NUM_OUTPUT_MODE="${NUM_OUTPUT_MODE:-bins}"
-NUM_RANGE="${NUM_RANGE:-1000}"
-
-# Freeze transformer (train only adapter + num_head)
-FREEZE_TRANSFORMER="${FREEZE_TRANSFORMER:-False}"
+# Init mode
 INIT_FROM="${INIT_FROM:-scratch}"
-RESUME_CKPT="${RESUME_CKPT:-}"
 
 # Output directory for checkpoints
-OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/model_checkpoints/qbins_bypass}"
+OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/model_checkpoints/sme}"
 
 GPUS_PER_NODE=2
 
@@ -54,7 +42,7 @@ export MASTER_ADDR=$(hostname --ip-address)
 module load gnu/11.2.0
 
 echo "=========================================="
-echo "GPT-2 FE Training (Number Embeddings)"
+echo "GPT-2 SME Training (Number Embeddings)"
 echo "  Nodes:          ${SLURM_NNODES}"
 echo "  GPUs/node:      ${GPUS_PER_NODE}"
 echo "  Total GPUs:     $((SLURM_NNODES * GPUS_PER_NODE))"
@@ -62,13 +50,7 @@ echo "  Dataset:        ${DATASET}"
 echo "  Data dir:       ${DATA_DIR}"
 echo "  Checkpoint:     ${NUM_EMB_CHECKPOINT}"
 echo "  Max iters:      ${MAX_ITERS}"
-echo "  Phase 2 at:     ${PHASE2_ITER}"
-echo "  Lambda:         ${NUM_LOSS_LAMBDA}"
-echo "  Num mode:       ${NUM_OUTPUT_MODE}"
-echo "  Num range:      ${NUM_RANGE}"
-echo "  Freeze:         ${FREEZE_TRANSFORMER}"
 echo "  Init from:      ${INIT_FROM}"
-echo "  Resume ckpt:    ${RESUME_CKPT}"
 echo "  Out dir:        ${OUT_DIR}"
 echo "  Master:         ${MASTER_ADDR}:${MASTER_PORT}"
 echo "=========================================="
@@ -94,13 +76,7 @@ srun apptainer exec \
       out_dir="${OUT_DIR}" \
       max_iters="${MAX_ITERS}" \
       lr_decay_iters="${MAX_ITERS}" \
-      num_loss_lambda="${NUM_LOSS_LAMBDA}" \
-      num_output_mode="${NUM_OUTPUT_MODE}" \
-      num_range="${NUM_RANGE}" \
-      phase2_iter="${PHASE2_ITER}" \
-      freeze_transformer="${FREEZE_TRANSFORMER}" \
-      init_from="${INIT_FROM}" \
-      resume_ckpt="${RESUME_CKPT}"
+      init_from="${INIT_FROM}"
 
 status=$?
 echo "=========================================="

@@ -1,15 +1,18 @@
 """
-Training script for number-aware GPT-2.
+Training script for number-aware GPT-2 (SME output).
 
 Extends nanoGPT's training loop to support dual-stream data:
-  - Token IDs ({split}.bin, uint16) with <NUM> placeholders
+  - Token IDs ({split}.bin, uint16) with <NUM> placeholders for input numbers
   - Number values ({split}_nums.bin, float32) at <NUM> positions
+
+Output numbers are encoded as SME text tokens in the token stream.
+All loss is standard cross-entropy — no separate number loss.
 
 Supports single GPU, DDP, gradient accumulation, mixed precision,
 wandb logging, and torch.compile — same as base nanoGPT.
 
 Usage:
-  python train.py                          # defaults (scratch, openwebtext)
+  python train.py                          # defaults (scratch)
   python train.py num_emb_checkpoint=path/to/model.pt  # with pretrained encoder
   python train.py init_from=gpt2           # finetune from pretrained GPT-2
 """
@@ -23,15 +26,21 @@ from contextlib import nullcontext
 
 import numpy as np
 import torch
-import torch.nn as nn
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import init_process_group, destroy_process_group
 
 from model import GPTConfig, GPT, NUM_TOKEN_ID
 
+# SME token ranges for diagnostics
+from prepare import (
+    SME_SIGN_POS, SME_SIGN_NEG, SME_EXP_BASE, SME_N_EXP,
+    SME_DIGIT_BASE, SME_ALL_TOKENS, SME_TOKENS_PER_NUM,
+    sme_tokens_to_number,
+)
+
 
 # -----------------------------------------------------------------------------
-# default config values designed to train a gpt2 (124M) on OpenWebText
+# default config values designed to train a gpt2 (124M) on numerical tasks
 # I/O
 out_dir = '/tmpdir/m24047brmn/numbers/model_checkpoints'
 eval_interval = 5000
@@ -41,10 +50,11 @@ eval_iters = 200
 eval_only = False
 always_save_checkpoint = True
 init_from = 'scratch'  # 'scratch' or 'resume' or 'gpt2*'
+resume_ckpt = ''  # explicit checkpoint path for resume (overrides out_dir/ckpt.pt)
 # wandb logging
 wandb_log = False
 wandb_project = 'owt'
-wandb_run_name = 'gpt2-fe'
+wandb_run_name = 'gpt2-sme'
 # data
 dataset = 'openwebtext'
 data_dir = ''  # override to set absolute path; if empty, uses data/{dataset}
@@ -60,14 +70,6 @@ bias = False
 # number embedding
 num_emb_checkpoint = ''  # path to NumberEncoder .pt checkpoint
 num_emb_dim = 128
-num_head_hidden = 256
-num_loss_lambda = 5.0
-num_output_mode = 'bins'  # 'bins' (cross-entropy) or 'regression' (MSE)
-num_bins = 256
-num_range = 1000
-phase2_iter = 10000  # iter to switch from bins -> regression (0 = no switch)
-freeze_transformer = False  # freeze transformer, train only adapter + num_head
-resume_ckpt = ''  # explicit checkpoint path for resume (overrides out_dir/ckpt.pt)
 # adamw optimizer
 learning_rate = 6e-4
 max_iters = 15000
@@ -133,7 +135,7 @@ device_type = 'cuda' if 'cuda' in device else 'cpu'
 ptdtype = {'float32': torch.float32, 'bfloat16': torch.bfloat16, 'float16': torch.float16}[dtype]
 ctx = nullcontext() if device_type == 'cpu' else torch.amp.autocast(device_type=device_type, dtype=ptdtype)
 
-# poor man's data loader (dual-stream: tokens + numbers)
+# poor man's data loader (dual-stream: tokens + numbers for input embedding)
 if not data_dir:
     data_dir = os.path.join('data', dataset)
 print(f"data directory: {data_dir}")
@@ -143,11 +145,10 @@ def get_batch(split):
     """Load a batch of tokens and parallel number values.
 
     Returns:
-        x:   (B, block_size) int64   input token IDs
-        y:   (B, block_size) int64   target token IDs (shifted +1)
-        nv:  (B, block_size) float32 number values aligned with x
-        nm:  (B, block_size) bool    True where x == NUM_TOKEN_ID
-        tnv: (B, block_size) float32 number values aligned with y
+        x:  (B, block_size) int64   input token IDs
+        y:  (B, block_size) int64   target token IDs (shifted +1)
+        nv: (B, block_size) float32 number values aligned with x
+        nm: (B, block_size) bool    True where x == NUM_TOKEN_ID
     """
     # Recreate memmap each time to avoid memory leak
     data = np.memmap(os.path.join(data_dir, f'{split}.bin'), dtype=np.uint16, mode='r')
@@ -160,7 +161,6 @@ def get_batch(split):
     y = torch.stack([torch.from_numpy((data[i + 1:i + 1 + block_size]).astype(np.int64)) for i in ix])
 
     nv = torch.stack([torch.from_numpy(nums[i:i + block_size].copy()) for i in ix])
-    tnv = torch.stack([torch.from_numpy(nums[i + 1:i + 1 + block_size].copy()) for i in ix])
 
     nm = (x == NUM_TOKEN_ID)
 
@@ -168,14 +168,13 @@ def get_batch(split):
         x = x.pin_memory().to(device, non_blocking=True)
         y = y.pin_memory().to(device, non_blocking=True)
         nv = nv.pin_memory().to(device, non_blocking=True)
-        tnv = tnv.pin_memory().to(device, non_blocking=True)
         nm = nm.pin_memory().to(device, non_blocking=True)
     else:
         x, y = x.to(device), y.to(device)
-        nv, tnv = nv.to(device), tnv.to(device)
+        nv = nv.to(device)
         nm = nm.to(device)
 
-    return x, y, nv, nm, tnv
+    return x, y, nv, nm
 
 
 # init these up here, can override if init_from='resume'
@@ -196,8 +195,6 @@ model_args = dict(
     n_layer=n_layer, n_head=n_head, n_embd=n_embd, block_size=block_size,
     bias=bias, vocab_size=None, dropout=dropout,
     num_emb_dim=num_emb_dim, num_emb_checkpoint=num_emb_checkpoint,
-    num_head_hidden=num_head_hidden, num_loss_lambda=num_loss_lambda,
-    num_output_mode=num_output_mode, num_bins=num_bins, num_range=num_range,
 )
 if init_from == 'scratch':
     print("Initializing a new model from scratch")
@@ -212,8 +209,7 @@ elif init_from == 'resume':
     checkpoint = torch.load(ckpt_path, map_location=device)
     checkpoint_model_args = checkpoint['model_args']
     for k in ['n_layer', 'n_head', 'n_embd', 'block_size', 'bias', 'vocab_size',
-              'num_emb_dim', 'num_emb_checkpoint', 'num_head_hidden', 'num_loss_lambda',
-              'num_output_mode', 'num_bins', 'num_range']:
+              'num_emb_dim', 'num_emb_checkpoint']:
         model_args[k] = checkpoint_model_args[k]
     gptconf = GPTConfig(**model_args)
     model = GPT(gptconf)
@@ -228,10 +224,7 @@ elif init_from == 'resume':
 elif init_from.startswith('gpt2'):
     print(f"Initializing from OpenAI GPT-2 weights: {init_from}")
     override_args = dict(dropout=dropout, num_emb_checkpoint=num_emb_checkpoint,
-                         num_emb_dim=num_emb_dim, num_head_hidden=num_head_hidden,
-                         num_loss_lambda=num_loss_lambda,
-                         num_output_mode=num_output_mode, num_bins=num_bins,
-                         num_range=num_range)
+                         num_emb_dim=num_emb_dim)
     model = GPT.from_pretrained(init_from, override_args)
     for k in ['n_layer', 'n_head', 'n_embd', 'block_size', 'bias', 'vocab_size']:
         model_args[k] = getattr(model.config, k)
@@ -241,26 +234,12 @@ if block_size < model.config.block_size:
     model_args['block_size'] = block_size
 model.to(device)
 
-# --- Freeze transformer if requested ---
-if freeze_transformer:
-    n_frozen = 0
-    n_trainable = 0
-    for name, p in model.named_parameters():
-        if any(k in name for k in ['num_adapter', 'num_head', 'num_layer_weights']):
-            p.requires_grad = True
-            n_trainable += p.numel()
-        elif 'num_encoder' not in name:  # num_encoder already frozen
-            p.requires_grad = False
-            n_frozen += p.numel()
-    if master_process:
-        print(f"Transformer FROZEN: {n_trainable:,} trainable, {n_frozen:,} frozen")
-
 # initialize a GradScaler. If enabled=False scaler is a no-op
 scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
 
 # optimizer
 optimizer = model.configure_optimizers(weight_decay, learning_rate, (beta1, beta2), device_type)
-if init_from == 'resume' and not freeze_transformer:
+if init_from == 'resume':
     optimizer.load_state_dict(checkpoint['optimizer'])
 checkpoint = None  # free up memory
 
@@ -283,10 +262,9 @@ def estimate_loss():
     for split in ['train', 'val']:
         losses = torch.zeros(eval_iters)
         for k in range(eval_iters):
-            X, Y, NV, NM, TNV = get_batch(split)
+            X, Y, NV, NM = get_batch(split)
             with ctx:
-                logits, loss = model(X, Y, num_values=NV, num_mask=NM,
-                                     target_num_values=TNV)
+                logits, loss = model(X, Y, num_values=NV, num_mask=NM)
             losses[k] = loss.item()
         out[split] = losses.mean()
     model.train()
@@ -305,13 +283,55 @@ def get_lr(it):
     return min_lr + coeff * (learning_rate - min_lr)
 
 
+# SME diagnostic helper
+_sme_token_set = torch.tensor(sorted(SME_ALL_TOKENS), dtype=torch.long)
+
+
+@torch.no_grad()
+def compute_sme_accuracy(logits, targets):
+    """Compute accuracy of SME token predictions.
+
+    Returns dict with sign_acc, exp_acc, digit_acc, overall_acc, and num_sme.
+    """
+    # Move SME token set to same device
+    sme_set = _sme_token_set.to(targets.device)
+
+    # Find SME positions in targets
+    sme_mask = torch.isin(targets, sme_set)
+    n_sme = sme_mask.sum().item()
+    if n_sme == 0:
+        return None
+
+    sme_targets = targets[sme_mask]
+    sme_preds = logits[sme_mask].argmax(dim=-1)
+    overall_acc = (sme_preds == sme_targets).float().mean().item()
+
+    # Break down by token type
+    sign_mask = (sme_targets == SME_SIGN_POS) | (sme_targets == SME_SIGN_NEG)
+    exp_mask = (sme_targets >= SME_EXP_BASE) & (sme_targets < SME_EXP_BASE + SME_N_EXP)
+    digit_mask = (sme_targets >= SME_DIGIT_BASE) & (sme_targets <= SME_DIGIT_BASE + 9)
+
+    def acc(mask):
+        if mask.sum() == 0:
+            return 0.0
+        return (sme_preds[mask] == sme_targets[mask]).float().mean().item()
+
+    return {
+        'overall': overall_acc,
+        'sign': acc(sign_mask),
+        'exp': acc(exp_mask),
+        'digit': acc(digit_mask),
+        'n_sme': n_sme,
+    }
+
+
 # logging
 if wandb_log and master_process:
     import wandb
     wandb.init(project=wandb_project, name=wandb_run_name, config=config)
 
 # training loop
-X, Y, NV, NM, TNV = get_batch('train')
+X, Y, NV, NM = get_batch('train')
 t0 = time.time()
 local_iter_num = 0
 raw_model = model.module if ddp else model
@@ -359,80 +379,19 @@ while True:
     if iter_num == 0 and eval_only:
         break
 
-    # --- Phase switch: bins -> regression at phase2_iter ---
-    if (phase2_iter > 0 and iter_num == phase2_iter
-            and num_output_mode == 'bins'):
-        # Save phase 1 checkpoint (master only)
-        if master_process:
-            phase1_ckpt = {
-                'model': raw_model.state_dict(),
-                'optimizer': optimizer.state_dict(),
-                'model_args': model_args,
-                'iter_num': iter_num,
-                'best_val_loss': best_val_loss,
-                'config': config,
-            }
-            torch.save(phase1_ckpt, os.path.join(out_dir, 'ckpt_phase1_bins.pt'))
-            print(f"\n{'=' * 50}")
-            print(f"PHASE SWITCH at iter {iter_num}: bins -> regression")
-            print(f"Phase 1 checkpoint saved to {out_dir}/ckpt_phase1_bins.pt")
-            print(f"{'=' * 50}")
-
-        # Get the actual model (bypass DDP + compile wrappers)
-        if compile:
-            actual_model = unoptimized_model
-        elif ddp:
-            actual_model = model.module
-        else:
-            actual_model = model
-
-        # Replace num_head last layer: Linear(hidden, n_bins) -> Linear(hidden, 1)
-        old_last = actual_model.num_head.net[-1]
-        new_last = nn.Linear(old_last.in_features, 1, bias=old_last.bias is not None)
-        new_last = new_last.to(device)
-        actual_model.num_head.net[-1] = new_last
-        actual_model.num_head.mode = 'regression'
-
-        # Sync new layer weights across DDP ranks
-        if ddp:
-            for p in actual_model.num_head.net[-1].parameters():
-                torch.distributed.broadcast(p.data, src=0)
-
-        # Update config tracking
-        actual_model.config.num_output_mode = 'regression'
-        num_output_mode = 'regression'
-        model_args['num_output_mode'] = 'regression'
-
-        # Rebuild optimizer (picks up new parameter, drops old)
-        optimizer = actual_model.configure_optimizers(
-            weight_decay, learning_rate, (beta1, beta2), device_type)
-        scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
-
-        # Re-compile and re-wrap
-        if compile:
-            torch._dynamo.reset()
-            model = torch.compile(actual_model)
-        else:
-            model = actual_model
-        if ddp:
-            model = DDP(model, device_ids=[ddp_local_rank])
-
-        raw_model = model.module if ddp else model
-
-        if master_process:
-            print("Phase 2 (regression) training started")
-            print(f"{'=' * 50}\n")
-
     # forward backward update, with optional gradient accumulation
     for micro_step in range(gradient_accumulation_steps):
         if ddp:
             model.require_backward_grad_sync = (micro_step == gradient_accumulation_steps - 1)
         with ctx:
-            logits, loss = model(X, Y, num_values=NV, num_mask=NM,
-                                 target_num_values=TNV)
+            logits, loss = model(X, Y, num_values=NV, num_mask=NM)
             loss = loss / gradient_accumulation_steps
+        # snapshot logits for diagnostics (last micro_step only)
+        if micro_step == gradient_accumulation_steps - 1 and iter_num % diag_interval == 0 and master_process:
+            _diag_logits = logits.detach()
+            _diag_targets = Y.clone()
         # async prefetch next batch
-        X, Y, NV, NM, TNV = get_batch('train')
+        X, Y, NV, NM = get_batch('train')
         # backward pass
         scaler.scale(loss).backward()
     # clip the gradient
@@ -449,8 +408,6 @@ while True:
                 _diag_grad_total += pnorm
                 if 'num_adapter' in name:
                     _diag_grad_norms['adapter'] = _diag_grad_norms.get('adapter', 0.0) + pnorm
-                elif 'num_head' in name:
-                    _diag_grad_norms['num_head'] = _diag_grad_norms.get('num_head', 0.0) + pnorm
                 else:
                     _diag_grad_norms['transformer'] = _diag_grad_norms.get('transformer', 0.0) + pnorm
         _diag_grad_norms = {k: v ** 0.5 for k, v in _diag_grad_norms.items()}
@@ -474,45 +431,47 @@ while True:
 
     # --- Detailed diagnostics every diag_interval steps ---
     if iter_num % diag_interval == 0 and master_process:
-        text_loss_val = getattr(raw_model, '_last_text_loss', 0.0)
-        num_loss_val = getattr(raw_model, '_last_num_loss', 0.0)
-        num_count = getattr(raw_model, '_last_num_count', 0)
-        total_tokens = getattr(raw_model, '_last_total_tokens', 1)
-        num_pct = num_count / total_tokens * 100
-
-        # Use grad norms captured before zero_grad
         grad_norm_total = _diag_grad_norms.get('total', 0.0)
         grad_norm_adapter = _diag_grad_norms.get('adapter', 0.0)
-        grad_norm_numhead = _diag_grad_norms.get('num_head', 0.0)
         grad_norm_transformer = _diag_grad_norms.get('transformer', 0.0)
 
+        # Count NUM tokens in the batch
+        num_count = int(NM.sum().item()) if NM is not None else 0
+        total_tokens = batch_size * block_size
+
         print(f"  === DIAG iter {iter_num} ===")
-        print(f"  loss breakdown: text {text_loss_val:.4f} | num {num_loss_val:.4f} "
-              f"(lambda={num_loss_lambda}, mode={num_output_mode})")
+        print(f"  loss: {loss.item() * gradient_accumulation_steps:.4f}")
         print(f"  grads: total {grad_norm_total:.4f}, "
               f"transformer {grad_norm_transformer:.4f}, "
-              f"adapter {grad_norm_adapter:.4f}, "
-              f"num_head {grad_norm_numhead:.4f}")
-        print(f"  nums: {num_count}/{total_tokens} tokens ({num_pct:.1f}%)")
+              f"adapter {grad_norm_adapter:.4f}")
+        print(f"  <NUM> input tokens: {num_count}/{total_tokens} ({num_count / total_tokens * 100:.1f}%)")
         print(f"  lr: {lr:.2e}")
-        # Layer weights for number head
-        lw = getattr(raw_model, '_last_layer_weights', None)
-        if lw is not None:
-            lw_str = " ".join(f"L{i}:{w:.3f}" for i, w in enumerate(lw))
-            print(f"  layer_weights: [{lw_str}]")
+
+        # SME token accuracy
+        sme_acc = compute_sme_accuracy(_diag_logits, _diag_targets)
+        if sme_acc is not None:
+            print(f"  SME accuracy: overall {sme_acc['overall']:.3f}, "
+                  f"sign {sme_acc['sign']:.3f}, "
+                  f"exp {sme_acc['exp']:.3f}, "
+                  f"digit {sme_acc['digit']:.3f} "
+                  f"({sme_acc['n_sme']} SME tokens)")
 
         if wandb_log:
-            wandb.log({
+            log_dict = {
                 "iter": iter_num,
-                "train/text_loss": text_loss_val,
-                "train/num_loss": num_loss_val,
-                "train/num_pct": num_pct,
                 "grad/total": grad_norm_total,
                 "grad/transformer": grad_norm_transformer,
                 "grad/adapter": grad_norm_adapter,
-                "grad/num_head": grad_norm_numhead,
                 "lr": lr,
-            })
+            }
+            if sme_acc is not None:
+                log_dict.update({
+                    "sme/overall": sme_acc['overall'],
+                    "sme/sign": sme_acc['sign'],
+                    "sme/exp": sme_acc['exp'],
+                    "sme/digit": sme_acc['digit'],
+                })
+            wandb.log(log_dict)
     iter_num += 1
     local_iter_num += 1
 

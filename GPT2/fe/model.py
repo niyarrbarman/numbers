@@ -1,15 +1,14 @@
 """
-GPT-2 with Number Embedding Integration.
+GPT-2 with Number Embedding Integration (SME output).
 
 Extends the nanoGPT architecture with:
   1. Frozen NumberEncoder — maps scalar values to 128d embeddings
-  2. Learned adapter — projects 128d number embeddings to n_embd (768)
-  3. NumberOutputHead — predicts scalar values in signed-log space
+  2. Learned adapter — projects 128d number embeddings to n_embd
 
 At positions where the input contains <NUM> (token 50257), the standard
-token embedding is replaced with adapter(encoder(value)). At positions
-where the model needs to predict a number, the number head produces a
-scalar prediction alongside the standard vocabulary logits.
+token embedding is replaced with adapter(encoder(value)). Output numbers
+are encoded as SME (Sign-Mantissa-Exponent) text tokens and predicted
+through the standard lm_head — no separate number output head needed.
 
 References:
   - nanoGPT: https://github.com/karpathy/nanoGPT
@@ -121,89 +120,6 @@ class Block(nn.Module):
 
 
 # =============================================================================
-# Number Output Head
-# =============================================================================
-
-def build_log_bin_edges(n_bins, num_range):
-    """Build log-spaced bin edges covering [-num_range, num_range].
-
-    Returns (n_bins+1,) tensor of edges. Bins are symmetric around 0,
-    with log spacing for better resolution at small values.
-    """
-    half = n_bins // 2
-    # Log-spaced positive edges: 0 -> num_range
-    pos_edges = torch.logspace(-1, math.log10(num_range), half)
-    pos_edges = torch.cat([torch.tensor([0.0]), pos_edges])
-    # Full edges: [-num_range, ..., 0, ..., num_range]
-    neg_edges = -pos_edges.flip(0)[:-1]  # drop duplicate 0
-    edges = torch.cat([neg_edges, pos_edges])
-    return edges
-
-
-class NumberOutputHead(nn.Module):
-    """Predicts a scalar number from the transformer's hidden state.
-
-    Supports two modes:
-      - 'regression': predicts signed-log scalar (original)
-      - 'bins': predicts bin index via cross-entropy (quantized)
-    """
-    def __init__(self, input_dim, hidden_dim=256, mode='bins',
-                 n_bins=256, num_range=1000):
-        super().__init__()
-        self.mode = mode
-        self.n_bins = n_bins
-
-        if mode == 'bins':
-            self.net = nn.Sequential(
-                nn.Linear(input_dim, hidden_dim),
-                nn.GELU(),
-                nn.Linear(hidden_dim, hidden_dim),
-                nn.GELU(),
-                nn.Linear(hidden_dim, n_bins),
-            )
-            edges = build_log_bin_edges(n_bins, num_range)
-            self.register_buffer('bin_edges', edges)
-            # Bin centers for decoding predictions back to values
-            centers = (edges[:-1] + edges[1:]) / 2
-            self.register_buffer('bin_centers', centers)
-        else:
-            self.net = nn.Sequential(
-                nn.Linear(input_dim, hidden_dim),
-                nn.GELU(),
-                nn.Linear(hidden_dim, hidden_dim),
-                nn.GELU(),
-                nn.Linear(hidden_dim, 1),
-            )
-
-    def forward(self, h):
-        """h: (..., input_dim) -> logits or scalar depending on mode."""
-        if self.mode == 'bins':
-            return self.net(h)  # (..., n_bins)
-        else:
-            return self.net(h).squeeze(-1)  # (...,)
-
-    def value_to_bin(self, values):
-        """Convert real values to bin indices. values: (...,) -> (...,) long."""
-        # searchsorted gives the insertion point; clamp to valid bin range
-        bins = torch.searchsorted(self.bin_edges, values.contiguous()) - 1
-        return bins.clamp(0, self.n_bins - 1)
-
-    def bin_to_value(self, bin_idx):
-        """Convert bin indices back to values using bin centers."""
-        return self.bin_centers[bin_idx]
-
-    @staticmethod
-    def to_signed_log(x):
-        """Convert real values to signed-log space."""
-        return torch.sign(x) * torch.log1p(torch.abs(x))
-
-    @staticmethod
-    def from_signed_log(slog):
-        """Invert signed-log back to real values."""
-        return torch.sign(slog) * (torch.exp(torch.abs(slog)) - 1.0)
-
-
-# =============================================================================
 # GPT Config and Model
 # =============================================================================
 
@@ -219,11 +135,6 @@ class GPTConfig:
     # Number embedding fields
     num_emb_dim: int = 128          # NumberEncoder output dimension
     num_emb_checkpoint: str = ''    # Path to .pt checkpoint for NumberEncoder
-    num_head_hidden: int = 256      # Hidden dim of NumberOutputHead
-    num_loss_lambda: float = 1.0    # Weight of number loss
-    num_output_mode: str = 'bins'   # 'bins' (cross-entropy) or 'regression' (MSE)
-    num_bins: int = 256             # Number of bins for quantized output
-    num_range: int = 1000           # Max absolute value for bin edges
 
 
 class GPT(nn.Module):
@@ -267,20 +178,6 @@ class GPT(nn.Module):
             nn.Linear(config.n_embd, config.n_embd),
         )
 
-        # 3. Learned weighted layer combination for number prediction
-        # One weight per transformer layer — softmax gives the mix
-        self.num_layer_weights = nn.Parameter(torch.zeros(config.n_layer))
-
-        # 4. Number output head with bypass
-        # Input: concat(transformer_weighted_hidden, mean_adapter_bypass) = 2 * n_embd
-        num_head_input_dim = config.n_embd * 2  # skip connection doubles input
-        self.num_head = NumberOutputHead(
-            num_head_input_dim, config.num_head_hidden,
-            mode=config.num_output_mode,
-            n_bins=config.num_bins,
-            num_range=config.num_range,
-        )
-
         # === Standard weight init ===
         self.apply(self._init_weights)
         # Scaled init for residual projections
@@ -305,19 +202,17 @@ class GPT(nn.Module):
         elif isinstance(module, nn.Embedding):
             torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
 
-    def forward(self, idx, targets=None, num_values=None, num_mask=None,
-                target_num_values=None):
+    def forward(self, idx, targets=None, num_values=None, num_mask=None):
         """
         Args:
-            idx:               (B, T) int64 token IDs
-            targets:           (B, T) int64 target token IDs, or None
-            num_values:        (B, T) float32 number values aligned with idx
-            num_mask:          (B, T) bool, True where idx == NUM_TOKEN_ID
-            target_num_values: (B, T) float32 number values aligned with targets
+            idx:        (B, T) int64 token IDs
+            targets:    (B, T) int64 target token IDs, or None
+            num_values: (B, T) float32 number values aligned with idx
+            num_mask:   (B, T) bool, True where idx == NUM_TOKEN_ID
 
         Returns:
             logits: (B, T, vocab_size) or (B, 1, vocab_size) at inference
-            loss:   scalar combined loss, or None at inference
+            loss:   scalar cross-entropy loss, or None at inference
         """
         device = idx.device
         b, t = idx.size()
@@ -330,8 +225,6 @@ class GPT(nn.Module):
         pos_emb = self.transformer.wpe(pos)       # (T, n_embd)
 
         # --- Inject number embeddings at <NUM> positions ---
-        # Also store adapter output for bypass to num_head
-        adapter_out = torch.zeros_like(tok_emb)   # (B, T, n_embd)
         if num_mask is not None and num_mask.any():
             num_vals_flat = num_values[num_mask]   # (K,)
             with torch.no_grad():
@@ -339,79 +232,24 @@ class GPT(nn.Module):
             num_proj = self.num_adapter(num_emb)   # (K, n_embd)
             tok_emb = tok_emb.clone()
             tok_emb[num_mask] = num_proj.to(tok_emb.dtype)
-            adapter_out[num_mask] = num_proj.to(adapter_out.dtype)
 
         x = self.transformer.drop(tok_emb + pos_emb)
 
-        # --- Transformer blocks (collect all layer outputs) ---
-        layer_outputs = []
+        # --- Transformer blocks ---
         for block in self.transformer.h:
             x = block(x)
-            layer_outputs.append(x)
         x = self.transformer.ln_f(x)
 
-        # --- Weighted layer combination for number head ---
-        w = F.softmax(self.num_layer_weights, dim=0)  # (n_layer,)
-        stacked = torch.stack(layer_outputs, dim=0)    # (n_layer, B, T, n_embd)
-        x_num = (w[:, None, None, None] * stacked).sum(dim=0)  # (B, T, n_embd)
-
-        # --- Compute per-sample mean of input adapter outputs (bypass) ---
-        # For each sample in the batch, average all adapter outputs at NUM positions
-        # This gives num_head direct access to input number embeddings
-        if num_mask is not None and num_mask.any():
-            # Per-sample mean: sum adapter_out at NUM positions / count
-            num_mask_float = num_mask.float().unsqueeze(-1)  # (B, T, 1)
-            adapter_sum = (adapter_out * num_mask_float).sum(dim=1)  # (B, n_embd)
-            num_counts = num_mask_float.sum(dim=1).clamp(min=1.0)    # (B, 1)
-            adapter_mean = adapter_sum / num_counts                   # (B, n_embd)
-        else:
-            adapter_mean = torch.zeros(b, self.config.n_embd, device=device, dtype=tok_emb.dtype)
-
         if targets is not None:
-            # --- Training: compute combined loss ---
+            # --- Training: cross-entropy loss ---
             logits = self.lm_head(x)               # (B, T, vocab_size)
-
-            # 1. Text cross-entropy loss (all positions)
-            text_loss = F.cross_entropy(
+            loss = F.cross_entropy(
                 logits.view(-1, logits.size(-1)),
                 targets.view(-1),
                 ignore_index=-1
             )
-
-            # 2. Number loss with bypass
-            # num_head input = concat(transformer_hidden, mean_adapter_bypass)
-            target_num_mask = (targets == NUM_TOKEN_ID)
-            num_loss = torch.tensor(0.0, device=device)
-            if target_num_mask.any() and target_num_values is not None:
-                h_transformer = x_num[target_num_mask]           # (M, n_embd)
-                # Bypass: expand per-sample adapter mean to match target positions
-                # adapter_mean is (B, n_embd), need (M, n_embd) for each target NUM
-                h_bypass = adapter_mean.unsqueeze(1).expand(-1, t, -1)[target_num_mask]  # (M, n_embd)
-                h_combined = torch.cat([h_transformer, h_bypass], dim=-1)  # (M, 2*n_embd)
-
-                target_vals = target_num_values[target_num_mask]  # (M,)
-
-                if self.num_head.mode == 'bins':
-                    bin_logits = self.num_head(h_combined)         # (M, n_bins)
-                    bin_targets = self.num_head.value_to_bin(target_vals)  # (M,)
-                    num_loss = F.cross_entropy(bin_logits, bin_targets)
-                else:
-                    slog_pred = self.num_head(h_combined)          # (M,)
-                    slog_target = NumberOutputHead.to_signed_log(target_vals)
-                    num_loss = F.mse_loss(slog_pred, slog_target)
-
-            loss = text_loss + self.config.num_loss_lambda * num_loss
-
-            # Store decomposed losses for diagnostics
-            self._last_text_loss = text_loss.item()
-            self._last_num_loss = num_loss.item()
-            self._last_num_count = int(target_num_mask.sum().item())
-            self._last_total_tokens = b * t
-            self._last_layer_weights = w.detach().cpu().tolist()
         else:
             # --- Inference ---
-            self._last_hidden = x_num
-            self._last_adapter_mean = adapter_mean  # for bypass in generate()
             logits = self.lm_head(x[:, [-1], :])   # (B, 1, vocab_size)
             loss = None
 
@@ -447,8 +285,7 @@ class GPT(nn.Module):
             print(f"overriding dropout rate to {override_args['dropout']}")
             config_args['dropout'] = override_args['dropout']
         # Pass number embedding config through override_args
-        for k in ['num_emb_dim', 'num_emb_checkpoint', 'num_head_hidden', 'num_loss_lambda',
-                  'num_output_mode', 'num_bins', 'num_range']:
+        for k in ['num_emb_dim', 'num_emb_checkpoint']:
             if k in override_args:
                 config_args[k] = override_args[k]
 
@@ -521,10 +358,10 @@ class GPT(nn.Module):
     @torch.no_grad()
     def generate(self, idx, max_new_tokens, temperature=1.0, top_k=None,
                  num_values=None, num_mask=None):
-        """Generate tokens, handling <NUM> token prediction.
+        """Generate tokens autoregressively.
 
-        When the model samples NUM_TOKEN_ID, the number head predicts the
-        scalar value, which is then encoded for the next step.
+        Input numbers are embedded via adapter. Output numbers come as
+        SME token sequences — the caller decodes them with sme_tokens_to_number().
 
         Args:
             idx:        (B, T) initial token IDs
@@ -532,16 +369,12 @@ class GPT(nn.Module):
             num_mask:   (B, T) bool mask (None = inferred from idx)
 
         Returns:
-            idx:            (B, T + max_new_tokens) generated token IDs
-            num_values:     (B, T + max_new_tokens) with predicted values filled in
-            generated_nums: list of (position, value) tuples for generated numbers
+            idx: (B, T + max_new_tokens) generated token IDs
         """
         if num_values is None:
             num_values = torch.zeros_like(idx, dtype=torch.float32)
         if num_mask is None:
             num_mask = (idx == NUM_TOKEN_ID)
-
-        generated_nums = []
 
         for step in range(max_new_tokens):
             T = idx.size(1)
@@ -554,7 +387,6 @@ class GPT(nn.Module):
                 nv_cond = num_values
                 nm_cond = num_mask
 
-            # Forward (inference mode sets self._last_hidden)
             logits, _ = self(idx_cond, num_values=nv_cond, num_mask=nm_cond)
             logits = logits[:, -1, :] / temperature
 
@@ -565,31 +397,11 @@ class GPT(nn.Module):
             probs = F.softmax(logits, dim=-1)
             idx_next = torch.multinomial(probs, num_samples=1)  # (B, 1)
 
-            # Handle <NUM> generation
-            is_num = (idx_next == NUM_TOKEN_ID)  # (B, 1)
-            new_num_val = torch.zeros_like(idx_next, dtype=torch.float32)
-
-            if is_num.any():
-                # Predict number using bypass: concat(hidden, mean_adapter)
-                h_last = self._last_hidden[:, -1, :]          # (B, n_embd)
-                h_bypass = self._last_adapter_mean             # (B, n_embd)
-                h_combined = torch.cat([h_last, h_bypass], dim=-1)  # (B, 2*n_embd)
-
-                if self.num_head.mode == 'bins':
-                    bin_logits = self.num_head(h_combined)    # (B, n_bins)
-                    bin_idx = bin_logits.argmax(dim=-1)       # (B,)
-                    pred_val = self.num_head.bin_to_value(bin_idx)  # (B,)
-                else:
-                    slog = self.num_head(h_combined)          # (B,)
-                    pred_val = NumberOutputHead.from_signed_log(slog)
-
-                for b in range(idx.size(0)):
-                    if is_num[b, 0]:
-                        new_num_val[b, 0] = pred_val[b]
-                        generated_nums.append((T, pred_val[b].item()))
-
             idx = torch.cat([idx, idx_next], dim=1)
-            num_values = torch.cat([num_values, new_num_val], dim=1)
-            num_mask = torch.cat([num_mask, is_num], dim=1)
+            # Generated tokens are text (including SME), not <NUM>, so no embedding needed
+            new_nv = torch.zeros_like(idx_next, dtype=torch.float32)
+            new_nm = torch.zeros_like(idx_next, dtype=torch.bool)
+            num_values = torch.cat([num_values, new_nv], dim=1)
+            num_mask = torch.cat([num_mask, new_nm], dim=1)
 
-        return idx, num_values, generated_nums
+        return idx

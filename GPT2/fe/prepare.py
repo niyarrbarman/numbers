@@ -12,6 +12,7 @@ components. To swap datasets, change load_dataset() and the map function.
 
 import os
 import re
+import math
 import pickle
 
 import numpy as np
@@ -25,6 +26,116 @@ num_proc_load_dataset = num_proc
 enc = tiktoken.get_encoding("gpt2")
 
 NUM_TOKEN_ID = 50257  # GPT-2 vocab is 0..50256 (50256=EOT); 50257=<NUM>
+
+# =============================================================================
+# SME (Sign-Mantissa-Exponent) token constants
+# =============================================================================
+# Each number is encoded as exactly 5 tokens: Sign + Exponent + 3 Mantissa Digits
+# Token IDs sit in the padded vocab range (50258-50303, all within uint16)
+
+SME_SIGN_POS = 50258     # positive / zero
+SME_SIGN_NEG = 50259     # negative
+
+SME_EXP_BASE = 50260     # exponent tokens start here
+SME_EXP_OFFSET = 5       # E-5 = 50260, E0 = 50265, E5 = 50270
+SME_EXP_MIN = -5
+SME_EXP_MAX = 5
+SME_N_EXP = SME_EXP_MAX - SME_EXP_MIN + 1  # 11
+
+SME_DIGIT_BASE = 50271   # D0 = 50271, D9 = 50280
+
+SME_N_DIGITS = 3         # mantissa digits per number
+SME_TOKENS_PER_NUM = 5   # S + E + D + D + D
+
+# All SME token IDs (for quick membership check)
+SME_ALL_TOKENS = set(range(SME_SIGN_POS, SME_DIGIT_BASE + 10))  # 50258-50280
+
+
+def number_to_sme_tokens(value, n_digits=SME_N_DIGITS):
+    """Convert a scalar number to a list of SME token IDs.
+
+    Returns exactly (2 + n_digits) token IDs: [sign, exponent, d0, d1, ...].
+    Default n_digits=3 gives 5 tokens per number.
+
+    Examples:
+        42   -> [S+, E1, D4, D2, D0]
+       -17   -> [S-, E1, D1, D7, D0]
+      3.14   -> [S+, E0, D3, D1, D4]
+       0.5   -> [S+, E-1, D5, D0, D0]
+         0   -> [S+, E0, D0, D0, D0]
+    """
+    # Sign
+    sign_token = SME_SIGN_NEG if value < 0 else SME_SIGN_POS
+
+    # Handle zero
+    abs_val = abs(float(value))
+    if abs_val == 0 or abs_val < 10 ** (SME_EXP_MIN):
+        exp_token = SME_EXP_BASE + (0 + SME_EXP_OFFSET)  # E0
+        digit_tokens = [SME_DIGIT_BASE + 0] * n_digits    # D0 D0 D0
+        return [sign_token, exp_token] + digit_tokens
+
+    # Exponent: floor(log10(abs_val))
+    exp = int(math.floor(math.log10(abs_val)))
+    exp = max(SME_EXP_MIN, min(SME_EXP_MAX, exp))
+    exp_token = SME_EXP_BASE + (exp + SME_EXP_OFFSET)
+
+    # Mantissa: normalize to [1, 10)
+    mantissa = abs_val / (10.0 ** exp)
+    # Clamp to valid range (handles floating point edge cases)
+    mantissa = max(1.0, min(mantissa, 9.999))
+
+    # Extract digits
+    digit_tokens = []
+    for _ in range(n_digits):
+        d = int(mantissa)
+        d = min(d, 9)  # safety clamp
+        digit_tokens.append(SME_DIGIT_BASE + d)
+        mantissa = (mantissa - d) * 10.0
+
+    return [sign_token, exp_token] + digit_tokens
+
+
+def sme_tokens_to_number(tokens):
+    """Convert a list of SME token IDs back to a scalar number.
+
+    Args:
+        tokens: list of 5 ints [sign, exponent, d0, d1, d2]
+
+    Returns:
+        float value, or None if tokens are invalid
+    """
+    if len(tokens) < SME_TOKENS_PER_NUM:
+        return None
+
+    sign_tok = tokens[0]
+    exp_tok = tokens[1]
+    d_toks = tokens[2:2 + SME_N_DIGITS]
+
+    # Parse sign
+    if sign_tok == SME_SIGN_POS:
+        sign = 1.0
+    elif sign_tok == SME_SIGN_NEG:
+        sign = -1.0
+    else:
+        return None
+
+    # Parse exponent
+    if not (SME_EXP_BASE <= exp_tok < SME_EXP_BASE + SME_N_EXP):
+        return None
+    exp = (exp_tok - SME_EXP_BASE) - SME_EXP_OFFSET
+
+    # Parse mantissa digits
+    mantissa = 0.0
+    for i, dt in enumerate(d_toks):
+        if not (SME_DIGIT_BASE <= dt <= SME_DIGIT_BASE + 9):
+            return None
+        digit = dt - SME_DIGIT_BASE
+        mantissa += digit * (10.0 ** (-i))
+
+    # Reconstruct value
+    value = sign * mantissa * (10.0 ** exp)
+    return value
+
 
 # Match integers, decimals, scientific notation, optionally negative.
 # Handles: 42, 3.14, -7, 1e5, 2.5e-3, .5, -.001

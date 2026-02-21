@@ -20,14 +20,14 @@ N_TRAIN="${N_TRAIN:-1000000}"
 N_VAL="${N_VAL:-5000}"
 MAX_LEN="${MAX_LEN:-15}"
 NUMBER_RANGE="${NUMBER_RANGE:-1000}"
-OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/data/numtasks_reasoning_1k}"
+OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/data/numtasks_sme_1k}"
 
 mkdir -p "${OUT_DIR}"
 
 module load gnu/11.2.0
 
 echo "=========================================="
-echo "Generating reasoning tasks -> ${OUT_DIR}"
+echo "Generating SME tasks -> ${OUT_DIR}"
 echo "  NUMBER_RANGE=${NUMBER_RANGE}"
 echo "=========================================="
 
