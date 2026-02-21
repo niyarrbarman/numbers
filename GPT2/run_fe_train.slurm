@@ -37,8 +37,13 @@ NUM_LOSS_LAMBDA="${NUM_LOSS_LAMBDA:-5.0}"
 NUM_OUTPUT_MODE="${NUM_OUTPUT_MODE:-bins}"
 NUM_RANGE="${NUM_RANGE:-1000}"
 
+# Freeze transformer (train only adapter + num_head)
+FREEZE_TRANSFORMER="${FREEZE_TRANSFORMER:-True}"
+INIT_FROM="${INIT_FROM:-resume}"
+RESUME_CKPT="${RESUME_CKPT:-/tmpdir/m24047brmn/numbers/model_checkpoints/qbins/ckpt_iter5000.pt}"
+
 # Output directory for checkpoints
-OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/model_checkpoints/qbins}"
+OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/model_checkpoints/qbins_frozen}"
 
 GPUS_PER_NODE=2
 
@@ -61,6 +66,9 @@ echo "  Phase 2 at:     ${PHASE2_ITER}"
 echo "  Lambda:         ${NUM_LOSS_LAMBDA}"
 echo "  Num mode:       ${NUM_OUTPUT_MODE}"
 echo "  Num range:      ${NUM_RANGE}"
+echo "  Freeze:         ${FREEZE_TRANSFORMER}"
+echo "  Init from:      ${INIT_FROM}"
+echo "  Resume ckpt:    ${RESUME_CKPT}"
 echo "  Out dir:        ${OUT_DIR}"
 echo "  Master:         ${MASTER_ADDR}:${MASTER_PORT}"
 echo "=========================================="
@@ -89,7 +97,10 @@ srun apptainer exec \
       num_loss_lambda="${NUM_LOSS_LAMBDA}" \
       num_output_mode="${NUM_OUTPUT_MODE}" \
       num_range="${NUM_RANGE}" \
-      phase2_iter="${PHASE2_ITER}"
+      phase2_iter="${PHASE2_ITER}" \
+      freeze_transformer="${FREEZE_TRANSFORMER}" \
+      init_from="${INIT_FROM}" \
+      resume_ckpt="${RESUME_CKPT}"
 
 status=$?
 echo "=========================================="

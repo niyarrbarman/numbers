@@ -66,6 +66,8 @@ num_output_mode = 'bins'  # 'bins' (cross-entropy) or 'regression' (MSE)
 num_bins = 256
 num_range = 1000
 phase2_iter = 10000  # iter to switch from bins -> regression (0 = no switch)
+freeze_transformer = False  # freeze transformer, train only adapter + num_head
+resume_ckpt = ''  # explicit checkpoint path for resume (overrides out_dir/ckpt.pt)
 # adamw optimizer
 learning_rate = 6e-4
 max_iters = 15000
@@ -205,8 +207,8 @@ if init_from == 'scratch':
     gptconf = GPTConfig(**model_args)
     model = GPT(gptconf)
 elif init_from == 'resume':
-    print(f"Resuming training from {out_dir}")
-    ckpt_path = os.path.join(out_dir, 'ckpt.pt')
+    ckpt_path = resume_ckpt if resume_ckpt else os.path.join(out_dir, 'ckpt.pt')
+    print(f"Resuming training from {ckpt_path}")
     checkpoint = torch.load(ckpt_path, map_location=device)
     checkpoint_model_args = checkpoint['model_args']
     for k in ['n_layer', 'n_head', 'n_embd', 'block_size', 'bias', 'vocab_size',
@@ -239,12 +241,26 @@ if block_size < model.config.block_size:
     model_args['block_size'] = block_size
 model.to(device)
 
+# --- Freeze transformer if requested ---
+if freeze_transformer:
+    n_frozen = 0
+    n_trainable = 0
+    for name, p in model.named_parameters():
+        if any(k in name for k in ['num_adapter', 'num_head', 'num_layer_weights']):
+            p.requires_grad = True
+            n_trainable += p.numel()
+        elif 'num_encoder' not in name:  # num_encoder already frozen
+            p.requires_grad = False
+            n_frozen += p.numel()
+    if master_process:
+        print(f"Transformer FROZEN: {n_trainable:,} trainable, {n_frozen:,} frozen")
+
 # initialize a GradScaler. If enabled=False scaler is a no-op
 scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
 
 # optimizer
 optimizer = model.configure_optimizers(weight_decay, learning_rate, (beta1, beta2), device_type)
-if init_from == 'resume':
+if init_from == 'resume' and not freeze_transformer:
     optimizer.load_state_dict(checkpoint['optimizer'])
 checkpoint = None  # free up memory
 
