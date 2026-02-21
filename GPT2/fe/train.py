@@ -429,10 +429,9 @@ while True:
         grad_norm_numhead = _diag_grad_norms.get('num_head', 0.0)
         grad_norm_transformer = _diag_grad_norms.get('transformer', 0.0)
 
-        dyn_lambda = getattr(raw_model, '_last_dynamic_lambda', num_loss_lambda)
         print(f"  === DIAG iter {iter_num} ===")
         print(f"  loss breakdown: text {text_loss_val:.4f} | num {num_loss_val:.4f} "
-              f"(dynamic_lambda={dyn_lambda:.4f})")
+              f"(lambda={num_loss_lambda})")
         print(f"  grads: total {grad_norm_total:.4f}, "
               f"transformer {grad_norm_transformer:.4f}, "
               f"adapter {grad_norm_adapter:.4f}, "

@@ -300,17 +300,11 @@ class GPT(nn.Module):
                 slog_target = NumberOutputHead.to_signed_log(target_vals)
                 num_loss = F.mse_loss(slog_pred, slog_target)
 
-            # Dynamic lambda: rebalance so both losses contribute equally
-            if num_loss.item() > 0:
-                dynamic_lambda = text_loss.detach() / num_loss.detach()
-            else:
-                dynamic_lambda = self.config.num_loss_lambda
-            loss = text_loss + dynamic_lambda * num_loss
+            loss = text_loss + self.config.num_loss_lambda * num_loss
 
             # Store decomposed losses for diagnostics
             self._last_text_loss = text_loss.item()
             self._last_num_loss = num_loss.item()
-            self._last_dynamic_lambda = dynamic_lambda if isinstance(dynamic_lambda, float) else dynamic_lambda.item()
             self._last_num_count = int(target_num_mask.sum().item())
             self._last_total_tokens = b * t
         else:

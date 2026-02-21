@@ -18,20 +18,17 @@ IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest
 
 N_TRAIN="${N_TRAIN:-1000000}"
 N_VAL="${N_VAL:-5000}"
+MAX_LEN="${MAX_LEN:-100}"
 BASE_DIR="/tmpdir/m24047brmn/numbers/data/numtasks"
 
 module load gnu/11.2.0
 
-# Curriculum datasets: RANGE:MAX_LEN pairs (increasing difficulty)
-STAGES="100:10 1000:25 10000:50"
-
-for STAGE in ${STAGES}; do
-  RANGE="${STAGE%%:*}"
-  MAX_LEN="${STAGE##*:}"
+# Generate datasets for curriculum: 100, 1k, 10k
+for RANGE in 100 1000 10000; do
   OUT_DIR="${BASE_DIR}/${RANGE}"
   mkdir -p "${OUT_DIR}"
   echo "=========================================="
-  echo "Generating RANGE=${RANGE}, MAX_LEN=${MAX_LEN} -> ${OUT_DIR}"
+  echo "Generating NUMBER_RANGE=${RANGE} -> ${OUT_DIR}"
   echo "=========================================="
 
   apptainer exec \
