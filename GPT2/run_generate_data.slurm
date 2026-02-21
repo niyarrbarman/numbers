@@ -16,42 +16,48 @@ GPT2_DIR="${REPO_DIR}"
 # IMAGE="/work/conteneurs/sessions-interactives/pytorch-24.02-py3-calmip-si.sif"
 IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest.sif"
 
-# Configurable parameters (pass as env vars or edit here)
 N_TRAIN="${N_TRAIN:-1000000}"
 N_VAL="${N_VAL:-5000}"
-MAX_LEN="${MAX_LEN:-100}"
-TASK="${TASK:-numtasks}"
-NUMBER_RANGE="${NUMBER_RANGE:-100000}"
-OUT_DIR="${OUT_DIR:-"/tmpdir/m24047brmn/numbers/data/${TASK}"}"
-
-mkdir -p "${OUT_DIR}"
+BASE_DIR="/tmpdir/m24047brmn/numbers/data/numtasks"
 
 module load gnu/11.2.0
 
+# Curriculum datasets: RANGE:MAX_LEN pairs (increasing difficulty)
+STAGES="100:10 1000:25 10000:50"
 
-apptainer exec \
-  --env "PYTHONUSERBASE=${MYENVS}/numbers" \
-  --env "TIKTOKEN_CACHE_DIR=/tmpdir/m24047brmn/tiktoken_cache" \
-  --bind /tmpdir,/work \
-  "${IMAGE}" \
-  env \
-    GPT2_DIR="${GPT2_DIR}" \
-    N_TRAIN="${N_TRAIN}" \
-    N_VAL="${N_VAL}" \
-    MAX_LEN="${MAX_LEN}" \
-    NUMBER_RANGE="${NUMBER_RANGE}" \
-    OUT_DIR="${OUT_DIR}" \
-  bash -c '
-    set -euo pipefail
-    cd "${GPT2_DIR}"
-    python3 -c "import tiktoken; print(\"tiktoken OK\")"
-    python3 generate_data.py \
-      --n-train "${N_TRAIN}" \
-      --n-val "${N_VAL}" \
-      --max-len "${MAX_LEN}" \
-      --number-range "${NUMBER_RANGE}" \
-      --block-size 256 \
-      --allow-negative \
-      --out-dir "${OUT_DIR}" \
-      --allow-float
-  '
+for STAGE in ${STAGES}; do
+  RANGE="${STAGE%%:*}"
+  MAX_LEN="${STAGE##*:}"
+  OUT_DIR="${BASE_DIR}/${RANGE}"
+  mkdir -p "${OUT_DIR}"
+  echo "=========================================="
+  echo "Generating RANGE=${RANGE}, MAX_LEN=${MAX_LEN} -> ${OUT_DIR}"
+  echo "=========================================="
+
+  apptainer exec \
+    --env "PYTHONUSERBASE=${MYENVS}/numbers" \
+    --env "TIKTOKEN_CACHE_DIR=/tmpdir/m24047brmn/tiktoken_cache" \
+    --bind /tmpdir,/work \
+    "${IMAGE}" \
+    env \
+      GPT2_DIR="${GPT2_DIR}" \
+      N_TRAIN="${N_TRAIN}" \
+      N_VAL="${N_VAL}" \
+      MAX_LEN="${MAX_LEN}" \
+      NUMBER_RANGE="${RANGE}" \
+      OUT_DIR="${OUT_DIR}" \
+    bash -c '
+      set -euo pipefail
+      cd "${GPT2_DIR}"
+      python3 -c "import tiktoken; print(\"tiktoken OK\")"
+      python3 generate_data.py \
+        --n-train "${N_TRAIN}" \
+        --n-val "${N_VAL}" \
+        --max-len "${MAX_LEN}" \
+        --number-range "${NUMBER_RANGE}" \
+        --block-size 256 \
+        --allow-negative \
+        --out-dir "${OUT_DIR}" \
+        --allow-float
+    '
+done

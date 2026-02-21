@@ -47,6 +47,10 @@ wandb_run_name = 'gpt2-fe'
 # data
 dataset = 'openwebtext'
 data_dir = ''  # override to set absolute path; if empty, uses data/{dataset}
+# curriculum learning: list of (start_iter, data_dir) pairs, sorted by start_iter
+# set via curriculum_base_dir + curriculum_stages, or leave empty to disable
+curriculum_base_dir = ''  # e.g. /tmpdir/m24047brmn/numbers/data/numtasks
+curriculum_stages = '100:0,1000:5000,10000:15000,100000:30000'  # subfolder:start_iter
 gradient_accumulation_steps = 5 * 8
 batch_size = 12
 block_size = 256
@@ -127,8 +131,22 @@ ptdtype = {'float32': torch.float32, 'bfloat16': torch.bfloat16, 'float16': torc
 ctx = nullcontext() if device_type == 'cpu' else torch.amp.autocast(device_type=device_type, dtype=ptdtype)
 
 # poor man's data loader (dual-stream: tokens + numbers)
-if not data_dir:
+# --- Curriculum learning setup ---
+curriculum = []
+if curriculum_base_dir:
+    for entry in curriculum_stages.split(','):
+        subfolder, start_iter = entry.strip().split(':')
+        curriculum.append((int(start_iter), os.path.join(curriculum_base_dir, subfolder.strip())))
+    curriculum.sort(key=lambda x: x[0])
+    # start with the first stage
+    data_dir = curriculum[0][1]
+    if master_process:
+        print("Curriculum learning enabled:")
+        for start, path in curriculum:
+            print(f"  iter {start:>6d} -> {path}")
+elif not data_dir:
     data_dir = os.path.join('data', dataset)
+current_curriculum_stage = 0
 print(f"data directory: {data_dir}")
 
 
@@ -298,6 +316,20 @@ while True:
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
+    # --- Curriculum: switch data_dir at stage boundaries ---
+    if curriculum:
+        new_stage = current_curriculum_stage
+        for i, (start, path) in enumerate(curriculum):
+            if iter_num >= start:
+                new_stage = i
+        if new_stage != current_curriculum_stage:
+            current_curriculum_stage = new_stage
+            data_dir = curriculum[new_stage][1]
+            if master_process:
+                print(f"=== CURRICULUM: switching to stage {new_stage} "
+                      f"(range {os.path.basename(data_dir)}) at iter {iter_num} ===")
+                print(f"  data_dir: {data_dir}")
+
     # evaluate the loss on train/val sets and write checkpoints
     if iter_num % eval_interval == 0 and master_process:
         losses = estimate_loss()
@@ -350,6 +382,22 @@ while True:
     if grad_clip != 0.0:
         scaler.unscale_(optimizer)
         torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
+    # snapshot grad norms BEFORE zero_grad (for diagnostics)
+    if iter_num % diag_interval == 0 and master_process:
+        _diag_grad_norms = {}
+        _diag_grad_total = 0.0
+        for name, p in raw_model.named_parameters():
+            if p.grad is not None:
+                pnorm = p.grad.data.norm(2).item() ** 2
+                _diag_grad_total += pnorm
+                if 'num_adapter' in name:
+                    _diag_grad_norms['adapter'] = _diag_grad_norms.get('adapter', 0.0) + pnorm
+                elif 'num_head' in name:
+                    _diag_grad_norms['num_head'] = _diag_grad_norms.get('num_head', 0.0) + pnorm
+                else:
+                    _diag_grad_norms['transformer'] = _diag_grad_norms.get('transformer', 0.0) + pnorm
+        _diag_grad_norms = {k: v ** 0.5 for k, v in _diag_grad_norms.items()}
+        _diag_grad_norms['total'] = _diag_grad_total ** 0.5
     # step the optimizer
     scaler.step(optimizer)
     scaler.update()
@@ -375,29 +423,16 @@ while True:
         total_tokens = getattr(raw_model, '_last_total_tokens', 1)
         num_pct = num_count / total_tokens * 100
 
-        # Gradient norms by component
-        grad_norm_total = 0.0
-        grad_norm_adapter = 0.0
-        grad_norm_numhead = 0.0
-        grad_norm_transformer = 0.0
-        for name, p in raw_model.named_parameters():
-            if p.grad is not None:
-                pnorm = p.grad.data.norm(2).item() ** 2
-                grad_norm_total += pnorm
-                if 'num_adapter' in name:
-                    grad_norm_adapter += pnorm
-                elif 'num_head' in name:
-                    grad_norm_numhead += pnorm
-                else:
-                    grad_norm_transformer += pnorm
-        grad_norm_total = grad_norm_total ** 0.5
-        grad_norm_adapter = grad_norm_adapter ** 0.5
-        grad_norm_numhead = grad_norm_numhead ** 0.5
-        grad_norm_transformer = grad_norm_transformer ** 0.5
+        # Use grad norms captured before zero_grad
+        grad_norm_total = _diag_grad_norms.get('total', 0.0)
+        grad_norm_adapter = _diag_grad_norms.get('adapter', 0.0)
+        grad_norm_numhead = _diag_grad_norms.get('num_head', 0.0)
+        grad_norm_transformer = _diag_grad_norms.get('transformer', 0.0)
 
+        dyn_lambda = getattr(raw_model, '_last_dynamic_lambda', num_loss_lambda)
         print(f"  === DIAG iter {iter_num} ===")
         print(f"  loss breakdown: text {text_loss_val:.4f} | num {num_loss_val:.4f} "
-              f"(lambda={num_loss_lambda})")
+              f"(dynamic_lambda={dyn_lambda:.4f})")
         print(f"  grads: total {grad_norm_total:.4f}, "
               f"transformer {grad_norm_transformer:.4f}, "
               f"adapter {grad_norm_adapter:.4f}, "
