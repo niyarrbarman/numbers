@@ -1,0 +1,287 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+==========================================
+SME Checkpoint Validation
+  Checkpoint:   /tmpdir/m24047brmn/numbers/model_checkpoints/sme/ckpt_best.pt
+  Data dir:     /tmpdir/m24047brmn/numbers/data/numtasks_sme_1k
+  Batch blocks: 64
+  Top-K errors: 25
+  Max blocks:   0 (0 = full val set)
+  JSON output:  /tmpdir/m24047brmn/numbers/model_checkpoints/sme/val_report_77768.json
+==========================================
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+======================================================================
+SME Checkpoint Validation (Full Val Set)
+======================================================================
+Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/sme/ckpt_best.pt
+Data dir:   /tmpdir/m24047brmn/numbers/data/numtasks_sme_1k
+Device:     cuda
+Batch blk:  64
+Top-K err:  25
+Max blocks: ALL
+number of parameters: 22.42M
+----------------------------------------------------------------------
+Model block_size: 256
+Model vocab_size: 50304
+Checkpoint iter:  10000
+Best val loss:    0.2492062747478485
+Num emb ckpt:     /tmpdir/m24047brmn/numbers/checkpoints/np_emb_v8_500k_model.pt
+Meta vocab_size:  50304
+----------------------------------------------------------------------
+Validation tokens: 112,640
+Validation blocks: 440
+<NUM> tokens:      23,725
+SME token ids:     [50258, 50280]
+======================================================================
+Validation Report
+======================================================================
+Tokens evaluated:            112,639
+Cross-entropy loss (avg):    0.189661
+Perplexity:                  1.208840
+----------------------------------------------------------------------
+SME Token Accuracy
+----------------------------------------------------------------------
+ overall: 0.9574 (17089/17850)
+    sign: 0.9927 (3544/3570)
+     exp: 0.9947 (3551/3570)
+   digit: 0.9331 (9994/10710)
+      d0: 0.9818 (3505/3570)
+      d1: 0.9524 (3400/3570)
+      d2: 0.8653 (3089/3570)
+----------------------------------------------------------------------
+Number Decode Metrics (from SME number starts)
+----------------------------------------------------------------------
+Number predictions total:    3,570
+Valid decoded predictions:   3,546
+Invalid decoded predictions: 24
+Invalid rate:                0.0067
+Exact token-seq rate:        0.8359
+Exact value rate:            0.8359
+MAE:                         10.978985
+RMSE:                        214.679178
+Median abs err:              0.000000
+P90/P95/P99 abs err:         1.000000 / 10.000000 / 110.000000
+Max abs err:                 8975.000000
+MAPE (|target|>0):           0.042149
+----------------------------------------------------------------------
+Per-Task Metrics
+----------------------------------------------------------------------
+Task                N    Valid  Invalid   ExactTok   ExactVal        MAE        P95
+ADD               211      211        0     0.5924     0.5924     4.6731    10.0000
+COUNT             233      233        0     1.0000     1.0000     0.0000     0.0000
+MAX               261      261        0     0.9808     0.9808     0.0116     0.0000
+MIN               222      222        0     0.9324     0.9324     0.5102     0.0100
+SORT             2168     2144       24     0.9137     0.9137     0.2987     0.0100
+SUB               231      231        0     0.6017     0.6017     9.1379    35.5000
+SUM               244      244        0     0.1762     0.1762   143.7614   233.8000
+----------------------------------------------------------------------
+Top 25 Worst Absolute-Error Examples
+----------------------------------------------------------------------
+[01] task=SORT valid=False
+  context: SORT: <-368.4> <-300.912> <-322.55> <762.514> →
+  target:  -368.0
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50267, 50274, 50277, 50279]
+  pred_toks:[50257, 50267, 50274, 50277, 50279]
+[02] task=SORT valid=False
+  context: SORT: <483.74> <609.5> →
+  target:  483.0
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50258, 50267, 50275, 50279, 50274]
+  pred_toks:[50257, 50267, 50275, 50279, 50274]
+[03] task=SORT valid=False
+  context: SORT: <-173.508> <385> <862.87> <878.77> <904.49> →
+  target:  -173.00000000000003
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50267, 50272, 50278, 50274]
+  pred_toks:[50257, 50267, 50272, 50278, 50274]
+[04] task=SORT valid=False
+  context: SORT: <434.4> <306> <-4.1774> <3> <-865.405> <8.9> <1> <75> →
+  target:  -865.0
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50267, 50279, 50277, 50276]
+  pred_toks:[50257, 50267, 50279, 50277, 50276]
+[05] task=SORT valid=False
+  context: SORT: <62.131> <642.3> <739> <390> <-9> <881> <949.586> <-339> →
+  target:  -338.99999999999994
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50267, 50274, 50274, 50280]
+  pred_toks:[50257, 50267, 50274, 50274, 50280]
+[06] task=SORT valid=False
+  context: SORT: <861.7> <786.1> <13.24> <0> <-53.25> <4.75> <-354> →
+  target:  -354.0
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50267, 50274, 50276, 50275]
+  pred_toks:[50257, 50267, 50274, 50276, 50275]
+[07] task=SORT valid=False
+  context: SORT: <777.34> <-780> <456> <-174> →
+  target:  -779.0
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50267, 50278, 50278, 50280]
+  pred_toks:[50257, 50267, 50278, 50278, 50280]
+[08] task=SORT valid=False
+  context: SORT: <194> <830.992> <5> <4> <-507> <399.02> <-275.3> <4.139> →
+  target:  -507.0
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50267, 50276, 50271, 50278]
+  pred_toks:[50257, 50267, 50276, 50271, 50278]
+[09] task=SORT valid=False
+  context: SORT: <503> <633> <798> <928.805> <443> →
+  target:  442.0
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50258, 50267, 50275, 50275, 50273]
+  pred_toks:[50257, 50267, 50275, 50275, 50273]
+[10] task=SORT valid=False
+  context: SORT: <8.89> <-844.4> <27> <156> <882.96> <652.053> <1> →
+  target:  -844.0
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50267, 50279, 50275, 50275]
+  pred_toks:[50257, 50267, 50279, 50275, 50275]
+[11] task=SORT valid=False
+  context: SORT: <585.9> <-698> <914.032> <463.7> <8.7> <101> →
+  target:  -698.0
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50267, 50277, 50280, 50279]
+  pred_toks:[50257, 50267, 50277, 50280, 50279]
+[12] task=SORT valid=False
+  context: SORT: <-668.165> <-195.8> <-9> <4> <541.392> <448> →
+  target:  -668.0
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50267, 50277, 50277, 50279]
+  pred_toks:[50257, 50267, 50277, 50277, 50279]
+[13] task=SORT valid=False
+  context: SORT: <-0.289> <737.236> <590.8> <-532> →
+  target:  -531.9999999999999
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50267, 50276, 50274, 50273]
+  pred_toks:[50257, 50267, 50276, 50274, 50273]
+[14] task=SORT valid=False
+  context: SORT: <359> <-132> <7.7> <8> <4.72> <338.179> <572> <660.41> →
+  target:  -132.0
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50267, 50272, 50274, 50273]
+  pred_toks:[50257, 50267, 50272, 50274, 50273]
+[15] task=SORT valid=False
+  context: SORT: <964> <517> <369.67> <636.28> <839.668> →
+  target:  369.0
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50258, 50267, 50274, 50277, 50280]
+  pred_toks:[50257, 50267, 50274, 50277, 50280]
+[16] task=SORT valid=False
+  context: SORT: <664.41> <543> <517.66> <467> <376.2> <678> <1.5> →
+  target:  1.5
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50258, 50265, 50272, 50276, 50271]
+  pred_toks:[50257, 50265, 50272, 50276, 50271]
+[17] task=SORT valid=False
+  context: SORT: <491.782> <-831.405> <265.3> <173> <6.504> <-873.34> <442> →
+  target:  -872.9999999999999
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50267, 50279, 50278, 50274]
+  pred_toks:[50257, 50267, 50279, 50278, 50274]
+[18] task=SORT valid=False
+  context: SORT: <674> <854.9> <-12> <9> <9.547> →
+  target:  -11.900000000000002
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50266, 50272, 50272, 50280]
+  pred_toks:[50257, 50266, 50272, 50272, 50280]
+[19] task=SORT valid=False
+  context: SORT: <774> <374.905> <-8.9191> <4.5> <-8.3604> <114> <1> <631> →
+  target:  -8.91
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50265, 50279, 50280, 50272]
+  pred_toks:[50257, 50265, 50279, 50280, 50271]
+[20] task=SORT valid=False
+  context: SORT: <-331.16> <600.4> <379> <713> <293> <795> →
+  target:  -330.99999999999994
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50267, 50274, 50274, 50272]
+  pred_toks:[50257, 50267, 50274, 50274, 50272]
+[21] task=SORT valid=False
+  context: SORT: <-783> <932> <2.288> <993.292> <3.11> →
+  target:  -783.0
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50267, 50278, 50279, 50274]
+  pred_toks:[50257, 50267, 50278, 50279, 50274]
+[22] task=SORT valid=False
+  context: SORT: <9.72> <-1> →
+  target:  -1.0
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50265, 50272, 50271, 50271]
+  pred_toks:[50257, 50265, 50272, 50271, 50271]
+[23] task=SORT valid=False
+  context: SORT: <6.2> <308.159> <601> <3.488> <-4> <283> <7.3419> <126> →
+  target:  -4.0
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50265, 50275, 50271, 50271]
+  pred_toks:[50257, 50265, 50275, 50271, 50271]
+[24] task=SORT valid=False
+  context: SORT: <6.6> <961> <996.36> <548.04> <400> →
+  target:  6.59
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50258, 50265, 50277, 50276, 50280]
+  pred_toks:[50257, 50265, 50277, 50276, 50280]
+[25] task=SUM valid=True
+  context: SUM: <2.34> <455.46> <159> <378.847> →
+  target:  995.0000000000001
+  pred:    9970.0
+  abs_err: 8975.0
+  rel_err: 9.020100502512562
+  tgt_toks:[50258, 50267, 50280, 50280, 50276]
+  pred_toks:[50258, 50268, 50280, 50280, 50278]
+----------------------------------------------------------------------
+Saved JSON summary: /tmpdir/m24047brmn/numbers/model_checkpoints/sme/val_report_77768.json
+======================================================================
+Validation finished.
+======================================================================
+==========================================
+Validation finished with status 0
+==========================================
