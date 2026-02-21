@@ -20,7 +20,11 @@ IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest
 N_TRAIN="${N_TRAIN:-1000000}"
 N_VAL="${N_VAL:-5000}"
 MAX_LEN="${MAX_LEN:-100}"
+TASK="${TASK:-numtasks}"
 NUMBER_RANGE="${NUMBER_RANGE:-100000}"
+OUT_DIR="${OUT_DIR:-"/tmpdir/m24047brmn/numbers/data/${TASK}"}"
+
+mkdir -p "${OUT_DIR}"
 
 module load gnu/11.2.0
 
@@ -36,6 +40,7 @@ apptainer exec \
     N_VAL="${N_VAL}" \
     MAX_LEN="${MAX_LEN}" \
     NUMBER_RANGE="${NUMBER_RANGE}" \
+    OUT_DIR="${OUT_DIR}" \
   bash -c '
     set -euo pipefail
     cd "${GPT2_DIR}"
@@ -47,6 +52,6 @@ apptainer exec \
       --number-range "${NUMBER_RANGE}" \
       --block-size 256 \
       --allow-negative \
-      --out-dir "/tmpdir/m24047brmn/numbers/data" \
+      --out-dir "${OUT_DIR}" \
       --allow-float
   '
