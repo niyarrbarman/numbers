@@ -60,7 +60,7 @@ bias = False
 num_emb_checkpoint = ''  # path to NumberEncoder .pt checkpoint
 num_emb_dim = 128
 num_head_hidden = 256
-num_loss_lambda = 1.0
+num_loss_lambda = 5.0
 # adamw optimizer
 learning_rate = 6e-4
 max_iters = 50000

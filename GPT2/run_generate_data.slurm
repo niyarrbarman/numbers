@@ -19,8 +19,8 @@ IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest
 N_TRAIN="${N_TRAIN:-1000000}"
 N_VAL="${N_VAL:-5000}"
 MAX_LEN="${MAX_LEN:-15}"
-NUMBER_RANGE="${NUMBER_RANGE:-100000}"
-OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/data/numtasks_reasoning}"
+NUMBER_RANGE="${NUMBER_RANGE:-1000}"
+OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/data/numtasks_reasoning_1k}"
 
 mkdir -p "${OUT_DIR}"
 

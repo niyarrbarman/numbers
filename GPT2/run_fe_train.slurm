@@ -19,13 +19,16 @@ IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest
 NUM_EMB_CHECKPOINT="/tmpdir/m24047brmn/numbers/checkpoints/np_emb_v8_500k_model.pt"
 
 # Dataset
-DATASET="${DATASET:-numtasks_reasoning}"
+DATASET="${DATASET:-numtasks_reasoning_1k}"
 
 # Data directory: absolute path to the folder containing {train,val}.bin
-DATA_DIR="/tmpdir/m24047brmn/numbers/data/numtasks_reasoning"
+DATA_DIR="/tmpdir/m24047brmn/numbers/data/numtasks_reasoning_1k"
 
 # Training iterations (lr_decay_iters auto-set to match)
 MAX_ITERS="${MAX_ITERS:-50000}"
+
+# Number loss weight
+NUM_LOSS_LAMBDA="${NUM_LOSS_LAMBDA:-5.0}"
 
 # Output directory for checkpoints
 OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/model_checkpoints}"
@@ -47,6 +50,7 @@ echo "  Dataset:        ${DATASET}"
 echo "  Data dir:       ${DATA_DIR}"
 echo "  Checkpoint:     ${NUM_EMB_CHECKPOINT}"
 echo "  Max iters:      ${MAX_ITERS}"
+echo "  Lambda:         ${NUM_LOSS_LAMBDA}"
 echo "  Out dir:        ${OUT_DIR}"
 echo "  Master:         ${MASTER_ADDR}:${MASTER_PORT}"
 echo "=========================================="
@@ -71,7 +75,8 @@ srun apptainer exec \
       num_emb_checkpoint="${NUM_EMB_CHECKPOINT}" \
       out_dir="${OUT_DIR}" \
       max_iters="${MAX_ITERS}" \
-      lr_decay_iters="${MAX_ITERS}"
+      lr_decay_iters="${MAX_ITERS}" \
+      num_loss_lambda="${NUM_LOSS_LAMBDA}"
 
 status=$?
 echo "=========================================="
