@@ -16,14 +16,20 @@ import math
 import pickle
 
 import numpy as np
-import tiktoken
-from tqdm import tqdm
 
 # Number of workers for .map() and load_dataset()
 num_proc = 8
 num_proc_load_dataset = num_proc
 
-enc = tiktoken.get_encoding("gpt2")
+# Lazy tiktoken initialization — compute nodes may not have internet access
+_enc = None
+
+def _get_enc():
+    global _enc
+    if _enc is None:
+        import tiktoken
+        _enc = tiktoken.get_encoding("gpt2")
+    return _enc
 
 NUM_TOKEN_ID = 50257  # GPT-2 vocab is 0..50256 (50256=EOT); 50257=<NUM>
 
@@ -162,6 +168,7 @@ def process_text_with_numbers(text):
         ids:  list[int]   — token IDs (with NUM_TOKEN_ID for numbers)
         nums: list[float] — parallel to ids (float value at NUM positions, 0.0 elsewhere)
     """
+    enc = _get_enc()
     ids = []
     nums = []
 
@@ -214,6 +221,7 @@ def process_example(example):
 
 if __name__ == '__main__':
     from datasets import load_dataset
+    from tqdm import tqdm
 
     # --- Load dataset (swap this section for different datasets) ---
     dataset = load_dataset("openwebtext", num_proc=num_proc_load_dataset)
