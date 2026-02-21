@@ -35,7 +35,7 @@ from model import GPTConfig, GPT, NUM_TOKEN_ID
 out_dir = '/tmpdir/m24047brmn/numbers/model_checkpoints'
 eval_interval = 5000
 log_interval = 1
-diag_interval = 500
+diag_interval = 100
 eval_iters = 200
 eval_only = False
 always_save_checkpoint = True

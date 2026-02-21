@@ -1,0 +1,1378 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+==========================================
+GPT-2 FE Training (Number Embeddings)
+  Nodes:          4
+  GPUs/node:      2
+  Total GPUs:     8
+  Dataset:        numtasks
+  Data dir:       /tmpdir/m24047brmn/numbers/data/numtasks
+  Checkpoint:     /tmpdir/m24047brmn/numbers/checkpoints/np_emb_v8_500k_model.pt
+  Max iters:      50000
+  Out dir:        /tmpdir/m24047brmn/numbers/model_checkpoints
+  Master:         10.158.1.100:37728
+==========================================
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+W0221 02:42:42.050000 3741318 torch/distributed/run.py:793] 
+W0221 02:42:42.050000 3741318 torch/distributed/run.py:793] *****************************************
+W0221 02:42:42.050000 3741318 torch/distributed/run.py:793] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0221 02:42:42.050000 3741318 torch/distributed/run.py:793] *****************************************
+W0221 02:42:42.133000 1908751 torch/distributed/run.py:793] 
+W0221 02:42:42.133000 1908751 torch/distributed/run.py:793] *****************************************
+W0221 02:42:42.133000 1908751 torch/distributed/run.py:793] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0221 02:42:42.133000 1908751 torch/distributed/run.py:793] *****************************************
+W0221 02:42:42.194000 1191002 torch/distributed/run.py:793] 
+W0221 02:42:42.194000 1191002 torch/distributed/run.py:793] *****************************************
+W0221 02:42:42.194000 1191002 torch/distributed/run.py:793] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0221 02:42:42.194000 1191002 torch/distributed/run.py:793] *****************************************
+W0221 02:42:42.319000 2166338 torch/distributed/run.py:793] 
+W0221 02:42:42.319000 2166338 torch/distributed/run.py:793] *****************************************
+W0221 02:42:42.319000 2166338 torch/distributed/run.py:793] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0221 02:42:42.319000 2166338 torch/distributed/run.py:793] *****************************************
+tokens per iteration will be: 122,880
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks
+found vocab_size = 50304 (inside /tmpdir/m24047brmn/numbers/data/numtasks/meta.pkl)
+Initializing a new model from scratch
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+tokens per iteration will be: 122,880
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks
+tokens per iteration will be: 122,880
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks
+found vocab_size = 50304 (inside /tmpdir/m24047brmn/numbers/data/numtasks/meta.pkl)
+Initializing a new model from scratch
+found vocab_size = 50304 (inside /tmpdir/m24047brmn/numbers/data/numtasks/meta.pkl)
+Initializing a new model from scratch
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+tokens per iteration will be: 122,880
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks
+found vocab_size = 50304 (inside /tmpdir/m24047brmn/numbers/data/numtasks/meta.pkl)
+Initializing a new model from scratch
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+tokens per iteration will be: 122,880
+tokens per iteration will be: 122,880
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks
+found vocab_size = 50304 (inside /tmpdir/m24047brmn/numbers/data/numtasks/meta.pkl)
+Initializing a new model from scratch
+found vocab_size = 50304 (inside /tmpdir/m24047brmn/numbers/data/numtasks/meta.pkl)
+Initializing a new model from scratch
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+tokens per iteration will be: 122,880
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks
+found vocab_size = 50304 (inside /tmpdir/m24047brmn/numbers/data/numtasks/meta.pkl)
+Initializing a new model from scratch
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+tokens per iteration will be: 122,880
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks
+found vocab_size = 50304 (inside /tmpdir/m24047brmn/numbers/data/numtasks/meta.pkl)
+Initializing a new model from scratch
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+number of parameters: 22.49M
+number of parameters: 22.49M
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:234: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+num decayed parameter tensors: 54, with 22,544,640 parameters
+num non-decayed parameter tensors: 29, with 7,169 parameters
+number of parameters: 22.49M
+number of parameters: 22.49M
+number of parameters: 22.49M
+number of parameters: 22.49M
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:234: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+num decayed parameter tensors: 54, with 22,544,640 parameters
+num non-decayed parameter tensors: 29, with 7,169 parameters
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:234: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+num decayed parameter tensors: 54, with 22,544,640 parameters
+num non-decayed parameter tensors: 29, with 7,169 parameters
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:234: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+num decayed parameter tensors: 54, with 22,544,640 parameters
+num non-decayed parameter tensors: 29, with 7,169 parameters
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:234: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+num decayed parameter tensors: 54, with 22,544,640 parameters
+num non-decayed parameter tensors: 29, with 7,169 parameters
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:234: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+num decayed parameter tensors: 54, with 22,544,640 parameters
+num non-decayed parameter tensors: 29, with 7,169 parameters
+number of parameters: 22.49M
+number of parameters: 22.49M
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:234: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+num decayed parameter tensors: 54, with 22,544,640 parameters
+num non-decayed parameter tensors: 29, with 7,169 parameters
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:234: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+num decayed parameter tensors: 54, with 22,544,640 parameters
+num non-decayed parameter tensors: 29, with 7,169 parameters
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+[rank0]:W0221 02:43:36.349000 3741387 torch/_dynamo/variables/tensor.py:776] [5/0] Graph break from `Tensor.item()`, consider setting:
+[rank0]:W0221 02:43:36.349000 3741387 torch/_dynamo/variables/tensor.py:776] [5/0]     torch._dynamo.config.capture_scalar_outputs = True
+[rank0]:W0221 02:43:36.349000 3741387 torch/_dynamo/variables/tensor.py:776] [5/0] or:
+[rank0]:W0221 02:43:36.349000 3741387 torch/_dynamo/variables/tensor.py:776] [5/0]     env TORCHDYNAMO_CAPTURE_SCALAR_OUTPUTS=1
+[rank0]:W0221 02:43:36.349000 3741387 torch/_dynamo/variables/tensor.py:776] [5/0] to include these operations in the captured graph.
+[rank0]:W0221 02:43:36.349000 3741387 torch/_dynamo/variables/tensor.py:776] [5/0] 
+[rank0]:W0221 02:43:36.349000 3741387 torch/_dynamo/variables/tensor.py:776] [5/0] Graph break: from user code at:
+[rank0]:W0221 02:43:36.349000 3741387 torch/_dynamo/variables/tensor.py:776] [5/0]   File "/work/m24047/m24047brmn/numbers/GPT2/fe/model.py", line 306, in torch_dynamo_resume_in_forward_at_299
+[rank0]:W0221 02:43:36.349000 3741387 torch/_dynamo/variables/tensor.py:776] [5/0]     self._last_text_loss = text_loss.item()
+[rank0]:W0221 02:43:36.349000 3741387 torch/_dynamo/variables/tensor.py:776] [5/0] 
+[rank0]:W0221 02:43:36.349000 3741387 torch/_dynamo/variables/tensor.py:776] [5/0] 
+[rank4]:W0221 02:43:43.448000 2166407 torch/_dynamo/variables/tensor.py:776] [6/0] Graph break from `Tensor.item()`, consider setting:
+[rank4]:W0221 02:43:43.448000 2166407 torch/_dynamo/variables/tensor.py:776] [6/0]     torch._dynamo.config.capture_scalar_outputs = True
+[rank4]:W0221 02:43:43.448000 2166407 torch/_dynamo/variables/tensor.py:776] [6/0] or:
+[rank4]:W0221 02:43:43.448000 2166407 torch/_dynamo/variables/tensor.py:776] [6/0]     env TORCHDYNAMO_CAPTURE_SCALAR_OUTPUTS=1
+[rank4]:W0221 02:43:43.448000 2166407 torch/_dynamo/variables/tensor.py:776] [6/0] to include these operations in the captured graph.
+[rank4]:W0221 02:43:43.448000 2166407 torch/_dynamo/variables/tensor.py:776] [6/0] 
+[rank4]:W0221 02:43:43.448000 2166407 torch/_dynamo/variables/tensor.py:776] [6/0] Graph break: from user code at:
+[rank4]:W0221 02:43:43.448000 2166407 torch/_dynamo/variables/tensor.py:776] [6/0]   File "/work/m24047/m24047brmn/numbers/GPT2/fe/model.py", line 306, in torch_dynamo_resume_in_forward_at_299
+[rank4]:W0221 02:43:43.448000 2166407 torch/_dynamo/variables/tensor.py:776] [6/0]     self._last_text_loss = text_loss.item()
+[rank4]:W0221 02:43:43.448000 2166407 torch/_dynamo/variables/tensor.py:776] [6/0] 
+[rank4]:W0221 02:43:43.448000 2166407 torch/_dynamo/variables/tensor.py:776] [6/0] 
+[rank6]:W0221 02:43:45.881000 1191072 torch/_dynamo/variables/tensor.py:776] [6/0] Graph break from `Tensor.item()`, consider setting:
+[rank6]:W0221 02:43:45.881000 1191072 torch/_dynamo/variables/tensor.py:776] [6/0]     torch._dynamo.config.capture_scalar_outputs = True
+[rank6]:W0221 02:43:45.881000 1191072 torch/_dynamo/variables/tensor.py:776] [6/0] or:
+[rank6]:W0221 02:43:45.881000 1191072 torch/_dynamo/variables/tensor.py:776] [6/0]     env TORCHDYNAMO_CAPTURE_SCALAR_OUTPUTS=1
+[rank6]:W0221 02:43:45.881000 1191072 torch/_dynamo/variables/tensor.py:776] [6/0] to include these operations in the captured graph.
+[rank6]:W0221 02:43:45.881000 1191072 torch/_dynamo/variables/tensor.py:776] [6/0] 
+[rank6]:W0221 02:43:45.881000 1191072 torch/_dynamo/variables/tensor.py:776] [6/0] Graph break: from user code at:
+[rank6]:W0221 02:43:45.881000 1191072 torch/_dynamo/variables/tensor.py:776] [6/0]   File "/work/m24047/m24047brmn/numbers/GPT2/fe/model.py", line 306, in torch_dynamo_resume_in_forward_at_299
+[rank6]:W0221 02:43:45.881000 1191072 torch/_dynamo/variables/tensor.py:776] [6/0]     self._last_text_loss = text_loss.item()
+[rank6]:W0221 02:43:45.881000 1191072 torch/_dynamo/variables/tensor.py:776] [6/0] 
+[rank6]:W0221 02:43:45.881000 1191072 torch/_dynamo/variables/tensor.py:776] [6/0] 
+[rank1]:W0221 02:43:45.922000 3741388 torch/_dynamo/variables/tensor.py:776] [6/0] Graph break from `Tensor.item()`, consider setting:
+[rank1]:W0221 02:43:45.922000 3741388 torch/_dynamo/variables/tensor.py:776] [6/0]     torch._dynamo.config.capture_scalar_outputs = True
+[rank1]:W0221 02:43:45.922000 3741388 torch/_dynamo/variables/tensor.py:776] [6/0] or:
+[rank1]:W0221 02:43:45.922000 3741388 torch/_dynamo/variables/tensor.py:776] [6/0]     env TORCHDYNAMO_CAPTURE_SCALAR_OUTPUTS=1
+[rank1]:W0221 02:43:45.922000 3741388 torch/_dynamo/variables/tensor.py:776] [6/0] to include these operations in the captured graph.
+[rank1]:W0221 02:43:45.922000 3741388 torch/_dynamo/variables/tensor.py:776] [6/0] 
+[rank1]:W0221 02:43:45.922000 3741388 torch/_dynamo/variables/tensor.py:776] [6/0] Graph break: from user code at:
+[rank1]:W0221 02:43:45.922000 3741388 torch/_dynamo/variables/tensor.py:776] [6/0]   File "/work/m24047/m24047brmn/numbers/GPT2/fe/model.py", line 306, in torch_dynamo_resume_in_forward_at_299
+[rank1]:W0221 02:43:45.922000 3741388 torch/_dynamo/variables/tensor.py:776] [6/0]     self._last_text_loss = text_loss.item()
+[rank1]:W0221 02:43:45.922000 3741388 torch/_dynamo/variables/tensor.py:776] [6/0] 
+[rank1]:W0221 02:43:45.922000 3741388 torch/_dynamo/variables/tensor.py:776] [6/0] 
+[rank5]:W0221 02:43:45.964000 2166408 torch/_dynamo/variables/tensor.py:776] [6/0] Graph break from `Tensor.item()`, consider setting:
+[rank5]:W0221 02:43:45.964000 2166408 torch/_dynamo/variables/tensor.py:776] [6/0]     torch._dynamo.config.capture_scalar_outputs = True
+[rank5]:W0221 02:43:45.964000 2166408 torch/_dynamo/variables/tensor.py:776] [6/0] or:
+[rank5]:W0221 02:43:45.964000 2166408 torch/_dynamo/variables/tensor.py:776] [6/0]     env TORCHDYNAMO_CAPTURE_SCALAR_OUTPUTS=1
+[rank5]:W0221 02:43:45.964000 2166408 torch/_dynamo/variables/tensor.py:776] [6/0] to include these operations in the captured graph.
+[rank5]:W0221 02:43:45.964000 2166408 torch/_dynamo/variables/tensor.py:776] [6/0] 
+[rank5]:W0221 02:43:45.964000 2166408 torch/_dynamo/variables/tensor.py:776] [6/0] Graph break: from user code at:
+[rank5]:W0221 02:43:45.964000 2166408 torch/_dynamo/variables/tensor.py:776] [6/0]   File "/work/m24047/m24047brmn/numbers/GPT2/fe/model.py", line 306, in torch_dynamo_resume_in_forward_at_299
+[rank5]:W0221 02:43:45.964000 2166408 torch/_dynamo/variables/tensor.py:776] [6/0]     self._last_text_loss = text_loss.item()
+[rank5]:W0221 02:43:45.964000 2166408 torch/_dynamo/variables/tensor.py:776] [6/0] 
+[rank5]:W0221 02:43:45.964000 2166408 torch/_dynamo/variables/tensor.py:776] [6/0] 
+[rank7]:W0221 02:43:46.136000 1191073 torch/_dynamo/variables/tensor.py:776] [6/0] Graph break from `Tensor.item()`, consider setting:
+[rank7]:W0221 02:43:46.136000 1191073 torch/_dynamo/variables/tensor.py:776] [6/0]     torch._dynamo.config.capture_scalar_outputs = True
+[rank7]:W0221 02:43:46.136000 1191073 torch/_dynamo/variables/tensor.py:776] [6/0] or:
+[rank7]:W0221 02:43:46.136000 1191073 torch/_dynamo/variables/tensor.py:776] [6/0]     env TORCHDYNAMO_CAPTURE_SCALAR_OUTPUTS=1
+[rank7]:W0221 02:43:46.136000 1191073 torch/_dynamo/variables/tensor.py:776] [6/0] to include these operations in the captured graph.
+[rank7]:W0221 02:43:46.136000 1191073 torch/_dynamo/variables/tensor.py:776] [6/0] 
+[rank7]:W0221 02:43:46.136000 1191073 torch/_dynamo/variables/tensor.py:776] [6/0] Graph break: from user code at:
+[rank7]:W0221 02:43:46.136000 1191073 torch/_dynamo/variables/tensor.py:776] [6/0]   File "/work/m24047/m24047brmn/numbers/GPT2/fe/model.py", line 306, in torch_dynamo_resume_in_forward_at_299
+[rank7]:W0221 02:43:46.136000 1191073 torch/_dynamo/variables/tensor.py:776] [6/0]     self._last_text_loss = text_loss.item()
+[rank7]:W0221 02:43:46.136000 1191073 torch/_dynamo/variables/tensor.py:776] [6/0] 
+[rank7]:W0221 02:43:46.136000 1191073 torch/_dynamo/variables/tensor.py:776] [6/0] 
+[rank3]:W0221 02:43:46.213000 1908820 torch/_dynamo/variables/tensor.py:776] [6/0] Graph break from `Tensor.item()`, consider setting:
+[rank3]:W0221 02:43:46.213000 1908820 torch/_dynamo/variables/tensor.py:776] [6/0]     torch._dynamo.config.capture_scalar_outputs = True
+[rank3]:W0221 02:43:46.213000 1908820 torch/_dynamo/variables/tensor.py:776] [6/0] or:
+[rank3]:W0221 02:43:46.213000 1908820 torch/_dynamo/variables/tensor.py:776] [6/0]     env TORCHDYNAMO_CAPTURE_SCALAR_OUTPUTS=1
+[rank3]:W0221 02:43:46.213000 1908820 torch/_dynamo/variables/tensor.py:776] [6/0] to include these operations in the captured graph.
+[rank3]:W0221 02:43:46.213000 1908820 torch/_dynamo/variables/tensor.py:776] [6/0] 
+[rank3]:W0221 02:43:46.213000 1908820 torch/_dynamo/variables/tensor.py:776] [6/0] Graph break: from user code at:
+[rank3]:W0221 02:43:46.213000 1908820 torch/_dynamo/variables/tensor.py:776] [6/0]   File "/work/m24047/m24047brmn/numbers/GPT2/fe/model.py", line 306, in torch_dynamo_resume_in_forward_at_299
+[rank3]:W0221 02:43:46.213000 1908820 torch/_dynamo/variables/tensor.py:776] [6/0]     self._last_text_loss = text_loss.item()
+[rank3]:W0221 02:43:46.213000 1908820 torch/_dynamo/variables/tensor.py:776] [6/0] 
+[rank3]:W0221 02:43:46.213000 1908820 torch/_dynamo/variables/tensor.py:776] [6/0] 
+[rank2]:W0221 02:43:46.342000 1908819 torch/_dynamo/variables/tensor.py:776] [6/0] Graph break from `Tensor.item()`, consider setting:
+[rank2]:W0221 02:43:46.342000 1908819 torch/_dynamo/variables/tensor.py:776] [6/0]     torch._dynamo.config.capture_scalar_outputs = True
+[rank2]:W0221 02:43:46.342000 1908819 torch/_dynamo/variables/tensor.py:776] [6/0] or:
+[rank2]:W0221 02:43:46.342000 1908819 torch/_dynamo/variables/tensor.py:776] [6/0]     env TORCHDYNAMO_CAPTURE_SCALAR_OUTPUTS=1
+[rank2]:W0221 02:43:46.342000 1908819 torch/_dynamo/variables/tensor.py:776] [6/0] to include these operations in the captured graph.
+[rank2]:W0221 02:43:46.342000 1908819 torch/_dynamo/variables/tensor.py:776] [6/0] 
+[rank2]:W0221 02:43:46.342000 1908819 torch/_dynamo/variables/tensor.py:776] [6/0] Graph break: from user code at:
+[rank2]:W0221 02:43:46.342000 1908819 torch/_dynamo/variables/tensor.py:776] [6/0]   File "/work/m24047/m24047brmn/numbers/GPT2/fe/model.py", line 306, in torch_dynamo_resume_in_forward_at_299
+[rank2]:W0221 02:43:46.342000 1908819 torch/_dynamo/variables/tensor.py:776] [6/0]     self._last_text_loss = text_loss.item()
+[rank2]:W0221 02:43:46.342000 1908819 torch/_dynamo/variables/tensor.py:776] [6/0] 
+[rank2]:W0221 02:43:46.342000 1908819 torch/_dynamo/variables/tensor.py:776] [6/0] 
+[rank0]:W0221 02:43:58.085000 3741387 torch/_dynamo/convert_frame.py:841] [6/8] torch._dynamo hit config.cache_size_limit (8)
+[rank0]:W0221 02:43:58.085000 3741387 torch/_dynamo/convert_frame.py:841] [6/8]    function: 'torch_dynamo_resume_in_forward_at_306' (/work/m24047/m24047brmn/numbers/GPT2/fe/model.py:306)
+[rank0]:W0221 02:43:58.085000 3741387 torch/_dynamo/convert_frame.py:841] [6/8]    last reason: 6/0: L['___stack0'] == 10.581581115722656                        
+[rank0]:W0221 02:43:58.085000 3741387 torch/_dynamo/convert_frame.py:841] [6/8] To log all recompilation reasons, use TORCH_LOGS="recompiles".
+[rank0]:W0221 02:43:58.085000 3741387 torch/_dynamo/convert_frame.py:841] [6/8] To diagnose recompilation issues, see https://pytorch.org/docs/main/torch.compiler_troubleshooting.html.
+step 0: train loss 63.8484, val loss 63.4433
+iter 0: loss 64.2018, time 162137.57ms, mfu -100.00%
+  === DIAG iter 0 ===
+  loss breakdown: text 10.6077 | num 53.5940 (lambda=1.0)
+  grads: total 0.0000, transformer 0.0000, adapter 0.0000, num_head 0.0000
+  nums: 1079/3072 tokens (35.1%)
+  lr: 3.00e-07
+[rank1]:W0221 02:45:39.048000 3741388 torch/_dynamo/convert_frame.py:841] [7/8] torch._dynamo hit config.cache_size_limit (8)
+[rank1]:W0221 02:45:39.048000 3741388 torch/_dynamo/convert_frame.py:841] [7/8]    function: 'torch_dynamo_resume_in_forward_at_306' (/work/m24047/m24047brmn/numbers/GPT2/fe/model.py:306)
+[rank1]:W0221 02:45:39.048000 3741388 torch/_dynamo/convert_frame.py:841] [7/8]    last reason: 7/0: L['___stack0'] == 10.660815238952637                        
+[rank1]:W0221 02:45:39.048000 3741388 torch/_dynamo/convert_frame.py:841] [7/8] To log all recompilation reasons, use TORCH_LOGS="recompiles".
+[rank1]:W0221 02:45:39.048000 3741388 torch/_dynamo/convert_frame.py:841] [7/8] To diagnose recompilation issues, see https://pytorch.org/docs/main/torch.compiler_troubleshooting.html.
+[rank3]:W0221 02:45:39.084000 1908820 torch/_dynamo/convert_frame.py:841] [7/8] torch._dynamo hit config.cache_size_limit (8)
+[rank3]:W0221 02:45:39.084000 1908820 torch/_dynamo/convert_frame.py:841] [7/8]    function: 'torch_dynamo_resume_in_forward_at_306' (/work/m24047/m24047brmn/numbers/GPT2/fe/model.py:306)
+[rank3]:W0221 02:45:39.084000 1908820 torch/_dynamo/convert_frame.py:841] [7/8]    last reason: 7/0: L['___stack0'] == 10.599821090698242                        
+[rank3]:W0221 02:45:39.084000 1908820 torch/_dynamo/convert_frame.py:841] [7/8] To log all recompilation reasons, use TORCH_LOGS="recompiles".
+[rank3]:W0221 02:45:39.084000 1908820 torch/_dynamo/convert_frame.py:841] [7/8] To diagnose recompilation issues, see https://pytorch.org/docs/main/torch.compiler_troubleshooting.html.
+[rank5]:W0221 02:45:39.095000 2166408 torch/_dynamo/convert_frame.py:841] [7/8] torch._dynamo hit config.cache_size_limit (8)
+[rank5]:W0221 02:45:39.095000 2166408 torch/_dynamo/convert_frame.py:841] [7/8]    function: 'torch_dynamo_resume_in_forward_at_306' (/work/m24047/m24047brmn/numbers/GPT2/fe/model.py:306)
+[rank5]:W0221 02:45:39.095000 2166408 torch/_dynamo/convert_frame.py:841] [7/8]    last reason: 7/0: L['___stack0'] == 10.60230827331543                         
+[rank5]:W0221 02:45:39.095000 2166408 torch/_dynamo/convert_frame.py:841] [7/8] To log all recompilation reasons, use TORCH_LOGS="recompiles".
+[rank5]:W0221 02:45:39.095000 2166408 torch/_dynamo/convert_frame.py:841] [7/8] To diagnose recompilation issues, see https://pytorch.org/docs/main/torch.compiler_troubleshooting.html.
+[rank2]:W0221 02:45:39.114000 1908819 torch/_dynamo/convert_frame.py:841] [7/8] torch._dynamo hit config.cache_size_limit (8)
+[rank2]:W0221 02:45:39.114000 1908819 torch/_dynamo/convert_frame.py:841] [7/8]    function: 'torch_dynamo_resume_in_forward_at_306' (/work/m24047/m24047brmn/numbers/GPT2/fe/model.py:306)
+[rank2]:W0221 02:45:39.114000 1908819 torch/_dynamo/convert_frame.py:841] [7/8]    last reason: 7/0: L['___stack0'] == 10.611503601074219                        
+[rank2]:W0221 02:45:39.114000 1908819 torch/_dynamo/convert_frame.py:841] [7/8] To log all recompilation reasons, use TORCH_LOGS="recompiles".
+[rank2]:W0221 02:45:39.114000 1908819 torch/_dynamo/convert_frame.py:841] [7/8] To diagnose recompilation issues, see https://pytorch.org/docs/main/torch.compiler_troubleshooting.html.
+[rank6]:W0221 02:45:39.120000 1191072 torch/_dynamo/convert_frame.py:841] [7/8] torch._dynamo hit config.cache_size_limit (8)
+[rank6]:W0221 02:45:39.120000 1191072 torch/_dynamo/convert_frame.py:841] [7/8]    function: 'torch_dynamo_resume_in_forward_at_306' (/work/m24047/m24047brmn/numbers/GPT2/fe/model.py:306)
+[rank6]:W0221 02:45:39.120000 1191072 torch/_dynamo/convert_frame.py:841] [7/8]    last reason: 7/0: L['___stack0'] == 10.636741638183594                        
+[rank6]:W0221 02:45:39.120000 1191072 torch/_dynamo/convert_frame.py:841] [7/8] To log all recompilation reasons, use TORCH_LOGS="recompiles".
+[rank6]:W0221 02:45:39.120000 1191072 torch/_dynamo/convert_frame.py:841] [7/8] To diagnose recompilation issues, see https://pytorch.org/docs/main/torch.compiler_troubleshooting.html.
+[rank4]:W0221 02:45:39.122000 2166407 torch/_dynamo/convert_frame.py:841] [7/8] torch._dynamo hit config.cache_size_limit (8)
+[rank4]:W0221 02:45:39.122000 2166407 torch/_dynamo/convert_frame.py:841] [7/8]    function: 'torch_dynamo_resume_in_forward_at_306' (/work/m24047/m24047brmn/numbers/GPT2/fe/model.py:306)
+[rank4]:W0221 02:45:39.122000 2166407 torch/_dynamo/convert_frame.py:841] [7/8]    last reason: 7/0: L['___stack0'] == 10.59350872039795                         
+[rank4]:W0221 02:45:39.122000 2166407 torch/_dynamo/convert_frame.py:841] [7/8] To log all recompilation reasons, use TORCH_LOGS="recompiles".
+[rank4]:W0221 02:45:39.122000 2166407 torch/_dynamo/convert_frame.py:841] [7/8] To diagnose recompilation issues, see https://pytorch.org/docs/main/torch.compiler_troubleshooting.html.
+[rank7]:W0221 02:45:39.152000 1191073 torch/_dynamo/convert_frame.py:841] [7/8] torch._dynamo hit config.cache_size_limit (8)
+[rank7]:W0221 02:45:39.152000 1191073 torch/_dynamo/convert_frame.py:841] [7/8]    function: 'torch_dynamo_resume_in_forward_at_306' (/work/m24047/m24047brmn/numbers/GPT2/fe/model.py:306)
+[rank7]:W0221 02:45:39.152000 1191073 torch/_dynamo/convert_frame.py:841] [7/8]    last reason: 7/0: L['___stack0'] == 10.612375259399414                        
+[rank7]:W0221 02:45:39.152000 1191073 torch/_dynamo/convert_frame.py:841] [7/8] To log all recompilation reasons, use TORCH_LOGS="recompiles".
+[rank7]:W0221 02:45:39.152000 1191073 torch/_dynamo/convert_frame.py:841] [7/8] To diagnose recompilation issues, see https://pytorch.org/docs/main/torch.compiler_troubleshooting.html.
+iter 1: loss 64.3148, time 306.42ms, mfu -100.00%
+iter 2: loss 62.7119, time 936.65ms, mfu -100.00%
+iter 3: loss 65.3447, time 474.24ms, mfu -100.00%
+iter 4: loss 62.5844, time 489.80ms, mfu -100.00%
+iter 5: loss 64.3991, time 404.68ms, mfu 1.76%
+iter 6: loss 64.3355, time 394.33ms, mfu 1.76%
+iter 7: loss 59.4758, time 455.13ms, mfu 1.74%
+iter 8: loss 64.6414, time 505.25ms, mfu 1.71%
+iter 9: loss 65.7128, time 397.26ms, mfu 1.72%
+iter 10: loss 60.2156, time 288.80ms, mfu 1.79%
+iter 11: loss 62.3967, time 783.69ms, mfu 1.70%
+iter 12: loss 62.4832, time 361.02ms, mfu 1.73%
+iter 13: loss 62.3764, time 435.20ms, mfu 1.72%
+iter 14: loss 62.9380, time 465.12ms, mfu 1.70%
+iter 15: loss 62.8011, time 421.37ms, mfu 1.70%
+iter 16: loss 63.2220, time 466.65ms, mfu 1.68%
+iter 17: loss 58.8652, time 395.62ms, mfu 1.69%
+iter 18: loss 62.9808, time 541.17ms, mfu 1.65%
+iter 19: loss 63.8481, time 370.73ms, mfu 1.68%
+iter 20: loss 59.5340, time 579.60ms, mfu 1.64%
+iter 21: loss 61.0186, time 374.76ms, mfu 1.66%
+iter 22: loss 61.6650, time 426.86ms, mfu 1.66%
+iter 23: loss 59.9249, time 313.74ms, mfu 1.72%
+iter 24: loss 62.4155, time 520.26ms, mfu 1.69%
+iter 25: loss 60.4044, time 408.45ms, mfu 1.69%
+iter 26: loss 59.1383, time 568.06ms, mfu 1.65%
+iter 27: loss 62.0954, time 429.24ms, mfu 1.65%
+iter 28: loss 61.1686, time 421.69ms, mfu 1.65%
+iter 29: loss 62.1780, time 401.66ms, mfu 1.66%
+iter 30: loss 60.2263, time 321.03ms, mfu 1.72%
+iter 31: loss 63.8115, time 299.33ms, mfu 1.78%
+iter 32: loss 60.0398, time 340.46ms, mfu 1.81%
+iter 33: loss 61.6357, time 388.08ms, mfu 1.82%
+iter 34: loss 59.7157, time 320.56ms, mfu 1.86%
+iter 35: loss 61.3475, time 404.35ms, mfu 1.85%
+iter 36: loss 59.8043, time 334.22ms, mfu 1.87%
+iter 37: loss 60.5975, time 524.32ms, mfu 1.82%
+iter 38: loss 59.6390, time 340.58ms, mfu 1.85%
+iter 39: loss 58.6330, time 470.72ms, mfu 1.82%
+iter 40: loss 57.5973, time 327.18ms, mfu 1.85%
+iter 41: loss 62.4715, time 381.61ms, mfu 1.85%
+iter 42: loss 59.9620, time 494.65ms, mfu 1.81%
+iter 43: loss 61.7360, time 436.36ms, mfu 1.79%
+iter 44: loss 61.3639, time 405.13ms, mfu 1.79%
+iter 45: loss 59.4109, time 433.02ms, mfu 1.77%
+iter 46: loss 63.1071, time 464.08ms, mfu 1.75%
+iter 47: loss 58.4944, time 482.62ms, mfu 1.72%
+iter 48: loss 56.8516, time 389.90ms, mfu 1.73%
+iter 49: loss 61.7961, time 411.46ms, mfu 1.73%
+iter 50: loss 58.0160, time 363.12ms, mfu 1.75%
+iter 51: loss 61.3647, time 513.74ms, mfu 1.72%
+iter 52: loss 59.6427, time 472.33ms, mfu 1.70%
+iter 53: loss 59.0275, time 295.63ms, mfu 1.77%
+iter 54: loss 62.2812, time 472.25ms, mfu 1.74%
+iter 55: loss 61.1045, time 345.99ms, mfu 1.77%
+iter 56: loss 59.4012, time 394.48ms, mfu 1.77%
+iter 57: loss 58.9094, time 478.22ms, mfu 1.75%
+iter 58: loss 59.5143, time 366.45ms, mfu 1.77%
+iter 59: loss 56.5260, time 385.42ms, mfu 1.77%
+iter 60: loss 59.2569, time 478.80ms, mfu 1.74%
+iter 61: loss 60.0117, time 396.83ms, mfu 1.75%
+iter 62: loss 62.3552, time 257.60ms, mfu 1.85%
+iter 63: loss 58.5016, time 460.26ms, mfu 1.82%
+iter 64: loss 59.0477, time 440.09ms, mfu 1.80%
+iter 65: loss 57.6306, time 308.13ms, mfu 1.85%
+iter 66: loss 62.1946, time 433.05ms, mfu 1.83%
+iter 67: loss 58.0487, time 412.10ms, mfu 1.82%
+iter 68: loss 57.7924, time 398.36ms, mfu 1.81%
+iter 69: loss 60.9052, time 476.89ms, mfu 1.78%
+iter 70: loss 58.8612, time 435.45ms, mfu 1.77%
+iter 71: loss 60.7361, time 421.65ms, mfu 1.76%
+iter 72: loss 60.6345, time 345.94ms, mfu 1.79%
+iter 73: loss 57.9490, time 359.03ms, mfu 1.81%
+iter 74: loss 57.4437, time 396.41ms, mfu 1.81%
+iter 75: loss 57.9691, time 466.24ms, mfu 1.78%
+iter 76: loss 56.4881, time 505.08ms, mfu 1.74%
+iter 77: loss 55.4883, time 309.04ms, mfu 1.80%
+iter 78: loss 58.5294, time 568.27ms, mfu 1.74%
+iter 79: loss 57.2975, time 481.23ms, mfu 1.72%
+iter 80: loss 58.4077, time 340.66ms, mfu 1.75%
+iter 81: loss 57.3306, time 635.11ms, mfu 1.69%
+iter 82: loss 58.0889, time 517.21ms, mfu 1.66%
+iter 83: loss 59.3150, time 482.61ms, mfu 1.64%
+iter 84: loss 60.3749, time 372.73ms, mfu 1.67%
+iter 85: loss 59.0333, time 340.43ms, mfu 1.71%
+iter 86: loss 59.0510, time 370.92ms, mfu 1.73%
+iter 87: loss 57.7262, time 550.82ms, mfu 1.69%
+iter 88: loss 60.2108, time 394.20ms, mfu 1.70%
+iter 89: loss 57.5789, time 555.78ms, mfu 1.66%
+iter 90: loss 59.1672, time 365.80ms, mfu 1.68%
+iter 91: loss 58.1424, time 516.57ms, mfu 1.65%
+iter 92: loss 56.2097, time 350.48ms, mfu 1.69%
+iter 93: loss 57.8392, time 485.27ms, mfu 1.67%
+iter 94: loss 59.8060, time 349.33ms, mfu 1.70%
+iter 95: loss 56.0238, time 393.50ms, mfu 1.71%
+iter 96: loss 58.3053, time 338.72ms, mfu 1.75%
+iter 97: loss 57.6779, time 436.72ms, mfu 1.74%
+iter 98: loss 58.5069, time 467.72ms, mfu 1.72%
+iter 99: loss 57.3883, time 466.28ms, mfu 1.70%
+iter 100: loss 54.2073, time 416.68ms, mfu 1.70%
+  === DIAG iter 100 ===
+  loss breakdown: text 5.8337 | num 48.3736 (lambda=1.0)
+  grads: total 0.0000, transformer 0.0000, adapter 0.0000, num_head 0.0000
+  nums: 1018/3072 tokens (33.1%)
+  lr: 3.03e-05
+iter 101: loss 58.2036, time 375.46ms, mfu 1.72%
+iter 102: loss 56.1623, time 386.45ms, mfu 1.73%
+iter 103: loss 58.3838, time 411.42ms, mfu 1.73%
+iter 104: loss 57.0221, time 204.71ms, mfu 1.90%
+iter 105: loss 55.8753, time 418.85ms, mfu 1.88%
+iter 106: loss 58.1502, time 521.20ms, mfu 1.83%
+iter 107: loss 59.9411, time 441.36ms, mfu 1.81%
+iter 108: loss 56.6332, time 420.26ms, mfu 1.80%
+iter 109: loss 55.7262, time 380.92ms, mfu 1.80%
+iter 110: loss 56.2295, time 483.25ms, mfu 1.77%
+iter 111: loss 57.2366, time 480.61ms, mfu 1.74%
+iter 112: loss 56.4232, time 449.26ms, mfu 1.73%
+iter 113: loss 56.2825, time 370.24ms, mfu 1.75%
+iter 114: loss 54.6928, time 430.68ms, mfu 1.74%
+iter 115: loss 55.4935, time 404.08ms, mfu 1.74%
+iter 116: loss 53.7277, time 472.32ms, mfu 1.71%
+iter 117: loss 56.3322, time 414.87ms, mfu 1.71%
+iter 118: loss 53.7763, time 328.90ms, mfu 1.76%
+iter 119: loss 53.0490, time 541.81ms, mfu 1.71%
+iter 120: loss 54.3044, time 316.20ms, mfu 1.77%
+iter 121: loss 52.4974, time 322.20ms, mfu 1.81%
+iter 122: loss 59.3095, time 437.99ms, mfu 1.79%
+iter 123: loss 53.0978, time 509.84ms, mfu 1.75%
+iter 124: loss 54.4519, time 369.64ms, mfu 1.77%
+iter 125: loss 54.2536, time 440.37ms, mfu 1.75%
+iter 126: loss 52.8219, time 310.95ms, mfu 1.81%
+iter 127: loss 53.7072, time 377.86ms, mfu 1.81%
+iter 128: loss 54.8218, time 563.15ms, mfu 1.76%
+iter 129: loss 52.9215, time 460.10ms, mfu 1.74%
+iter 130: loss 54.0354, time 372.12ms, mfu 1.76%
+iter 131: loss 54.5359, time 400.82ms, mfu 1.76%
+iter 132: loss 56.5810, time 535.55ms, mfu 1.71%
+iter 133: loss 54.4674, time 254.46ms, mfu 1.82%
+iter 134: loss 53.5882, time 492.83ms, mfu 1.78%
+iter 135: loss 55.6501, time 414.85ms, mfu 1.78%
+iter 136: loss 53.7715, time 418.65ms, mfu 1.77%
+iter 137: loss 53.1519, time 295.11ms, mfu 1.83%
+iter 138: loss 54.7450, time 370.67ms, mfu 1.84%
+iter 139: loss 51.7490, time 486.41ms, mfu 1.80%
+iter 140: loss 54.4632, time 406.26ms, mfu 1.80%
+iter 141: loss 53.8967, time 368.45ms, mfu 1.81%
+iter 142: loss 54.2906, time 382.60ms, mfu 1.82%
+iter 143: loss 54.2455, time 450.34ms, mfu 1.79%
+iter 144: loss 53.2423, time 477.97ms, mfu 1.76%
+iter 145: loss 51.2137, time 250.49ms, mfu 1.87%
+iter 146: loss 53.4791, time 349.28ms, mfu 1.89%
+iter 147: loss 56.7868, time 332.66ms, mfu 1.91%
+iter 148: loss 52.7319, time 405.63ms, mfu 1.89%
+iter 149: loss 51.8026, time 492.88ms, mfu 1.85%
+iter 150: loss 51.1607, time 358.87ms, mfu 1.86%
+iter 151: loss 52.1625, time 363.98ms, mfu 1.87%
+iter 152: loss 54.4430, time 528.09ms, mfu 1.82%
+iter 153: loss 47.7933, time 270.69ms, mfu 1.90%
+iter 154: loss 51.6061, time 271.44ms, mfu 1.97%
+iter 155: loss 50.1678, time 336.95ms, mfu 1.99%
+iter 156: loss 55.1916, time 540.85ms, mfu 1.92%
+iter 157: loss 51.0838, time 501.05ms, mfu 1.87%
+iter 158: loss 50.4454, time 406.10ms, mfu 1.86%
+iter 159: loss 50.8246, time 330.38ms, mfu 1.89%
+iter 160: loss 49.2990, time 480.71ms, mfu 1.85%
+iter 161: loss 53.9214, time 334.22ms, mfu 1.87%
+iter 162: loss 51.5902, time 336.34ms, mfu 1.90%
+iter 163: loss 50.7462, time 499.53ms, mfu 1.85%
+iter 164: loss 51.9980, time 251.51ms, mfu 1.95%
+iter 165: loss 53.6783, time 549.89ms, mfu 1.88%
+iter 166: loss 50.4856, time 411.41ms, mfu 1.87%
+iter 167: loss 50.7255, time 439.39ms, mfu 1.84%
+iter 168: loss 53.3571, time 421.48ms, mfu 1.83%
+iter 169: loss 51.3458, time 371.29ms, mfu 1.83%
+iter 170: loss 49.5225, time 366.79ms, mfu 1.85%
+iter 171: loss 53.4005, time 349.27ms, mfu 1.86%
+iter 172: loss 53.4642, time 428.80ms, mfu 1.84%
+iter 173: loss 52.6963, time 427.92ms, mfu 1.83%
+iter 174: loss 53.1483, time 279.67ms, mfu 1.90%
+iter 175: loss 49.7316, time 280.49ms, mfu 1.96%
+iter 176: loss 51.2287, time 557.31ms, mfu 1.89%
+iter 177: loss 54.5159, time 375.05ms, mfu 1.89%
+iter 178: loss 52.2512, time 453.20ms, mfu 1.86%
+iter 179: loss 54.2422, time 486.74ms, mfu 1.82%
+iter 180: loss 50.6136, time 431.14ms, mfu 1.80%
+iter 181: loss 55.1495, time 434.01ms, mfu 1.79%
+iter 182: loss 51.0106, time 560.83ms, mfu 1.73%
+iter 183: loss 53.0909, time 396.11ms, mfu 1.74%
+iter 184: loss 53.2169, time 372.90ms, mfu 1.76%
+iter 185: loss 51.9756, time 584.86ms, mfu 1.70%
+iter 186: loss 50.4855, time 390.82ms, mfu 1.71%
+iter 187: loss 53.2736, time 430.72ms, mfu 1.71%
+iter 188: loss 52.3094, time 520.63ms, mfu 1.67%
+iter 189: loss 51.2065, time 287.60ms, mfu 1.75%
+iter 190: loss 52.9093, time 547.72ms, mfu 1.71%
+iter 191: loss 51.9846, time 294.53ms, mfu 1.78%
+iter 192: loss 57.0054, time 457.81ms, mfu 1.76%
+iter 193: loss 47.9611, time 501.27ms, mfu 1.72%
+iter 194: loss 51.4480, time 373.87ms, mfu 1.74%
+iter 195: loss 51.6847, time 364.71ms, mfu 1.76%
+iter 196: loss 47.5807, time 428.33ms, mfu 1.75%
+iter 197: loss 51.1448, time 331.15ms, mfu 1.79%
+iter 198: loss 49.4931, time 320.92ms, mfu 1.83%
+iter 199: loss 51.6762, time 319.46ms, mfu 1.87%
+iter 200: loss 51.0856, time 530.11ms, mfu 1.82%
+  === DIAG iter 200 ===
+  loss breakdown: text 4.0772 | num 47.0084 (lambda=1.0)
+  grads: total 0.0000, transformer 0.0000, adapter 0.0000, num_head 0.0000
+  nums: 1123/3072 tokens (36.6%)
+  lr: 6.03e-05
+iter 201: loss 48.3200, time 393.76ms, mfu 1.82%
+iter 202: loss 51.1861, time 289.68ms, mfu 1.88%
+iter 203: loss 53.4185, time 493.50ms, mfu 1.84%
+iter 204: loss 50.4767, time 434.51ms, mfu 1.82%
+iter 205: loss 49.3067, time 293.36ms, mfu 1.88%
+iter 206: loss 47.4940, time 420.91ms, mfu 1.86%
+iter 207: loss 51.1783, time 540.39ms, mfu 1.80%
+iter 208: loss 47.8123, time 252.18ms, mfu 1.91%
+iter 209: loss 52.7665, time 378.99ms, mfu 1.90%
+iter 210: loss 48.4103, time 345.75ms, mfu 1.92%
+iter 211: loss 49.6230, time 507.99ms, mfu 1.87%
+iter 212: loss 50.7326, time 421.62ms, mfu 1.85%
+iter 213: loss 50.0186, time 287.37ms, mfu 1.91%
+iter 214: loss 48.2015, time 297.49ms, mfu 1.96%
+iter 215: loss 51.3224, time 549.72ms, mfu 1.89%
+iter 216: loss 48.1732, time 352.15ms, mfu 1.90%
+iter 217: loss 50.8949, time 432.59ms, mfu 1.88%
+iter 218: loss 50.1923, time 339.10ms, mfu 1.90%
+iter 219: loss 48.4827, time 407.35ms, mfu 1.88%
+iter 220: loss 52.1362, time 381.47ms, mfu 1.88%
+iter 221: loss 50.6107, time 660.58ms, mfu 1.80%
+iter 222: loss 46.7352, time 259.44ms, mfu 1.90%
+iter 223: loss 53.7603, time 348.64ms, mfu 1.91%
+iter 224: loss 49.0601, time 433.70ms, mfu 1.88%
+iter 225: loss 50.1123, time 396.90ms, mfu 1.87%
+iter 226: loss 50.1934, time 491.56ms, mfu 1.83%
+iter 227: loss 47.3537, time 378.64ms, mfu 1.84%
+iter 228: loss 50.2389, time 392.97ms, mfu 1.83%
+iter 229: loss 48.6764, time 550.36ms, mfu 1.78%
+iter 230: loss 46.7468, time 448.98ms, mfu 1.76%
+iter 231: loss 45.3988, time 348.02ms, mfu 1.79%
+iter 232: loss 47.2533, time 336.28ms, mfu 1.82%
+iter 233: loss 50.9265, time 492.05ms, mfu 1.78%
+iter 234: loss 52.2123, time 352.11ms, mfu 1.81%
+iter 235: loss 54.0099, time 503.15ms, mfu 1.77%
+iter 236: loss 50.8691, time 435.08ms, mfu 1.75%
+iter 237: loss 47.6158, time 495.40ms, mfu 1.72%
+iter 238: loss 50.0402, time 286.21ms, mfu 1.80%
+iter 239: loss 46.3973, time 432.69ms, mfu 1.78%
+iter 240: loss 50.3846, time 259.85ms, mfu 1.88%
+iter 241: loss 50.6381, time 458.14ms, mfu 1.84%
+iter 242: loss 48.6788, time 318.81ms, mfu 1.88%
+iter 243: loss 49.7152, time 284.97ms, mfu 1.94%
+iter 244: loss 48.5840, time 407.12ms, mfu 1.92%
+iter 245: loss 47.5344, time 560.79ms, mfu 1.86%
+iter 246: loss 51.6961, time 470.03ms, mfu 1.82%
+iter 247: loss 46.8530, time 393.81ms, mfu 1.82%
+iter 248: loss 48.2471, time 431.91ms, mfu 1.80%
+iter 249: loss 48.5288, time 271.89ms, mfu 1.89%
+iter 250: loss 48.5536, time 416.56ms, mfu 1.87%
+iter 251: loss 50.7512, time 422.69ms, mfu 1.85%
+iter 252: loss 51.5682, time 390.68ms, mfu 1.85%
+iter 253: loss 48.0460, time 393.48ms, mfu 1.84%
+iter 254: loss 50.3801, time 448.84ms, mfu 1.82%
+iter 255: loss 50.8636, time 300.90ms, mfu 1.87%
+iter 256: loss 48.4449, time 495.00ms, mfu 1.83%
+iter 257: loss 52.7550, time 403.67ms, mfu 1.82%
+iter 258: loss 49.3822, time 431.70ms, mfu 1.80%
+iter 259: loss 49.6775, time 500.10ms, mfu 1.76%
+iter 260: loss 47.0126, time 421.77ms, mfu 1.76%
+iter 261: loss 48.6673, time 277.05ms, mfu 1.84%
+iter 262: loss 51.0209, time 357.30ms, mfu 1.85%
+iter 263: loss 50.8419, time 544.61ms, mfu 1.80%
+iter 264: loss 49.2362, time 307.11ms, mfu 1.85%
+iter 265: loss 49.0527, time 392.14ms, mfu 1.85%
+iter 266: loss 48.7295, time 413.49ms, mfu 1.83%
+iter 267: loss 48.6931, time 384.09ms, mfu 1.83%
+iter 268: loss 49.5215, time 518.33ms, mfu 1.79%
+iter 269: loss 42.3072, time 451.12ms, mfu 1.77%
+iter 270: loss 48.7861, time 346.39ms, mfu 1.80%
+iter 271: loss 50.2142, time 603.70ms, mfu 1.73%
+iter 272: loss 49.6751, time 294.36ms, mfu 1.80%
+iter 273: loss 50.5104, time 422.19ms, mfu 1.79%
+iter 274: loss 46.7760, time 440.82ms, mfu 1.77%
+iter 275: loss 46.8021, time 522.96ms, mfu 1.73%
+iter 276: loss 48.7302, time 268.94ms, mfu 1.82%
+iter 277: loss 49.2356, time 434.89ms, mfu 1.80%
+iter 278: loss 46.3777, time 365.42ms, mfu 1.82%
+iter 279: loss 50.3651, time 420.34ms, mfu 1.80%
+iter 280: loss 47.0235, time 319.21ms, mfu 1.85%
+iter 281: loss 49.3816, time 250.30ms, mfu 1.95%
+iter 282: loss 48.9768, time 320.65ms, mfu 1.97%
+iter 283: loss 47.7865, time 489.73ms, mfu 1.92%
+iter 284: loss 46.3102, time 569.25ms, mfu 1.85%
+iter 285: loss 43.5338, time 262.61ms, mfu 1.94%
+iter 286: loss 49.6851, time 357.40ms, mfu 1.94%
+iter 287: loss 50.7280, time 482.45ms, mfu 1.90%
+iter 288: loss 51.7818, time 417.12ms, mfu 1.88%
+iter 289: loss 45.1691, time 390.75ms, mfu 1.87%
+iter 290: loss 49.1583, time 366.49ms, mfu 1.88%
+iter 291: loss 48.0266, time 251.94ms, mfu 1.97%
+iter 292: loss 48.9104, time 471.60ms, mfu 1.93%
+iter 293: loss 47.1815, time 503.83ms, mfu 1.87%
+iter 294: loss 43.8310, time 357.58ms, mfu 1.89%
+iter 295: loss 42.0813, time 496.22ms, mfu 1.84%
+iter 296: loss 47.3917, time 390.64ms, mfu 1.84%
+iter 297: loss 52.8861, time 345.02ms, mfu 1.86%
+iter 298: loss 44.0430, time 326.00ms, mfu 1.89%
+iter 299: loss 45.5528, time 360.98ms, mfu 1.90%
+iter 300: loss 48.4550, time 295.86ms, mfu 1.95%
+  === DIAG iter 300 ===
+  loss breakdown: text 1.8177 | num 46.6373 (lambda=1.0)
+  grads: total 0.0000, transformer 0.0000, adapter 0.0000, num_head 0.0000
+  nums: 876/3072 tokens (28.5%)
+  lr: 9.03e-05
+iter 301: loss 45.4924, time 283.06ms, mfu 2.01%
+iter 302: loss 48.5367, time 310.28ms, mfu 2.03%
+iter 303: loss 47.3251, time 339.51ms, mfu 2.04%
+iter 304: loss 49.1566, time 406.40ms, mfu 2.01%
+iter 305: loss 46.6417, time 284.10ms, mfu 2.06%
+iter 306: loss 46.1554, time 422.30ms, mfu 2.02%
+iter 307: loss 45.3832, time 335.97ms, mfu 2.03%
+iter 308: loss 47.1498, time 440.54ms, mfu 1.99%
+iter 309: loss 43.7037, time 470.64ms, mfu 1.94%
+iter 310: loss 39.9215, time 311.56ms, mfu 1.98%
+iter 311: loss 46.1187, time 431.49ms, mfu 1.94%
+iter 312: loss 47.1588, time 450.20ms, mfu 1.91%
+iter 313: loss 45.4397, time 319.93ms, mfu 1.94%
+iter 314: loss 46.3754, time 297.79ms, mfu 1.98%
+iter 315: loss 44.7935, time 297.83ms, mfu 2.02%
+iter 316: loss 48.0644, time 402.52ms, mfu 2.00%
+iter 317: loss 50.4117, time 342.10ms, mfu 2.01%
+iter 318: loss 47.2322, time 401.58ms, mfu 1.98%
+iter 319: loss 43.6415, time 379.52ms, mfu 1.97%
+iter 320: loss 47.2393, time 430.59ms, mfu 1.94%
+iter 321: loss 42.5372, time 376.73ms, mfu 1.93%
+iter 322: loss 46.7673, time 473.24ms, mfu 1.89%
+iter 323: loss 49.0037, time 364.30ms, mfu 1.90%
+iter 324: loss 44.4190, time 449.94ms, mfu 1.86%
+iter 325: loss 48.1523, time 501.11ms, mfu 1.82%
+iter 326: loss 40.4556, time 388.45ms, mfu 1.82%
+iter 327: loss 46.7926, time 423.10ms, mfu 1.81%
+iter 328: loss 48.4266, time 474.10ms, mfu 1.78%
+iter 329: loss 43.9729, time 378.67ms, mfu 1.79%
+iter 330: loss 47.2500, time 270.42ms, mfu 1.87%
+iter 331: loss 47.3291, time 274.94ms, mfu 1.94%
+iter 332: loss 45.0124, time 419.44ms, mfu 1.92%
+iter 333: loss 47.3777, time 454.76ms, mfu 1.88%
+iter 334: loss 46.6032, time 347.23ms, mfu 1.90%
+iter 335: loss 43.1236, time 423.22ms, mfu 1.88%
+iter 336: loss 50.8193, time 392.21ms, mfu 1.87%
+iter 337: loss 39.2350, time 405.01ms, mfu 1.86%
+iter 338: loss 46.1830, time 410.00ms, mfu 1.85%
+iter 339: loss 49.4987, time 419.35ms, mfu 1.83%
+iter 340: loss 48.2157, time 273.45ms, mfu 1.91%
+iter 341: loss 45.3971, time 476.56ms, mfu 1.87%
+iter 342: loss 41.3658, time 411.42ms, mfu 1.85%
+iter 343: loss 45.3107, time 183.34ms, mfu 2.05%
+iter 344: loss 46.1743, time 507.20ms, mfu 1.99%
+iter 345: loss 46.9690, time 497.60ms, mfu 1.93%
+iter 346: loss 48.8779, time 417.91ms, mfu 1.91%
+iter 347: loss 47.1736, time 207.52ms, mfu 2.06%
+iter 348: loss 47.0377, time 417.87ms, mfu 2.03%
+iter 349: loss 46.0118, time 502.86ms, mfu 1.96%
+iter 350: loss 49.3693, time 384.78ms, mfu 1.95%
+iter 351: loss 42.0473, time 548.25ms, mfu 1.89%
+iter 352: loss 46.7204, time 430.30ms, mfu 1.86%
+iter 353: loss 44.1239, time 303.72ms, mfu 1.91%
+iter 354: loss 46.1281, time 598.14ms, mfu 1.84%
+iter 355: loss 46.1070, time 258.50ms, mfu 1.93%
+iter 356: loss 46.0534, time 472.97ms, mfu 1.89%
+iter 357: loss 47.2273, time 265.27ms, mfu 1.97%
+iter 358: loss 44.4061, time 472.09ms, mfu 1.92%
+iter 359: loss 47.0787, time 431.11ms, mfu 1.89%
+iter 360: loss 39.8220, time 390.12ms, mfu 1.89%
+iter 361: loss 43.6070, time 426.71ms, mfu 1.86%
+iter 362: loss 44.9254, time 204.09ms, mfu 2.03%
+iter 363: loss 43.5694, time 318.16ms, mfu 2.05%
+iter 364: loss 45.0591, time 421.33ms, mfu 2.01%
+iter 365: loss 44.2372, time 489.65ms, mfu 1.95%
+iter 366: loss 45.0507, time 510.48ms, mfu 1.90%
+iter 367: loss 47.6798, time 427.30ms, mfu 1.87%
+iter 368: loss 48.3319, time 471.93ms, mfu 1.84%
+iter 369: loss 49.1749, time 392.44ms, mfu 1.84%
+iter 370: loss 46.0880, time 426.23ms, mfu 1.82%
+iter 371: loss 41.5562, time 405.85ms, mfu 1.81%
+iter 372: loss 45.3527, time 403.27ms, mfu 1.81%
+iter 373: loss 45.8163, time 451.40ms, mfu 1.78%
+iter 374: loss 42.6647, time 306.29ms, mfu 1.84%
+iter 375: loss 44.5828, time 534.95ms, mfu 1.79%
+iter 376: loss 45.6496, time 374.45ms, mfu 1.80%
+iter 377: loss 43.8686, time 368.44ms, mfu 1.81%
+iter 378: loss 47.2748, time 535.48ms, mfu 1.76%
+iter 379: loss 42.5949, time 495.83ms, mfu 1.73%
+iter 380: loss 47.3117, time 416.20ms, mfu 1.73%
+iter 381: loss 46.4040, time 335.18ms, mfu 1.77%
+iter 382: loss 46.1334, time 488.80ms, mfu 1.74%
+iter 383: loss 47.3710, time 305.54ms, mfu 1.79%
+iter 384: loss 44.8367, time 538.86ms, mfu 1.75%
+iter 385: loss 44.1185, time 383.47ms, mfu 1.76%
+iter 386: loss 45.7393, time 435.73ms, mfu 1.74%
+iter 387: loss 45.7526, time 383.67ms, mfu 1.76%
+iter 388: loss 39.0199, time 345.16ms, mfu 1.79%
+iter 389: loss 41.7807, time 612.51ms, mfu 1.72%
+iter 390: loss 45.6719, time 358.45ms, mfu 1.75%
+iter 391: loss 47.0360, time 389.39ms, mfu 1.76%
+iter 392: loss 41.7949, time 431.72ms, mfu 1.75%
+iter 393: loss 48.3035, time 361.96ms, mfu 1.77%
+iter 394: loss 48.2611, time 425.29ms, mfu 1.76%
+iter 395: loss 41.4631, time 361.31ms, mfu 1.78%
+iter 396: loss 43.2821, time 431.91ms, mfu 1.77%
+iter 397: loss 48.8085, time 461.76ms, mfu 1.74%
+iter 398: loss 44.6714, time 277.23ms, mfu 1.82%
+iter 399: loss 43.2512, time 520.93ms, mfu 1.78%
+iter 400: loss 49.6695, time 429.45ms, mfu 1.77%
+  === DIAG iter 400 ===
+  loss breakdown: text 0.4735 | num 49.1961 (lambda=1.0)
+  grads: total 0.0000, transformer 0.0000, adapter 0.0000, num_head 0.0000
+  nums: 1121/3072 tokens (36.5%)
+  lr: 1.20e-04
+iter 401: loss 43.4406, time 478.79ms, mfu 1.74%
+iter 402: loss 45.6513, time 488.53ms, mfu 1.71%
+iter 403: loss 40.5427, time 350.69ms, mfu 1.74%
+iter 404: loss 42.0728, time 432.22ms, mfu 1.73%
+iter 405: loss 42.7159, time 426.41ms, mfu 1.73%
+iter 406: loss 50.4795, time 425.29ms, mfu 1.72%
+iter 407: loss 42.9263, time 515.79ms, mfu 1.69%
+iter 408: loss 47.5958, time 367.06ms, mfu 1.71%
+iter 409: loss 45.4420, time 467.50ms, mfu 1.69%
+iter 410: loss 39.9526, time 308.24ms, mfu 1.75%
+iter 411: loss 45.1885, time 450.70ms, mfu 1.74%
+iter 412: loss 46.8418, time 559.92ms, mfu 1.69%
+iter 413: loss 46.0350, time 440.26ms, mfu 1.68%
+iter 414: loss 42.8067, time 427.28ms, mfu 1.68%
+iter 415: loss 44.3492, time 335.28ms, mfu 1.72%
+iter 416: loss 49.1731, time 476.42ms, mfu 1.70%
+iter 417: loss 47.1593, time 423.60ms, mfu 1.70%
+iter 418: loss 46.1800, time 496.99ms, mfu 1.67%
+iter 419: loss 41.3159, time 443.63ms, mfu 1.66%
+iter 420: loss 44.5150, time 418.04ms, mfu 1.67%
+iter 421: loss 41.4788, time 429.79ms, mfu 1.67%
+iter 422: loss 43.4421, time 461.90ms, mfu 1.65%
+iter 423: loss 45.1920, time 397.12ms, mfu 1.67%
+iter 424: loss 43.7004, time 493.60ms, mfu 1.64%
+iter 425: loss 44.3855, time 354.51ms, mfu 1.68%
+iter 426: loss 44.9023, time 490.33ms, mfu 1.66%
+iter 427: loss 48.2038, time 586.06ms, mfu 1.61%
+iter 428: loss 42.3318, time 404.05ms, mfu 1.63%
+iter 429: loss 46.1760, time 369.55ms, mfu 1.66%
+iter 430: loss 45.9974, time 531.39ms, mfu 1.63%
+iter 431: loss 45.2951, time 418.78ms, mfu 1.63%
+iter 432: loss 45.8220, time 259.88ms, mfu 1.74%
+iter 433: loss 44.9515, time 448.82ms, mfu 1.73%
+iter 434: loss 42.3942, time 509.85ms, mfu 1.69%
+iter 435: loss 44.5764, time 379.85ms, mfu 1.71%
+iter 436: loss 48.5185, time 453.59ms, mfu 1.70%
+iter 437: loss 42.0381, time 329.61ms, mfu 1.74%
+iter 438: loss 45.6911, time 376.70ms, mfu 1.76%
+iter 439: loss 44.1110, time 509.33ms, mfu 1.72%
+iter 440: loss 39.6621, time 246.88ms, mfu 1.84%
+iter 441: loss 39.3369, time 366.23ms, mfu 1.85%
+iter 442: loss 42.2469, time 318.81ms, mfu 1.89%
+iter 443: loss 44.9137, time 331.97ms, mfu 1.91%
+iter 444: loss 43.5395, time 319.18ms, mfu 1.94%
+iter 445: loss 40.7216, time 401.05ms, mfu 1.93%
+iter 446: loss 47.5902, time 409.63ms, mfu 1.91%
+iter 447: loss 41.9549, time 573.22ms, mfu 1.84%
+iter 448: loss 42.8152, time 337.33ms, mfu 1.87%
+iter 449: loss 48.6420, time 455.42ms, mfu 1.84%
+iter 450: loss 45.3513, time 366.64ms, mfu 1.85%
+iter 451: loss 46.4141, time 398.18ms, mfu 1.84%
+iter 452: loss 48.5583, time 357.90ms, mfu 1.85%
+iter 453: loss 46.1798, time 493.63ms, mfu 1.81%
+iter 454: loss 41.7388, time 372.70ms, mfu 1.82%
+iter 455: loss 42.9200, time 395.71ms, mfu 1.82%
+iter 456: loss 40.6910, time 277.81ms, mfu 1.89%
+iter 457: loss 46.5724, time 428.08ms, mfu 1.87%
+iter 458: loss 44.6192, time 251.41ms, mfu 1.97%
+iter 459: loss 47.9404, time 448.62ms, mfu 1.93%
+iter 460: loss 42.5957, time 290.51ms, mfu 1.98%
+iter 461: loss 39.6199, time 401.77ms, mfu 1.96%
+iter 462: loss 43.0394, time 344.72ms, mfu 1.97%
+iter 463: loss 39.4587, time 274.94ms, mfu 2.03%
+iter 464: loss 43.4419, time 313.22ms, mfu 2.05%
+iter 465: loss 40.3748, time 511.64ms, mfu 1.99%
+iter 466: loss 44.8295, time 248.67ms, mfu 2.07%
+iter 467: loss 42.8050, time 426.03ms, mfu 2.03%
+iter 468: loss 44.9330, time 356.56ms, mfu 2.03%
+iter 469: loss 45.1942, time 416.26ms, mfu 2.00%
+iter 470: loss 46.2971, time 500.24ms, mfu 1.94%
+iter 471: loss 38.2551, time 459.42ms, mfu 1.90%
+iter 472: loss 43.8002, time 417.09ms, mfu 1.88%
+iter 473: loss 38.8860, time 293.40ms, mfu 1.94%
+iter 474: loss 42.3226, time 321.07ms, mfu 1.96%
+iter 475: loss 45.7662, time 380.89ms, mfu 1.95%
+iter 476: loss 42.1086, time 421.39ms, mfu 1.93%
+iter 477: loss 44.8142, time 425.58ms, mfu 1.90%
+iter 478: loss 48.8442, time 457.20ms, mfu 1.87%
+iter 479: loss 43.5333, time 409.23ms, mfu 1.85%
+iter 480: loss 45.2246, time 472.39ms, mfu 1.82%
+iter 481: loss 45.8327, time 508.20ms, mfu 1.78%
+iter 482: loss 45.0317, time 251.40ms, mfu 1.88%
+iter 483: loss 44.6053, time 405.18ms, mfu 1.87%
+iter 484: loss 41.5785, time 294.92ms, mfu 1.92%
+iter 485: loss 45.2885, time 281.43ms, mfu 1.98%
+iter 486: loss 38.9925, time 359.71ms, mfu 1.98%
+iter 487: loss 44.6311, time 442.01ms, mfu 1.94%
+iter 488: loss 44.2743, time 259.22ms, mfu 2.02%
+iter 489: loss 40.1505, time 418.49ms, mfu 1.99%
+iter 490: loss 41.1654, time 511.07ms, mfu 1.93%
+iter 491: loss 41.6263, time 279.63ms, mfu 1.99%
+iter 492: loss 46.5692, time 348.71ms, mfu 2.00%
+iter 493: loss 46.6708, time 420.20ms, mfu 1.97%
+iter 494: loss 42.1291, time 411.44ms, mfu 1.94%
+iter 495: loss 41.4372, time 348.17ms, mfu 1.95%
+iter 496: loss 42.5653, time 532.77ms, mfu 1.89%
+iter 497: loss 46.9598, time 468.84ms, mfu 1.85%
+iter 498: loss 45.3120, time 282.38ms, mfu 1.92%
+iter 499: loss 43.6493, time 487.01ms, mfu 1.87%
+iter 500: loss 40.0426, time 545.25ms, mfu 1.82%
+  === DIAG iter 500 ===
+  loss breakdown: text 0.2463 | num 39.7963 (lambda=1.0)
+  grads: total 0.0000, transformer 0.0000, adapter 0.0000, num_head 0.0000
+  nums: 1119/3072 tokens (36.4%)
+  lr: 1.50e-04
+iter 501: loss 45.4864, time 435.55ms, mfu 1.80%
+iter 502: loss 47.3374, time 279.57ms, mfu 1.87%
+iter 503: loss 44.0662, time 526.48ms, mfu 1.82%
+iter 504: loss 42.5098, time 572.20ms, mfu 1.76%
+iter 505: loss 38.1006, time 299.61ms, mfu 1.82%
+iter 506: loss 47.3941, time 413.77ms, mfu 1.81%
+iter 507: loss 41.8886, time 294.39ms, mfu 1.87%
+iter 508: loss 44.7968, time 502.07ms, mfu 1.83%
+iter 509: loss 41.0409, time 330.21ms, mfu 1.86%
+iter 510: loss 46.6554, time 280.28ms, mfu 1.93%
+iter 511: loss 46.2851, time 280.54ms, mfu 1.99%
+iter 512: loss 41.5714, time 418.88ms, mfu 1.96%
+iter 513: loss 47.8126, time 503.00ms, mfu 1.90%
+iter 514: loss 38.6295, time 400.05ms, mfu 1.89%
+iter 515: loss 45.8724, time 515.03ms, mfu 1.84%
+iter 516: loss 44.7106, time 450.86ms, mfu 1.81%
+iter 517: loss 44.4191, time 461.61ms, mfu 1.79%
+iter 518: loss 46.2116, time 511.45ms, mfu 1.75%
+iter 519: loss 45.8876, time 319.98ms, mfu 1.79%
+iter 520: loss 47.7437, time 416.80ms, mfu 1.79%
+iter 521: loss 46.3769, time 541.84ms, mfu 1.74%
+iter 522: loss 43.9606, time 449.36ms, mfu 1.72%
+iter 523: loss 43.5450, time 450.94ms, mfu 1.71%
+iter 524: loss 48.8552, time 334.32ms, mfu 1.75%
+iter 525: loss 46.7784, time 277.13ms, mfu 1.83%
+iter 526: loss 44.7790, time 446.12ms, mfu 1.81%
+iter 527: loss 43.4422, time 381.62ms, mfu 1.81%
+iter 528: loss 44.8214, time 489.77ms, mfu 1.78%
+iter 529: loss 44.3423, time 370.48ms, mfu 1.79%
+iter 530: loss 45.2510, time 431.87ms, mfu 1.78%
+iter 531: loss 41.4757, time 436.52ms, mfu 1.76%
+iter 532: loss 42.1776, time 333.18ms, mfu 1.80%
+iter 533: loss 39.1571, time 364.20ms, mfu 1.81%
+iter 534: loss 42.8835, time 350.05ms, mfu 1.84%
+iter 535: loss 43.9732, time 500.10ms, mfu 1.79%
+iter 536: loss 43.2445, time 203.79ms, mfu 1.96%
+iter 537: loss 46.3838, time 531.86ms, mfu 1.90%
+iter 538: loss 42.2019, time 337.31ms, mfu 1.92%
+iter 539: loss 43.4941, time 499.52ms, mfu 1.87%
+iter 540: loss 43.3925, time 503.32ms, mfu 1.83%
+iter 541: loss 41.5414, time 318.39ms, mfu 1.87%
+iter 542: loss 44.1675, time 468.06ms, mfu 1.83%
+iter 543: loss 45.0946, time 446.51ms, mfu 1.81%
+iter 544: loss 43.5598, time 258.36ms, mfu 1.90%
+iter 545: loss 43.3468, time 409.87ms, mfu 1.88%
+iter 546: loss 45.2199, time 430.04ms, mfu 1.86%
+iter 547: loss 44.3777, time 381.33ms, mfu 1.86%
+iter 548: loss 45.6735, time 510.55ms, mfu 1.81%
+iter 549: loss 42.5040, time 363.98ms, mfu 1.83%
+iter 550: loss 44.1983, time 342.66ms, mfu 1.85%
+iter 551: loss 42.9801, time 290.74ms, mfu 1.91%
+iter 552: loss 43.5017, time 370.61ms, mfu 1.91%
+iter 553: loss 42.7794, time 428.76ms, mfu 1.89%
+iter 554: loss 45.8409, time 480.32ms, mfu 1.85%
+iter 555: loss 38.3039, time 393.75ms, mfu 1.84%
+iter 556: loss 42.7437, time 408.16ms, mfu 1.83%
+iter 557: loss 42.8345, time 445.34ms, mfu 1.81%
+iter 558: loss 43.3855, time 370.41ms, mfu 1.82%
+iter 559: loss 45.9024, time 518.75ms, mfu 1.77%
+iter 560: loss 41.4151, time 383.84ms, mfu 1.78%
+iter 561: loss 41.5278, time 485.78ms, mfu 1.75%
+iter 562: loss 41.0097, time 453.96ms, mfu 1.73%
+iter 563: loss 42.1562, time 592.35ms, mfu 1.68%
+iter 564: loss 43.7500, time 295.63ms, mfu 1.75%
+iter 565: loss 46.8807, time 438.15ms, mfu 1.74%
+iter 566: loss 46.4327, time 530.24ms, mfu 1.70%
+iter 567: loss 43.3933, time 244.60ms, mfu 1.82%
+iter 568: loss 39.9504, time 468.53ms, mfu 1.79%
+iter 569: loss 43.8620, time 469.07ms, mfu 1.76%
+iter 570: loss 44.4943, time 432.06ms, mfu 1.75%
+iter 571: loss 45.4411, time 318.83ms, mfu 1.80%
+iter 572: loss 41.0018, time 281.29ms, mfu 1.87%
+iter 573: loss 40.2649, time 369.18ms, mfu 1.88%
+iter 574: loss 42.7879, time 627.54ms, mfu 1.80%
+iter 575: loss 42.9805, time 462.47ms, mfu 1.78%
+iter 576: loss 43.4298, time 408.68ms, mfu 1.77%
+iter 577: loss 43.4844, time 372.55ms, mfu 1.79%
+iter 578: loss 45.5951, time 408.53ms, mfu 1.78%
+iter 579: loss 45.4771, time 419.29ms, mfu 1.77%
+iter 580: loss 43.0860, time 428.41ms, mfu 1.76%
+iter 581: loss 47.3399, time 210.32ms, mfu 1.92%
+iter 582: loss 40.6290, time 436.19ms, mfu 1.89%
+iter 583: loss 42.7209, time 464.36ms, mfu 1.86%
+iter 584: loss 46.0016, time 350.76ms, mfu 1.87%
+iter 585: loss 43.5661, time 321.72ms, mfu 1.91%
+iter 586: loss 46.2184, time 457.44ms, mfu 1.87%
+iter 587: loss 47.5764, time 471.16ms, mfu 1.84%
+iter 588: loss 41.4348, time 330.41ms, mfu 1.87%
+iter 589: loss 43.3171, time 427.21ms, mfu 1.85%
+iter 590: loss 41.9193, time 262.75ms, mfu 1.93%
+iter 591: loss 42.7179, time 378.37ms, mfu 1.93%
+iter 592: loss 40.6134, time 305.40ms, mfu 1.97%
+iter 593: loss 42.4235, time 604.80ms, mfu 1.89%
+iter 594: loss 40.1624, time 421.84ms, mfu 1.87%
+iter 595: loss 47.2337, time 605.28ms, mfu 1.80%
+iter 596: loss 42.0956, time 310.24ms, mfu 1.85%
+iter 597: loss 44.7480, time 353.40ms, mfu 1.86%
+iter 598: loss 40.9972, time 362.16ms, mfu 1.87%
+iter 599: loss 40.6958, time 336.93ms, mfu 1.90%
+iter 600: loss 45.1254, time 436.50ms, mfu 1.87%
+  === DIAG iter 600 ===
+  loss breakdown: text 0.3578 | num 44.7675 (lambda=1.0)
+  grads: total 0.0000, transformer 0.0000, adapter 0.0000, num_head 0.0000
+  nums: 1221/3072 tokens (39.7%)
+  lr: 1.80e-04
+iter 601: loss 45.1485, time 336.80ms, mfu 1.89%
+iter 602: loss 39.1039, time 356.35ms, mfu 1.90%
+iter 603: loss 45.2035, time 440.45ms, mfu 1.88%
+iter 604: loss 44.5397, time 312.02ms, mfu 1.92%
+iter 605: loss 42.3037, time 619.53ms, mfu 1.84%
+iter 606: loss 47.2455, time 256.44ms, mfu 1.93%
+iter 607: loss 43.6248, time 281.25ms, mfu 1.99%
+iter 608: loss 45.8982, time 351.85ms, mfu 1.99%
+iter 609: loss 44.4871, time 316.66ms, mfu 2.02%
+iter 610: loss 43.8956, time 320.85ms, mfu 2.04%
+iter 611: loss 43.3974, time 343.09ms, mfu 2.04%
+iter 612: loss 46.4169, time 358.69ms, mfu 2.04%
+iter 613: loss 46.3004, time 379.00ms, mfu 2.02%
+iter 614: loss 44.5033, time 301.04ms, mfu 2.05%
+iter 615: loss 43.9647, time 371.04ms, mfu 2.04%
+iter 616: loss 41.0600, time 349.75ms, mfu 2.04%
+iter 617: loss 42.9242, time 394.27ms, mfu 2.02%
+iter 618: loss 42.8423, time 364.18ms, mfu 2.01%
+iter 619: loss 43.5061, time 340.39ms, mfu 2.02%
+iter 620: loss 38.4776, time 295.77ms, mfu 2.06%
+iter 621: loss 44.8043, time 595.89ms, mfu 1.97%
+iter 622: loss 41.9905, time 296.50ms, mfu 2.01%
+iter 623: loss 41.1449, time 452.60ms, mfu 1.97%
+iter 624: loss 42.8017, time 351.63ms, mfu 1.97%
+iter 625: loss 42.2710, time 396.93ms, mfu 1.95%
+iter 626: loss 41.9435, time 318.95ms, mfu 1.98%
+iter 627: loss 45.7369, time 393.30ms, mfu 1.96%
+iter 628: loss 43.3373, time 499.56ms, mfu 1.91%
+iter 629: loss 43.4591, time 344.23ms, mfu 1.93%
+iter 630: loss 43.3013, time 538.12ms, mfu 1.87%
+iter 631: loss 38.6672, time 338.38ms, mfu 1.89%
+iter 632: loss 43.9644, time 447.16ms, mfu 1.86%
+iter 633: loss 44.6727, time 450.79ms, mfu 1.83%
+iter 634: loss 48.5279, time 319.63ms, mfu 1.87%
+iter 635: loss 45.9588, time 341.02ms, mfu 1.89%
+iter 636: loss 42.6435, time 332.67ms, mfu 1.92%
+iter 637: loss 42.0754, time 332.24ms, mfu 1.94%
+iter 638: loss 40.0248, time 454.54ms, mfu 1.90%
+iter 639: loss 44.3464, time 475.91ms, mfu 1.86%
+iter 640: loss 42.1111, time 489.73ms, mfu 1.82%
+iter 641: loss 44.6718, time 353.90ms, mfu 1.84%
+iter 642: loss 44.2751, time 430.68ms, mfu 1.82%
+iter 643: loss 44.7099, time 501.41ms, mfu 1.78%
+iter 644: loss 45.0064, time 571.72ms, mfu 1.73%
+iter 645: loss 44.7825, time 285.80ms, mfu 1.80%
+iter 646: loss 44.6262, time 441.42ms, mfu 1.78%
+iter 647: loss 36.8221, time 341.51ms, mfu 1.81%
+iter 648: loss 47.4332, time 436.36ms, mfu 1.79%
+iter 649: loss 43.1081, time 270.50ms, mfu 1.88%
+iter 650: loss 43.7129, time 363.23ms, mfu 1.89%
+iter 651: loss 45.9263, time 407.65ms, mfu 1.87%
+iter 652: loss 42.0720, time 361.23ms, mfu 1.88%
+iter 653: loss 46.9684, time 428.81ms, mfu 1.86%
+iter 654: loss 45.3962, time 590.38ms, mfu 1.79%
+iter 655: loss 43.3812, time 677.81ms, mfu 1.72%
+iter 656: loss 44.9581, time 426.00ms, mfu 1.71%
+iter 657: loss 42.0930, time 319.60ms, mfu 1.76%
+iter 658: loss 42.0573, time 276.15ms, mfu 1.85%
+iter 659: loss 42.7618, time 339.81ms, mfu 1.87%
+iter 660: loss 43.6102, time 355.35ms, mfu 1.88%
+iter 661: loss 41.3692, time 353.14ms, mfu 1.90%
+iter 662: loss 44.5918, time 418.80ms, mfu 1.88%
+iter 663: loss 44.5121, time 298.56ms, mfu 1.93%
+iter 664: loss 43.6897, time 328.78ms, mfu 1.95%
+iter 665: loss 40.9618, time 385.40ms, mfu 1.94%
+iter 666: loss 41.8996, time 520.42ms, mfu 1.88%
+iter 667: loss 46.6501, time 329.82ms, mfu 1.91%
+iter 668: loss 44.6328, time 436.57ms, mfu 1.88%
+iter 669: loss 44.1188, time 245.48ms, mfu 1.98%
+iter 670: loss 39.4919, time 469.38ms, mfu 1.94%
+iter 671: loss 45.3495, time 399.86ms, mfu 1.92%
+iter 672: loss 42.5418, time 320.99ms, mfu 1.95%
+iter 673: loss 44.5803, time 565.35ms, mfu 1.88%
+iter 674: loss 43.6897, time 355.55ms, mfu 1.89%
+iter 675: loss 46.3138, time 256.52ms, mfu 1.98%
+iter 676: loss 38.0786, time 340.48ms, mfu 1.99%
+iter 677: loss 40.3734, time 310.59ms, mfu 2.02%
+iter 678: loss 44.3662, time 479.20ms, mfu 1.97%
+iter 679: loss 42.1191, time 560.95ms, mfu 1.90%
+iter 680: loss 37.3068, time 260.87ms, mfu 1.98%
+iter 681: loss 44.7055, time 393.78ms, mfu 1.96%
+iter 682: loss 40.8589, time 326.30ms, mfu 1.98%
+iter 683: loss 43.5710, time 471.70ms, mfu 1.94%
+iter 684: loss 45.9656, time 372.95ms, mfu 1.93%
+iter 685: loss 41.7489, time 358.05ms, mfu 1.94%
+iter 686: loss 39.2817, time 379.83ms, mfu 1.93%
+iter 687: loss 40.2017, time 550.26ms, mfu 1.87%
+iter 688: loss 38.0298, time 375.36ms, mfu 1.87%
+iter 689: loss 43.2318, time 498.04ms, mfu 1.83%
+iter 690: loss 42.4047, time 404.83ms, mfu 1.82%
+iter 691: loss 42.3705, time 495.75ms, mfu 1.78%
+iter 692: loss 44.6884, time 372.38ms, mfu 1.79%
+iter 693: loss 38.2699, time 498.62ms, mfu 1.76%
+iter 694: loss 42.0537, time 310.26ms, mfu 1.81%
+iter 695: loss 44.1317, time 509.70ms, mfu 1.77%
+iter 696: loss 46.7949, time 503.93ms, mfu 1.73%
+iter 697: loss 46.9608, time 346.92ms, mfu 1.76%
+iter 698: loss 41.9896, time 499.12ms, mfu 1.73%
+iter 699: loss 41.4225, time 362.77ms, mfu 1.75%
+iter 700: loss 43.8001, time 387.40ms, mfu 1.76%
+  === DIAG iter 700 ===
+  loss breakdown: text 0.2586 | num 43.5415 (lambda=1.0)
+  grads: total 0.0000, transformer 0.0000, adapter 0.0000, num_head 0.0000
+  nums: 1053/3072 tokens (34.3%)
+  lr: 2.10e-04
+iter 701: loss 43.0202, time 661.70ms, mfu 1.69%
+iter 702: loss 44.4201, time 469.40ms, mfu 1.67%
+iter 703: loss 44.4903, time 332.76ms, mfu 1.72%
+iter 704: loss 41.7500, time 395.73ms, mfu 1.73%
+iter 705: loss 41.2143, time 333.85ms, mfu 1.77%
+iter 706: loss 41.8589, time 450.88ms, mfu 1.75%
+iter 707: loss 40.2040, time 553.36ms, mfu 1.70%
+iter 708: loss 41.5478, time 433.89ms, mfu 1.70%
+iter 709: loss 46.8761, time 278.45ms, mfu 1.78%
+iter 710: loss 39.4367, time 421.79ms, mfu 1.77%
+iter 711: loss 44.6885, time 468.75ms, mfu 1.75%
+iter 712: loss 43.0777, time 371.23ms, mfu 1.76%
+iter 713: loss 40.9473, time 429.23ms, mfu 1.75%
+iter 714: loss 42.3105, time 321.48ms, mfu 1.80%
+iter 715: loss 40.5478, time 511.49ms, mfu 1.76%
+iter 716: loss 44.5371, time 444.64ms, mfu 1.74%
+iter 717: loss 44.0638, time 421.35ms, mfu 1.74%
+iter 718: loss 37.7577, time 490.65ms, mfu 1.71%
+iter 719: loss 39.2364, time 319.98ms, mfu 1.76%
+iter 720: loss 41.1908, time 430.76ms, mfu 1.75%
+iter 721: loss 43.7293, time 397.88ms, mfu 1.75%
+iter 722: loss 38.9882, time 476.59ms, mfu 1.73%
+iter 723: loss 44.9564, time 366.42ms, mfu 1.75%
+iter 724: loss 37.9249, time 410.07ms, mfu 1.75%
+iter 725: loss 43.3134, time 459.30ms, mfu 1.73%
+iter 726: loss 42.6463, time 563.01ms, mfu 1.68%
+iter 727: loss 44.0196, time 257.83ms, mfu 1.79%
+iter 728: loss 44.5904, time 372.91ms, mfu 1.80%
+iter 729: loss 44.1259, time 424.66ms, mfu 1.79%
+iter 730: loss 44.4193, time 344.18ms, mfu 1.81%
+iter 731: loss 47.3012, time 278.94ms, mfu 1.89%
+iter 732: loss 45.1930, time 458.66ms, mfu 1.85%
+iter 733: loss 48.9477, time 485.12ms, mfu 1.81%
+iter 734: loss 42.2752, time 563.97ms, mfu 1.76%
+iter 735: loss 43.3982, time 500.41ms, mfu 1.73%
+iter 736: loss 44.7601, time 548.39ms, mfu 1.68%
+iter 737: loss 45.0129, time 399.31ms, mfu 1.69%
+iter 738: loss 46.1372, time 393.07ms, mfu 1.70%
+iter 739: loss 40.6628, time 297.86ms, mfu 1.77%
+iter 740: loss 42.1997, time 332.92ms, mfu 1.81%
+iter 741: loss 46.5827, time 405.23ms, mfu 1.80%
+iter 742: loss 45.8815, time 585.64ms, mfu 1.74%
+iter 743: loss 43.1649, time 375.06ms, mfu 1.76%
+iter 744: loss 46.2469, time 392.49ms, mfu 1.76%
+iter 745: loss 43.0011, time 352.70ms, mfu 1.79%
+iter 746: loss 42.3189, time 379.16ms, mfu 1.80%
+iter 747: loss 42.1585, time 580.64ms, mfu 1.74%
+iter 748: loss 45.4436, time 360.17ms, mfu 1.76%
+iter 749: loss 40.6601, time 426.14ms, mfu 1.75%
+iter 750: loss 44.8475, time 464.50ms, mfu 1.73%
+iter 751: loss 45.0564, time 475.83ms, mfu 1.71%
+iter 752: loss 40.8983, time 314.87ms, mfu 1.76%
+iter 753: loss 39.4999, time 377.01ms, mfu 1.77%
+iter 754: loss 41.1849, time 265.08ms, mfu 1.87%
+iter 755: loss 42.5114, time 426.06ms, mfu 1.85%
+iter 756: loss 43.0848, time 328.35ms, mfu 1.88%
+iter 757: loss 47.5362, time 519.73ms, mfu 1.83%
+iter 758: loss 41.7927, time 519.08ms, mfu 1.78%
+iter 759: loss 42.9619, time 460.27ms, mfu 1.76%
+iter 760: loss 41.3481, time 293.66ms, mfu 1.82%
+iter 761: loss 46.4389, time 337.33ms, mfu 1.85%
+iter 762: loss 42.7846, time 541.34ms, mfu 1.80%
+iter 763: loss 44.5053, time 387.98ms, mfu 1.80%
+iter 764: loss 45.7037, time 360.95ms, mfu 1.82%
+iter 765: loss 44.1384, time 411.54ms, mfu 1.81%
+iter 766: loss 44.4102, time 612.96ms, mfu 1.74%
+iter 767: loss 43.9302, time 527.97ms, mfu 1.70%
+iter 768: loss 44.6537, time 415.75ms, mfu 1.70%
+iter 769: loss 34.8712, time 510.74ms, mfu 1.67%
+iter 770: loss 43.1131, time 386.25ms, mfu 1.69%
+iter 771: loss 37.9379, time 362.43ms, mfu 1.72%
+iter 772: loss 45.8125, time 321.18ms, mfu 1.77%
+iter 773: loss 41.3575, time 292.68ms, mfu 1.83%
+iter 774: loss 44.8891, time 402.10ms, mfu 1.83%
+iter 775: loss 42.8755, time 370.94ms, mfu 1.84%
+iter 776: loss 43.2293, time 383.48ms, mfu 1.84%
+iter 777: loss 43.9533, time 515.99ms, mfu 1.79%
+iter 778: loss 40.3886, time 315.18ms, mfu 1.84%
+iter 779: loss 42.7225, time 400.99ms, mfu 1.83%
+iter 780: loss 42.3483, time 288.41ms, mfu 1.89%
+iter 781: loss 46.5101, time 376.01ms, mfu 1.89%
+iter 782: loss 44.4670, time 363.27ms, mfu 1.90%
+iter 783: loss 40.8357, time 370.77ms, mfu 1.90%
+iter 784: loss 40.4172, time 437.98ms, mfu 1.87%
+iter 785: loss 43.0895, time 431.99ms, mfu 1.85%
+iter 786: loss 44.7075, time 344.92ms, mfu 1.87%
+iter 787: loss 40.0078, time 330.06ms, mfu 1.90%
+iter 788: loss 43.3834, time 346.08ms, mfu 1.92%
+iter 789: loss 43.1382, time 492.90ms, mfu 1.87%
+iter 790: loss 43.6705, time 280.74ms, mfu 1.93%
+iter 791: loss 35.6188, time 574.30ms, mfu 1.86%
+iter 792: loss 42.5611, time 250.76ms, mfu 1.96%
+iter 793: loss 45.1441, time 289.76ms, mfu 2.01%
+iter 794: loss 43.2891, time 332.18ms, mfu 2.02%
+iter 795: loss 42.8420, time 398.08ms, mfu 2.00%
+iter 796: loss 45.3574, time 428.11ms, mfu 1.97%
+iter 797: loss 40.8557, time 365.09ms, mfu 1.96%
+iter 798: loss 44.4977, time 404.35ms, mfu 1.94%
+iter 799: loss 38.8479, time 340.01ms, mfu 1.96%
+iter 800: loss 42.6682, time 429.79ms, mfu 1.93%
+  === DIAG iter 800 ===
+  loss breakdown: text 0.2569 | num 42.4113 (lambda=1.0)
+  grads: total 0.0000, transformer 0.0000, adapter 0.0000, num_head 0.0000
+  nums: 1036/3072 tokens (33.7%)
+  lr: 2.40e-04
+iter 801: loss 46.1589, time 350.41ms, mfu 1.94%
+iter 802: loss 41.9763, time 627.89ms, mfu 1.86%
+iter 803: loss 47.0712, time 560.43ms, mfu 1.80%
+iter 804: loss 39.5196, time 300.41ms, mfu 1.85%
+iter 805: loss 37.1479, time 471.86ms, mfu 1.82%
+iter 806: loss 43.9582, time 444.88ms, mfu 1.80%
+iter 807: loss 43.1852, time 556.00ms, mfu 1.75%
+iter 808: loss 44.8519, time 311.95ms, mfu 1.80%
+iter 809: loss 46.8487, time 390.33ms, mfu 1.80%
+iter 810: loss 45.4484, time 420.79ms, mfu 1.79%
+iter 811: loss 43.7738, time 389.36ms, mfu 1.79%
+iter 812: loss 44.6473, time 309.36ms, mfu 1.84%
+iter 813: loss 41.4130, time 420.34ms, mfu 1.83%
+iter 814: loss 44.2868, time 359.26ms, mfu 1.84%
+iter 815: loss 42.9817, time 441.49ms, mfu 1.82%
+iter 816: loss 39.8055, time 506.86ms, mfu 1.78%
+iter 817: loss 44.4114, time 366.41ms, mfu 1.79%
+iter 818: loss 41.4377, time 355.97ms, mfu 1.81%
+iter 819: loss 43.6902, time 638.11ms, mfu 1.74%
+iter 820: loss 44.5336, time 360.01ms, mfu 1.77%
+iter 821: loss 42.9022, time 395.47ms, mfu 1.77%
+iter 822: loss 44.8683, time 565.01ms, mfu 1.72%
+iter 823: loss 46.5314, time 519.52ms, mfu 1.68%
+iter 824: loss 41.3992, time 420.06ms, mfu 1.68%
+iter 825: loss 42.1519, time 389.46ms, mfu 1.70%
+iter 826: loss 44.6999, time 280.18ms, mfu 1.78%
+iter 827: loss 41.0302, time 389.90ms, mfu 1.79%
+iter 828: loss 41.8839, time 541.67ms, mfu 1.74%
+iter 829: loss 41.3501, time 458.87ms, mfu 1.72%
+iter 830: loss 42.5397, time 370.66ms, mfu 1.74%
+iter 831: loss 47.4801, time 461.34ms, mfu 1.72%
+iter 832: loss 44.5120, time 555.79ms, mfu 1.68%
+iter 833: loss 44.4711, time 482.45ms, mfu 1.66%
+iter 834: loss 42.4712, time 433.41ms, mfu 1.65%
+iter 835: loss 44.9878, time 434.60ms, mfu 1.65%
+iter 836: loss 37.9790, time 382.78ms, mfu 1.67%
+iter 837: loss 39.7617, time 281.45ms, mfu 1.76%
+iter 838: loss 39.6036, time 332.26ms, mfu 1.80%
+iter 839: loss 43.7675, time 313.97ms, mfu 1.84%
+iter 840: loss 43.8348, time 350.84ms, mfu 1.86%
+iter 841: loss 40.1080, time 546.42ms, mfu 1.80%
+iter 842: loss 39.5513, time 404.00ms, mfu 1.80%
+iter 843: loss 39.8668, time 380.95ms, mfu 1.81%
+iter 844: loss 46.0966, time 260.31ms, mfu 1.90%
+iter 845: loss 40.3437, time 338.37ms, mfu 1.92%
+iter 846: loss 39.3080, time 389.35ms, mfu 1.91%
+iter 847: loss 45.7291, time 544.33ms, mfu 1.85%
+iter 848: loss 41.8883, time 289.08ms, mfu 1.91%
+iter 849: loss 41.6239, time 318.11ms, mfu 1.94%
+iter 850: loss 44.7370, time 458.67ms, mfu 1.90%
+iter 851: loss 42.0555, time 261.89ms, mfu 1.98%
+iter 852: loss 42.4737, time 361.83ms, mfu 1.98%
+iter 853: loss 43.4487, time 392.43ms, mfu 1.97%
+iter 854: loss 45.4842, time 533.36ms, mfu 1.90%
+iter 855: loss 45.6725, time 441.76ms, mfu 1.87%
+iter 856: loss 40.4540, time 320.28ms, mfu 1.91%
+iter 857: loss 44.0454, time 366.68ms, mfu 1.91%
+iter 858: loss 44.3934, time 395.69ms, mfu 1.90%
+iter 859: loss 41.1216, time 484.37ms, mfu 1.86%
+iter 860: loss 39.7625, time 367.65ms, mfu 1.86%
+iter 861: loss 46.8102, time 203.76ms, mfu 2.03%
+iter 862: loss 42.2769, time 449.67ms, mfu 1.98%
+iter 863: loss 41.4191, time 390.58ms, mfu 1.97%
+iter 864: loss 45.0450, time 401.70ms, mfu 1.95%
+iter 865: loss 43.6678, time 421.14ms, mfu 1.92%
+iter 866: loss 42.4014, time 488.92ms, mfu 1.87%
+iter 867: loss 44.7368, time 495.56ms, mfu 1.83%
+iter 868: loss 46.7398, time 273.15ms, mfu 1.91%
+iter 869: loss 40.4084, time 421.46ms, mfu 1.88%
+iter 870: loss 39.3406, time 450.61ms, mfu 1.85%
+iter 871: loss 45.7303, time 300.32ms, mfu 1.90%
+iter 872: loss 43.2499, time 417.28ms, mfu 1.88%
+iter 873: loss 42.6391, time 278.15ms, mfu 1.95%
+iter 874: loss 43.6436, time 354.37ms, mfu 1.96%
+iter 875: loss 45.1947, time 289.63ms, mfu 2.01%
+iter 876: loss 40.3743, time 409.14ms, mfu 1.98%
+iter 877: loss 41.8811, time 330.66ms, mfu 2.00%
+iter 878: loss 43.5727, time 489.73ms, mfu 1.94%
+iter 879: loss 42.3000, time 328.60ms, mfu 1.96%
+iter 880: loss 41.7396, time 310.40ms, mfu 2.00%
+iter 881: loss 42.9204, time 311.60ms, mfu 2.03%
+iter 882: loss 43.3851, time 367.45ms, mfu 2.02%
+iter 883: loss 41.1619, time 370.99ms, mfu 2.01%
+iter 884: loss 42.6881, time 282.36ms, mfu 2.06%
+iter 885: loss 37.8605, time 339.89ms, mfu 2.06%
+iter 886: loss 42.6617, time 290.28ms, mfu 2.10%
+iter 887: loss 43.6828, time 310.56ms, mfu 2.12%
+iter 888: loss 43.1893, time 508.58ms, mfu 2.05%
+iter 889: loss 43.8984, time 298.36ms, mfu 2.08%
+iter 890: loss 43.7562, time 468.89ms, mfu 2.02%
+iter 891: loss 43.2563, time 248.24ms, mfu 2.11%
+iter 892: loss 46.7989, time 438.55ms, mfu 2.06%
+iter 893: loss 43.3108, time 506.11ms, mfu 1.99%
+iter 894: loss 40.5816, time 540.58ms, mfu 1.93%
+iter 895: loss 42.2593, time 449.98ms, mfu 1.89%
+iter 896: loss 47.1322, time 503.47ms, mfu 1.84%
+iter 897: loss 37.4872, time 451.94ms, mfu 1.82%
+iter 898: loss 41.0561, time 398.76ms, mfu 1.81%
+iter 899: loss 40.5896, time 316.99ms, mfu 1.86%
+iter 900: loss 37.8831, time 333.48ms, mfu 1.88%
+  === DIAG iter 900 ===
+  loss breakdown: text 0.1983 | num 37.6848 (lambda=1.0)
+  grads: total 0.0000, transformer 0.0000, adapter 0.0000, num_head 0.0000
+  nums: 1065/3072 tokens (34.7%)
+  lr: 2.70e-04
+iter 901: loss 45.8720, time 419.37ms, mfu 1.86%
+iter 902: loss 43.7074, time 396.62ms, mfu 1.86%
+iter 903: loss 41.3582, time 332.39ms, mfu 1.88%
+iter 904: loss 45.5258, time 406.77ms, mfu 1.87%
+iter 905: loss 42.0761, time 336.17ms, mfu 1.90%
+iter 906: loss 46.5705, time 367.29ms, mfu 1.90%
+iter 907: loss 36.4470, time 406.40ms, mfu 1.88%
+iter 908: loss 42.0077, time 330.79ms, mfu 1.91%
+iter 909: loss 47.2036, time 398.43ms, mfu 1.90%
+iter 910: loss 41.5164, time 283.52ms, mfu 1.96%
+iter 911: loss 46.1694, time 324.92ms, mfu 1.98%
+iter 912: loss 42.1471, time 304.73ms, mfu 2.02%
+iter 913: loss 46.9968, time 420.87ms, mfu 1.98%
+iter 914: loss 43.9476, time 510.96ms, mfu 1.92%
+iter 915: loss 38.5315, time 449.64ms, mfu 1.89%
+iter 916: loss 44.5843, time 385.48ms, mfu 1.89%
+iter 917: loss 39.7392, time 366.62ms, mfu 1.89%
+iter 918: loss 43.8248, time 325.07ms, mfu 1.92%
+iter 919: loss 41.2466, time 478.51ms, mfu 1.88%
+iter 920: loss 40.8514, time 500.43ms, mfu 1.83%
+iter 921: loss 41.9536, time 498.20ms, mfu 1.79%
+iter 922: loss 40.3460, time 387.28ms, mfu 1.80%
+iter 923: loss 43.0763, time 292.56ms, mfu 1.86%
+iter 924: loss 39.6736, time 399.55ms, mfu 1.85%
+iter 925: loss 42.0812, time 449.40ms, mfu 1.82%
+iter 926: loss 36.8058, time 361.68ms, mfu 1.84%
+iter 927: loss 41.7358, time 279.23ms, mfu 1.91%
+iter 928: loss 36.9140, time 540.98ms, mfu 1.85%
+iter 929: loss 41.4668, time 432.06ms, mfu 1.83%
+iter 930: loss 41.0964, time 333.20ms, mfu 1.86%
+iter 931: loss 42.5632, time 363.12ms, mfu 1.87%
+iter 932: loss 45.2537, time 351.54ms, mfu 1.88%
+iter 933: loss 44.4240, time 474.85ms, mfu 1.85%
+iter 934: loss 40.6399, time 604.99ms, mfu 1.78%
+iter 935: loss 42.6579, time 423.98ms, mfu 1.77%
+iter 936: loss 42.1646, time 313.41ms, mfu 1.82%
+iter 937: loss 43.1991, time 394.50ms, mfu 1.82%
+iter 938: loss 42.0272, time 497.60ms, mfu 1.78%
+iter 939: loss 40.8588, time 422.16ms, mfu 1.77%
+iter 940: loss 37.5331, time 490.11ms, mfu 1.74%
+iter 941: loss 42.2066, time 347.79ms, mfu 1.77%
+iter 942: loss 40.4463, time 329.53ms, mfu 1.81%
+iter 943: loss 49.8723, time 292.04ms, mfu 1.87%
+iter 944: loss 42.1293, time 412.28ms, mfu 1.85%
+iter 945: loss 43.2991, time 426.57ms, mfu 1.84%
+iter 946: loss 42.0921, time 504.30ms, mfu 1.79%
+iter 947: loss 42.8187, time 514.51ms, mfu 1.75%
+iter 948: loss 36.9455, time 516.28ms, mfu 1.71%
+iter 949: loss 41.2101, time 362.85ms, mfu 1.74%
+iter 950: loss 40.7331, time 386.08ms, mfu 1.75%
+iter 951: loss 45.7965, time 467.15ms, mfu 1.73%
+iter 952: loss 44.0914, time 537.37ms, mfu 1.69%
+iter 953: loss 36.1958, time 478.99ms, mfu 1.67%
+iter 954: loss 45.3843, time 410.04ms, mfu 1.67%
+iter 955: loss 42.0474, time 381.51ms, mfu 1.69%
+iter 956: loss 38.5021, time 431.48ms, mfu 1.69%
+iter 957: loss 40.1066, time 466.01ms, mfu 1.67%
+iter 958: loss 44.2845, time 355.53ms, mfu 1.70%
+iter 959: loss 38.9158, time 276.69ms, mfu 1.79%
+iter 960: loss 46.0878, time 430.40ms, mfu 1.78%
+iter 961: loss 41.8695, time 419.25ms, mfu 1.77%
+iter 962: loss 42.4171, time 350.12ms, mfu 1.79%
+iter 963: loss 42.9375, time 284.88ms, mfu 1.86%
+iter 964: loss 44.6249, time 385.71ms, mfu 1.86%
+iter 965: loss 44.7457, time 373.08ms, mfu 1.87%
+iter 966: loss 40.4501, time 334.79ms, mfu 1.89%
+iter 967: loss 44.7908, time 412.08ms, mfu 1.88%
+iter 968: loss 46.0678, time 269.62ms, mfu 1.95%
+iter 969: loss 37.6318, time 332.94ms, mfu 1.97%
+iter 970: loss 43.5543, time 373.69ms, mfu 1.96%
+iter 971: loss 42.5310, time 412.98ms, mfu 1.94%
+iter 972: loss 42.0954, time 383.15ms, mfu 1.93%
+iter 973: loss 42.7851, time 303.40ms, mfu 1.97%
+iter 974: loss 46.0911, time 397.16ms, mfu 1.95%
+iter 975: loss 39.8582, time 348.45ms, mfu 1.96%
+iter 976: loss 46.8657, time 396.54ms, mfu 1.94%
+iter 977: loss 39.1134, time 324.43ms, mfu 1.97%
+iter 978: loss 44.3190, time 448.06ms, mfu 1.93%
+iter 979: loss 44.9083, time 412.97ms, mfu 1.91%
+iter 980: loss 43.6400, time 388.62ms, mfu 1.90%
+iter 981: loss 43.0270, time 448.66ms, mfu 1.87%
+iter 982: loss 36.1127, time 402.21ms, mfu 1.86%
+iter 983: loss 38.2793, time 500.71ms, mfu 1.82%
+iter 984: loss 43.1434, time 386.37ms, mfu 1.82%
+iter 985: loss 41.9579, time 381.48ms, mfu 1.82%
+iter 986: loss 40.1052, time 312.05ms, mfu 1.87%
+iter 987: loss 42.9968, time 378.18ms, mfu 1.87%
+iter 988: loss 46.7299, time 494.85ms, mfu 1.83%
+iter 989: loss 45.7000, time 343.61ms, mfu 1.85%
+iter 990: loss 42.9354, time 459.30ms, mfu 1.82%
+iter 991: loss 37.7087, time 293.00ms, mfu 1.88%
+iter 992: loss 45.2168, time 429.25ms, mfu 1.86%
+iter 993: loss 41.6783, time 484.35ms, mfu 1.82%
+iter 994: loss 40.5540, time 395.90ms, mfu 1.82%
+iter 995: loss 38.5581, time 387.20ms, mfu 1.82%
+iter 996: loss 43.4676, time 514.44ms, mfu 1.77%
+iter 997: loss 42.2819, time 413.98ms, mfu 1.77%
+iter 998: loss 42.6216, time 486.44ms, mfu 1.74%
+iter 999: loss 36.9849, time 287.07ms, mfu 1.81%
+iter 1000: loss 39.7180, time 389.47ms, mfu 1.81%
+  === DIAG iter 1000 ===
+  loss breakdown: text 0.1614 | num 39.5566 (lambda=1.0)
+  grads: total 0.0000, transformer 0.0000, adapter 0.0000, num_head 0.0000
+  nums: 1069/3072 tokens (34.8%)
+  lr: 3.00e-04
+iter 1001: loss 45.8641, time 473.98ms, mfu 1.78%
+iter 1002: loss 42.5560, time 354.33ms, mfu 1.80%
+iter 1003: loss 41.0763, time 303.28ms, mfu 1.86%
+iter 1004: loss 39.0106, time 358.34ms, mfu 1.87%
+iter 1005: loss 36.9472, time 289.85ms, mfu 1.93%
+iter 1006: loss 41.1808, time 361.10ms, mfu 1.93%
+iter 1007: loss 42.5606, time 320.72ms, mfu 1.96%
+iter 1008: loss 41.5985, time 317.79ms, mfu 1.99%
+iter 1009: loss 41.2908, time 529.19ms, mfu 1.92%
+iter 1010: loss 42.3189, time 351.64ms, mfu 1.93%
+iter 1011: loss 44.0444, time 562.07ms, mfu 1.87%
+iter 1012: loss 43.3200, time 247.16ms, mfu 1.97%
+iter 1013: loss 40.7944, time 466.28ms, mfu 1.92%
+iter 1014: loss 40.8162, time 448.68ms, mfu 1.89%
+iter 1015: loss 43.4542, time 416.14ms, mfu 1.87%
+iter 1016: loss 40.2207, time 418.48ms, mfu 1.85%
+iter 1017: loss 41.5913, time 285.27ms, mfu 1.92%
+iter 1018: loss 40.2455, time 450.43ms, mfu 1.88%
+iter 1019: loss 39.4673, time 425.87ms, mfu 1.86%
+iter 1020: loss 38.3662, time 313.72ms, mfu 1.90%
+iter 1021: loss 42.7582, time 464.22ms, mfu 1.87%
+iter 1022: loss 42.7383, time 469.60ms, mfu 1.83%
+iter 1023: loss 44.8709, time 328.46ms, mfu 1.86%
+iter 1024: loss 41.0440, time 305.52ms, mfu 1.91%
+iter 1025: loss 44.5309, time 337.03ms, mfu 1.93%
+iter 1026: loss 37.3667, time 352.79ms, mfu 1.94%
+iter 1027: loss 41.0645, time 328.19ms, mfu 1.96%
+iter 1028: loss 42.0959, time 344.40ms, mfu 1.97%
+iter 1029: loss 42.2143, time 414.48ms, mfu 1.95%
+iter 1030: loss 43.1586, time 399.93ms, mfu 1.93%
+iter 1031: loss 42.5256, time 250.47ms, mfu 2.02%
+iter 1032: loss 42.5663, time 319.61ms, mfu 2.04%
+iter 1033: loss 44.1852, time 416.83ms, mfu 2.01%
+iter 1034: loss 46.2776, time 545.35ms, mfu 1.94%
+iter 1035: loss 43.8767, time 390.93ms, mfu 1.92%
+iter 1036: loss 42.6429, time 368.98ms, mfu 1.92%
+iter 1037: loss 41.2943, time 394.25ms, mfu 1.91%
+iter 1038: loss 42.5619, time 387.86ms, mfu 1.90%
+iter 1039: loss 42.7577, time 345.20ms, mfu 1.92%
+iter 1040: loss 45.1684, time 433.49ms, mfu 1.89%
+iter 1041: loss 44.2348, time 306.56ms, mfu 1.93%
+iter 1042: loss 41.8383, time 511.62ms, mfu 1.88%
+iter 1043: loss 42.4325, time 311.25ms, mfu 1.92%
+iter 1044: loss 41.6229, time 338.85ms, mfu 1.94%
+iter 1045: loss 41.7227, time 369.56ms, mfu 1.94%
+iter 1046: loss 40.8838, time 289.93ms, mfu 1.99%
+iter 1047: loss 44.7850, time 430.92ms, mfu 1.95%
+iter 1048: loss 43.7656, time 471.39ms, mfu 1.91%
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+W0221 02:52:42.972000 2166338 torch/distributed/elastic/agent/server/api.py:704] Received Signals.SIGTERM death signal, shutting down workers
+slurmstepd: error: *** JOB 77727 ON turpancomp0 CANCELLED AT 2026-02-21T02:52:42 ***
+W0221 02:52:42.972000 2166338 torch/distributed/elastic/multiprocessing/api.py:890] Sending process 2166407 closing signal SIGTERM
+W0221 02:52:42.973000 2166338 torch/distributed/elastic/multiprocessing/api.py:890] Sending process 2166408 closing signal SIGTERM
+W0221 02:52:42.972000 1191002 torch/distributed/elastic/agent/server/api.py:704] Received Signals.SIGTERM death signal, shutting down workers
+W0221 02:52:42.972000 1908751 torch/distributed/elastic/agent/server/api.py:704] Received Signals.SIGTERM death signal, shutting down workers
+W0221 02:52:42.973000 1191002 torch/distributed/elastic/multiprocessing/api.py:890] Sending process 1191072 closing signal SIGTERM
+slurmstepd: error: *** STEP 77727.0 ON turpancomp0 CANCELLED AT 2026-02-21T02:52:42 ***
+W0221 02:52:42.973000 1908751 torch/distributed/elastic/multiprocessing/api.py:890] Sending process 1908819 closing signal SIGTERM
+W0221 02:52:42.973000 1191002 torch/distributed/elastic/multiprocessing/api.py:890] Sending process 1191073 closing signal SIGTERM
+W0221 02:52:42.973000 3741318 torch/distributed/elastic/agent/server/api.py:704] Received Signals.SIGTERM death signal, shutting down workers
+W0221 02:52:42.973000 1908751 torch/distributed/elastic/multiprocessing/api.py:890] Sending process 1908820 closing signal SIGTERM
+W0221 02:52:42.973000 3741318 torch/distributed/elastic/multiprocessing/api.py:890] Sending process 3741387 closing signal SIGTERM
+W0221 02:52:42.973000 3741318 torch/distributed/elastic/multiprocessing/api.py:890] Sending process 3741388 closing signal SIGTERM
