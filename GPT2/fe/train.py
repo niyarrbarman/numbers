@@ -23,6 +23,7 @@ from contextlib import nullcontext
 
 import numpy as np
 import torch
+import torch.nn as nn
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import init_process_group, destroy_process_group
 
@@ -61,9 +62,13 @@ num_emb_checkpoint = ''  # path to NumberEncoder .pt checkpoint
 num_emb_dim = 128
 num_head_hidden = 256
 num_loss_lambda = 5.0
+num_output_mode = 'bins'  # 'bins' (cross-entropy) or 'regression' (MSE)
+num_bins = 256
+num_range = 1000
+phase2_iter = 10000  # iter to switch from bins -> regression (0 = no switch)
 # adamw optimizer
 learning_rate = 6e-4
-max_iters = 50000
+max_iters = 15000
 weight_decay = 1e-1
 beta1 = 0.9
 beta2 = 0.95
@@ -71,7 +76,7 @@ grad_clip = 1.0
 # learning rate decay settings
 decay_lr = True
 warmup_iters = 2000
-lr_decay_iters = 50000  # should match max_iters for full cosine schedule
+lr_decay_iters = 15000  # should match max_iters for full cosine schedule
 min_lr = 6e-5
 # DDP settings
 backend = 'nccl'
@@ -190,6 +195,7 @@ model_args = dict(
     bias=bias, vocab_size=None, dropout=dropout,
     num_emb_dim=num_emb_dim, num_emb_checkpoint=num_emb_checkpoint,
     num_head_hidden=num_head_hidden, num_loss_lambda=num_loss_lambda,
+    num_output_mode=num_output_mode, num_bins=num_bins, num_range=num_range,
 )
 if init_from == 'scratch':
     print("Initializing a new model from scratch")
@@ -204,7 +210,8 @@ elif init_from == 'resume':
     checkpoint = torch.load(ckpt_path, map_location=device)
     checkpoint_model_args = checkpoint['model_args']
     for k in ['n_layer', 'n_head', 'n_embd', 'block_size', 'bias', 'vocab_size',
-              'num_emb_dim', 'num_emb_checkpoint', 'num_head_hidden', 'num_loss_lambda']:
+              'num_emb_dim', 'num_emb_checkpoint', 'num_head_hidden', 'num_loss_lambda',
+              'num_output_mode', 'num_bins', 'num_range']:
         model_args[k] = checkpoint_model_args[k]
     gptconf = GPTConfig(**model_args)
     model = GPT(gptconf)
@@ -220,7 +227,9 @@ elif init_from.startswith('gpt2'):
     print(f"Initializing from OpenAI GPT-2 weights: {init_from}")
     override_args = dict(dropout=dropout, num_emb_checkpoint=num_emb_checkpoint,
                          num_emb_dim=num_emb_dim, num_head_hidden=num_head_hidden,
-                         num_loss_lambda=num_loss_lambda)
+                         num_loss_lambda=num_loss_lambda,
+                         num_output_mode=num_output_mode, num_bins=num_bins,
+                         num_range=num_range)
     model = GPT.from_pretrained(init_from, override_args)
     for k in ['n_layer', 'n_head', 'n_embd', 'block_size', 'bias', 'vocab_size']:
         model_args[k] = getattr(model.config, k)
@@ -334,6 +343,70 @@ while True:
     if iter_num == 0 and eval_only:
         break
 
+    # --- Phase switch: bins -> regression at phase2_iter ---
+    if (phase2_iter > 0 and iter_num == phase2_iter
+            and num_output_mode == 'bins'):
+        # Save phase 1 checkpoint (master only)
+        if master_process:
+            phase1_ckpt = {
+                'model': raw_model.state_dict(),
+                'optimizer': optimizer.state_dict(),
+                'model_args': model_args,
+                'iter_num': iter_num,
+                'best_val_loss': best_val_loss,
+                'config': config,
+            }
+            torch.save(phase1_ckpt, os.path.join(out_dir, 'ckpt_phase1_bins.pt'))
+            print(f"\n{'=' * 50}")
+            print(f"PHASE SWITCH at iter {iter_num}: bins -> regression")
+            print(f"Phase 1 checkpoint saved to {out_dir}/ckpt_phase1_bins.pt")
+            print(f"{'=' * 50}")
+
+        # Get the actual model (bypass DDP + compile wrappers)
+        if compile:
+            actual_model = unoptimized_model
+        elif ddp:
+            actual_model = model.module
+        else:
+            actual_model = model
+
+        # Replace num_head last layer: Linear(hidden, n_bins) -> Linear(hidden, 1)
+        old_last = actual_model.num_head.net[-1]
+        new_last = nn.Linear(old_last.in_features, 1, bias=old_last.bias is not None)
+        new_last = new_last.to(device)
+        actual_model.num_head.net[-1] = new_last
+        actual_model.num_head.mode = 'regression'
+
+        # Sync new layer weights across DDP ranks
+        if ddp:
+            for p in actual_model.num_head.net[-1].parameters():
+                torch.distributed.broadcast(p.data, src=0)
+
+        # Update config tracking
+        actual_model.config.num_output_mode = 'regression'
+        num_output_mode = 'regression'
+        model_args['num_output_mode'] = 'regression'
+
+        # Rebuild optimizer (picks up new parameter, drops old)
+        optimizer = actual_model.configure_optimizers(
+            weight_decay, learning_rate, (beta1, beta2), device_type)
+        scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+
+        # Re-compile and re-wrap
+        if compile:
+            torch._dynamo.reset()
+            model = torch.compile(actual_model)
+        else:
+            model = actual_model
+        if ddp:
+            model = DDP(model, device_ids=[ddp_local_rank])
+
+        raw_model = model.module if ddp else model
+
+        if master_process:
+            print("Phase 2 (regression) training started")
+            print(f"{'=' * 50}\n")
+
     # forward backward update, with optional gradient accumulation
     for micro_step in range(gradient_accumulation_steps):
         if ddp:
@@ -399,7 +472,7 @@ while True:
 
         print(f"  === DIAG iter {iter_num} ===")
         print(f"  loss breakdown: text {text_loss_val:.4f} | num {num_loss_val:.4f} "
-              f"(lambda={num_loss_lambda})")
+              f"(lambda={num_loss_lambda}, mode={num_output_mode})")
         print(f"  grads: total {grad_norm_total:.4f}, "
               f"transformer {grad_norm_transformer:.4f}, "
               f"adapter {grad_norm_adapter:.4f}, "

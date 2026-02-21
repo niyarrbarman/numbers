@@ -124,25 +124,73 @@ class Block(nn.Module):
 # Number Output Head
 # =============================================================================
 
+def build_log_bin_edges(n_bins, num_range):
+    """Build log-spaced bin edges covering [-num_range, num_range].
+
+    Returns (n_bins+1,) tensor of edges. Bins are symmetric around 0,
+    with log spacing for better resolution at small values.
+    """
+    half = n_bins // 2
+    # Log-spaced positive edges: 0 -> num_range
+    pos_edges = torch.logspace(-1, math.log10(num_range), half)
+    pos_edges = torch.cat([torch.tensor([0.0]), pos_edges])
+    # Full edges: [-num_range, ..., 0, ..., num_range]
+    neg_edges = -pos_edges.flip(0)[:-1]  # drop duplicate 0
+    edges = torch.cat([neg_edges, pos_edges])
+    return edges
+
+
 class NumberOutputHead(nn.Module):
     """Predicts a scalar number from the transformer's hidden state.
 
-    Operates in signed-log space: f(x) = sign(x) * log(|x| + 1)
-    This gives equal relative precision across magnitudes.
+    Supports two modes:
+      - 'regression': predicts signed-log scalar (original)
+      - 'bins': predicts bin index via cross-entropy (quantized)
     """
-    def __init__(self, n_embd, hidden_dim=256):
+    def __init__(self, input_dim, hidden_dim=256, mode='bins',
+                 n_bins=256, num_range=1000):
         super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(n_embd, hidden_dim),
-            nn.GELU(),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.GELU(),
-            nn.Linear(hidden_dim, 1),
-        )
+        self.mode = mode
+        self.n_bins = n_bins
+
+        if mode == 'bins':
+            self.net = nn.Sequential(
+                nn.Linear(input_dim, hidden_dim),
+                nn.GELU(),
+                nn.Linear(hidden_dim, hidden_dim),
+                nn.GELU(),
+                nn.Linear(hidden_dim, n_bins),
+            )
+            edges = build_log_bin_edges(n_bins, num_range)
+            self.register_buffer('bin_edges', edges)
+            # Bin centers for decoding predictions back to values
+            centers = (edges[:-1] + edges[1:]) / 2
+            self.register_buffer('bin_centers', centers)
+        else:
+            self.net = nn.Sequential(
+                nn.Linear(input_dim, hidden_dim),
+                nn.GELU(),
+                nn.Linear(hidden_dim, hidden_dim),
+                nn.GELU(),
+                nn.Linear(hidden_dim, 1),
+            )
 
     def forward(self, h):
-        """h: (..., n_embd) -> (...,) predicted signed-log values."""
-        return self.net(h).squeeze(-1)
+        """h: (..., input_dim) -> logits or scalar depending on mode."""
+        if self.mode == 'bins':
+            return self.net(h)  # (..., n_bins)
+        else:
+            return self.net(h).squeeze(-1)  # (...,)
+
+    def value_to_bin(self, values):
+        """Convert real values to bin indices. values: (...,) -> (...,) long."""
+        # searchsorted gives the insertion point; clamp to valid bin range
+        bins = torch.searchsorted(self.bin_edges, values.contiguous()) - 1
+        return bins.clamp(0, self.n_bins - 1)
+
+    def bin_to_value(self, bin_idx):
+        """Convert bin indices back to values using bin centers."""
+        return self.bin_centers[bin_idx]
 
     @staticmethod
     def to_signed_log(x):
@@ -172,7 +220,10 @@ class GPTConfig:
     num_emb_dim: int = 128          # NumberEncoder output dimension
     num_emb_checkpoint: str = ''    # Path to .pt checkpoint for NumberEncoder
     num_head_hidden: int = 256      # Hidden dim of NumberOutputHead
-    num_loss_lambda: float = 1.0    # Weight of number regression loss
+    num_loss_lambda: float = 1.0    # Weight of number loss
+    num_output_mode: str = 'bins'   # 'bins' (cross-entropy) or 'regression' (MSE)
+    num_bins: int = 256             # Number of bins for quantized output
+    num_range: int = 1000           # Max absolute value for bin edges
 
 
 class GPT(nn.Module):
@@ -220,8 +271,15 @@ class GPT(nn.Module):
         # One weight per transformer layer — softmax gives the mix
         self.num_layer_weights = nn.Parameter(torch.zeros(config.n_layer))
 
-        # 4. Number output head (reads weighted combo of all layers)
-        self.num_head = NumberOutputHead(config.n_embd, config.num_head_hidden)
+        # 4. Number output head with skip connection
+        # Input: concat(transformer_weighted_hidden, adapter_output) = 2 * n_embd
+        num_head_input_dim = config.n_embd * 2  # skip connection doubles input
+        self.num_head = NumberOutputHead(
+            num_head_input_dim, config.num_head_hidden,
+            mode=config.num_output_mode,
+            n_bins=config.num_bins,
+            num_range=config.num_range,
+        )
 
         # === Standard weight init ===
         self.apply(self._init_weights)
@@ -272,6 +330,8 @@ class GPT(nn.Module):
         pos_emb = self.transformer.wpe(pos)       # (T, n_embd)
 
         # --- Inject number embeddings at <NUM> positions ---
+        # Also store adapter output for skip connection to num_head
+        adapter_out = torch.zeros_like(tok_emb)   # (B, T, n_embd)
         if num_mask is not None and num_mask.any():
             num_vals_flat = num_values[num_mask]   # (K,)
             with torch.no_grad():
@@ -279,6 +339,7 @@ class GPT(nn.Module):
             num_proj = self.num_adapter(num_emb)   # (K, n_embd)
             tok_emb = tok_emb.clone()
             tok_emb[num_mask] = num_proj.to(tok_emb.dtype)
+            adapter_out[num_mask] = num_proj.to(adapter_out.dtype)
 
         x = self.transformer.drop(tok_emb + pos_emb)
 
@@ -290,9 +351,7 @@ class GPT(nn.Module):
         x = self.transformer.ln_f(x)
 
         # --- Weighted layer combination for number head ---
-        # layer_outputs: list of n_layer tensors, each (B, T, n_embd)
         w = F.softmax(self.num_layer_weights, dim=0)  # (n_layer,)
-        # Stack and weight: (n_layer, B, T, n_embd) -> (B, T, n_embd)
         stacked = torch.stack(layer_outputs, dim=0)    # (n_layer, B, T, n_embd)
         x_num = (w[:, None, None, None] * stacked).sum(dim=0)  # (B, T, n_embd)
 
@@ -307,15 +366,31 @@ class GPT(nn.Module):
                 ignore_index=-1
             )
 
-            # 2. Number regression loss (using weighted layer combo)
+            # 2. Number loss with skip connection
+            # num_head input = concat(transformer_hidden, adapter_skip)
             target_num_mask = (targets == NUM_TOKEN_ID)
             num_loss = torch.tensor(0.0, device=device)
             if target_num_mask.any() and target_num_values is not None:
-                h_num = x_num[target_num_mask]                     # (M, n_embd)
-                slog_pred = self.num_head(h_num)                    # (M,)
-                target_vals = target_num_values[target_num_mask]    # (M,)
-                slog_target = NumberOutputHead.to_signed_log(target_vals)
-                num_loss = F.mse_loss(slog_pred, slog_target)
+                h_transformer = x_num[target_num_mask]           # (M, n_embd)
+                # Skip: adapter output from INPUT positions (shifted -1 from targets)
+                # For target position t, the input position is t (since targets = inputs shifted +1)
+                # adapter_out is aligned with idx, target_num_mask is aligned with targets
+                # But target's NUM at position t means the model should predict a number
+                # at position t. The adapter_out for that prediction comes from the
+                # context up to position t. We use adapter_out aligned with targets.
+                h_skip = adapter_out[:, :target_num_mask.size(1), :][target_num_mask]  # (M, n_embd)
+                h_combined = torch.cat([h_transformer, h_skip], dim=-1)  # (M, 2*n_embd)
+
+                target_vals = target_num_values[target_num_mask]  # (M,)
+
+                if self.num_head.mode == 'bins':
+                    bin_logits = self.num_head(h_combined)         # (M, n_bins)
+                    bin_targets = self.num_head.value_to_bin(target_vals)  # (M,)
+                    num_loss = F.cross_entropy(bin_logits, bin_targets)
+                else:
+                    slog_pred = self.num_head(h_combined)          # (M,)
+                    slog_target = NumberOutputHead.to_signed_log(target_vals)
+                    num_loss = F.mse_loss(slog_pred, slog_target)
 
             loss = text_loss + self.config.num_loss_lambda * num_loss
 
@@ -327,7 +402,8 @@ class GPT(nn.Module):
             self._last_layer_weights = w.detach().cpu().tolist()
         else:
             # --- Inference ---
-            self._last_hidden = x_num  # use weighted combo for generate()
+            self._last_hidden = x_num
+            self._last_adapter_out = adapter_out  # for skip in generate()
             logits = self.lm_head(x[:, [-1], :])   # (B, 1, vocab_size)
             loss = None
 
@@ -363,7 +439,8 @@ class GPT(nn.Module):
             print(f"overriding dropout rate to {override_args['dropout']}")
             config_args['dropout'] = override_args['dropout']
         # Pass number embedding config through override_args
-        for k in ['num_emb_dim', 'num_emb_checkpoint', 'num_head_hidden', 'num_loss_lambda']:
+        for k in ['num_emb_dim', 'num_emb_checkpoint', 'num_head_hidden', 'num_loss_lambda',
+                  'num_output_mode', 'num_bins', 'num_range']:
             if k in override_args:
                 config_args[k] = override_args[k]
 
@@ -485,10 +562,19 @@ class GPT(nn.Module):
             new_num_val = torch.zeros_like(idx_next, dtype=torch.float32)
 
             if is_num.any():
-                # Predict number using the last hidden state
-                h_last = self._last_hidden[:, -1, :]   # (B, n_embd)
-                slog = self.num_head(h_last)            # (B,)
-                pred_val = NumberOutputHead.from_signed_log(slog)
+                # Predict number using skip connection: concat(hidden, adapter)
+                h_last = self._last_hidden[:, -1, :]        # (B, n_embd)
+                a_last = self._last_adapter_out[:, -1, :]   # (B, n_embd)
+                h_combined = torch.cat([h_last, a_last], dim=-1)  # (B, 2*n_embd)
+
+                if self.num_head.mode == 'bins':
+                    bin_logits = self.num_head(h_combined)    # (B, n_bins)
+                    bin_idx = bin_logits.argmax(dim=-1)       # (B,)
+                    pred_val = self.num_head.bin_to_value(bin_idx)  # (B,)
+                else:
+                    slog = self.num_head(h_combined)          # (B,)
+                    pred_val = NumberOutputHead.from_signed_log(slog)
+
                 for b in range(idx.size(0)):
                     if is_num[b, 0]:
                         new_num_val[b, 0] = pred_val[b]

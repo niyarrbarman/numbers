@@ -25,13 +25,20 @@ DATASET="${DATASET:-numtasks_reasoning_1k}"
 DATA_DIR="/tmpdir/m24047brmn/numbers/data/numtasks_reasoning_1k"
 
 # Training iterations (lr_decay_iters auto-set to match)
-MAX_ITERS="${MAX_ITERS:-50000}"
+MAX_ITERS="${MAX_ITERS:-15000}"
+
+# Phase switch: bins -> regression at this iter (0 = no switch)
+PHASE2_ITER="${PHASE2_ITER:-10000}"
 
 # Number loss weight
 NUM_LOSS_LAMBDA="${NUM_LOSS_LAMBDA:-5.0}"
 
+# Number output mode and range
+NUM_OUTPUT_MODE="${NUM_OUTPUT_MODE:-bins}"
+NUM_RANGE="${NUM_RANGE:-1000}"
+
 # Output directory for checkpoints
-OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/model_checkpoints}"
+OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/model_checkpoints/qbins}"
 
 GPUS_PER_NODE=2
 
@@ -50,7 +57,10 @@ echo "  Dataset:        ${DATASET}"
 echo "  Data dir:       ${DATA_DIR}"
 echo "  Checkpoint:     ${NUM_EMB_CHECKPOINT}"
 echo "  Max iters:      ${MAX_ITERS}"
+echo "  Phase 2 at:     ${PHASE2_ITER}"
 echo "  Lambda:         ${NUM_LOSS_LAMBDA}"
+echo "  Num mode:       ${NUM_OUTPUT_MODE}"
+echo "  Num range:      ${NUM_RANGE}"
 echo "  Out dir:        ${OUT_DIR}"
 echo "  Master:         ${MASTER_ADDR}:${MASTER_PORT}"
 echo "=========================================="
@@ -76,7 +86,10 @@ srun apptainer exec \
       out_dir="${OUT_DIR}" \
       max_iters="${MAX_ITERS}" \
       lr_decay_iters="${MAX_ITERS}" \
-      num_loss_lambda="${NUM_LOSS_LAMBDA}"
+      num_loss_lambda="${NUM_LOSS_LAMBDA}" \
+      num_output_mode="${NUM_OUTPUT_MODE}" \
+      num_range="${NUM_RANGE}" \
+      phase2_iter="${PHASE2_ITER}"
 
 status=$?
 echo "=========================================="
