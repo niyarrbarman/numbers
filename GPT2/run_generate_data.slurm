@@ -4,7 +4,7 @@
 #SBATCH -n 1
 #SBATCH -p small
 #SBATCH --ntasks-per-node=1
-#SBATCH --time=01:00:00
+#SBATCH --time=06:00:00
 #SBATCH -o slurm_logs/generate_data_%j.log
 #SBATCH -e slurm_logs/generate_data_%j.log
 
@@ -16,8 +16,8 @@ GPT2_DIR="${REPO_DIR}"
 # IMAGE="/work/conteneurs/sessions-interactives/pytorch-24.02-py3-calmip-si.sif"
 IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest.sif"
 
-N_TRAIN="${N_TRAIN:-1000000}"
-N_VAL="${N_VAL:-5000}"
+N_TRAIN="${N_TRAIN:-5000000}"
+N_VAL="${N_VAL:-50000}"
 MAX_LEN="${MAX_LEN:-10}"
 NUMBER_RANGE="${NUMBER_RANGE:-1000000000}"
 OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9}"

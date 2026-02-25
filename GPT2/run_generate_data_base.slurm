@@ -4,7 +4,7 @@
 #SBATCH -n 1
 #SBATCH -p small
 #SBATCH --ntasks-per-node=1
-#SBATCH --time=01:00:00
+#SBATCH --time=06:00:00
 #SBATCH -o slurm_logs/generate_data_base_%j.log
 #SBATCH -e slurm_logs/generate_data_base_%j.log
 
@@ -18,8 +18,8 @@ if [[ ! -f "${GPT2_DIR}/generate_data_base.py" ]]; then
 fi
 IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest.sif"
 
-N_TRAIN="${N_TRAIN:-1000000}"
-N_VAL="${N_VAL:-5000}"
+N_TRAIN="${N_TRAIN:-5000000}"
+N_VAL="${N_VAL:-50000}"
 MAX_LEN="${MAX_LEN:-10}"
 NUMBER_RANGE="${NUMBER_RANGE:-1000000000}"
 OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/data/numtasks_base_vardig_e9}"

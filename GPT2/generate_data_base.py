@@ -350,10 +350,10 @@ def save_split(ids, split, out_dir):
 def main():
     parser = argparse.ArgumentParser(
         description="Generate multi-task numerical data for base GPT-2 (plain text numbers)")
-    parser.add_argument("--n-train", type=int, default=1000000,
-                        help="Number of training examples (default: 1000000)")
-    parser.add_argument("--n-val", type=int, default=5000,
-                        help="Number of validation examples (default: 5000)")
+    parser.add_argument("--n-train", type=int, default=5000000,
+                        help="Number of training examples (default: 5000000)")
+    parser.add_argument("--n-val", type=int, default=50000,
+                        help="Number of validation examples (default: 50000)")
     parser.add_argument("--block-size", type=int, default=256,
                         help="Block size for packing (must match train.py block_size)")
     parser.add_argument("--min-len", type=int, default=2,
