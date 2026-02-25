@@ -11,12 +11,12 @@ REASONING tasks (text output depends on number values — trains via text_loss):
   SUM_CMP:    3 + 5 vs 2 + 7 → FIRST  (which pair sums higher? or SECOND/EQUAL)
 
 REGRESSION tasks (number output — now encoded as SME tokens):
-  SORT: 5 82 -3 → <S->E0D3D0D0 <S+>E0D5D0D0 <S+>E1D8D2D0
-  ADD:  3 + 5 → <S+>E0D8D0D0
-  SUB:  10 - 3 → <S+>E0D7D0D0
-  MIN:  5 82 3 → <S+>E0D3D0D0
-  MAX:  5 82 3 → <S+>E1D8D2D0
-  SUM:  10 20 30 → <S+>E1D6D0D0
+  SORT: 5 82 -3 → <S->E0D3END <S+>E0D5END <S+>E1D8D2END
+  ADD:  3 + 5 → <S+>E0D8END
+  SUB:  10 - 3 → <S+>E0D7END
+  MIN:  5 82 3 → <S+>E0D3END
+  MAX:  5 82 3 → <S+>E1D8D2END
+  SUM:  10 20 30 → <S+>E1D6END
   COUNT also kept
 
 Input numbers use <NUM> token with adapter embeddings.
@@ -28,7 +28,7 @@ Output is saved in the dual .bin format expected by fe/train.py.
 
 Usage:
     python generate_data.py --out-dir /path/to/output
-    python generate_data.py --number-range 1000 --n-train 1000000
+    python generate_data.py --number-range 1000000000 --n-train 1000000
 """
 
 import os
@@ -46,7 +46,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fe'
 from fe.prepare import (
     process_text_with_numbers, NUM_TOKEN_ID,
     number_to_sme_tokens, sme_tokens_to_number,
-    SME_SIGN_POS, SME_DIGIT_BASE,
+    SME_ALL_TOKENS, SME_EXP_MIN, SME_EXP_MAX, SME_MAX_DIGITS,
 )
 import tiktoken
 
@@ -58,23 +58,70 @@ EOT_TOKEN = 50256
 # Number sampling
 # =============================================================================
 
-def sample_number(number_range, allow_negative, allow_float):
-    """Sample a single random number with controlled variety."""
-    if random.random() < 0.3:
-        val = random.uniform(0, 10)
-    elif random.random() < 0.5:
-        val = random.uniform(10, min(1000, number_range))
-    else:
-        val = random.uniform(0, number_range)
+def _max_exp_for_range(number_range):
+    """Highest exponent that can fit in the configured absolute range."""
+    nr = max(float(number_range), 10.0 ** SME_EXP_MIN)
+    hi = int(math.floor(math.log10(nr)))
+    return max(SME_EXP_MIN, min(SME_EXP_MAX, hi))
 
-    if allow_float and random.random() < 0.5:
-        decimals = random.randint(1, 4)
-        val = round(val, decimals)
+
+def _canonicalize_float(val, sig_digits=SME_MAX_DIGITS):
+    """Round to a stable number of significant digits for reproducible text."""
+    return float(format(float(val), f".{sig_digits}g"))
+
+
+def sample_number(number_range, allow_negative, allow_float):
+    """Sample one number with broad exponent coverage and mixed precision."""
+    max_exp = _max_exp_for_range(number_range)
+    max_abs = max(float(number_range), 10.0 ** SME_EXP_MIN)
+    return_as_int = False
+
+    if allow_float:
+        mode = random.random()
+
+        if mode < 0.65:
+            # Main mode: sample exponent explicitly so E-9..E9 are all seen.
+            exp = random.randint(SME_EXP_MIN, max_exp)
+            max_mantissa = max_abs / (10.0 ** exp)
+            max_mantissa = max(1.0, min(9.999999999999, max_mantissa))
+            if max_mantissa <= 1.0 + 1e-12:
+                mantissa = 1.0
+            else:
+                mantissa = random.uniform(1.0, max_mantissa)
+            sig_digits = random.randint(1, SME_MAX_DIGITS)
+            mantissa = _canonicalize_float(mantissa, sig_digits=sig_digits)
+            val = mantissa * (10.0 ** exp)
+        elif mode < 0.85:
+            # Uniform background coverage.
+            val = random.uniform(0.0, max_abs)
+            sig_digits = random.randint(1, min(8, SME_MAX_DIGITS))
+            val = _canonicalize_float(val, sig_digits=sig_digits)
+        else:
+            # Integer/round-number bias for short mantissas.
+            val = random.randint(0, max(1, int(max_abs)))
+            return_as_int = True
+            if random.random() < 0.25:
+                val *= 10.0 ** random.randint(0, max(0, min(4, max_exp)))
+                return_as_int = False
+
+        if random.random() < 0.25:
+            val = int(round(val))
+            return_as_int = True
     else:
-        val = int(val)
+        val = int(random.randint(0, max(1, int(max_abs))))
+        return_as_int = True
+
+    val = max(0.0, min(val, max_abs))
+    if return_as_int:
+        val = int(round(val))
+    else:
+        val = _canonicalize_float(val)
 
     if allow_negative and random.random() < 0.3:
         val = -val
+
+    if not allow_float:
+        val = int(round(val))
 
     return val
 
@@ -88,7 +135,7 @@ def fmt(val):
     """Format a number for text representation."""
     if isinstance(val, int):
         return str(val)
-    return f"{val:g}"
+    return f"{float(val):.15g}"
 
 
 # =============================================================================
@@ -210,7 +257,7 @@ def gen_checksort(cfg):
 def gen_checkadd(cfg):
     """Verify if a + b = c is correct → YES/NO"""
     a, b = sample_numbers(2, cfg['range'], cfg['neg'], cfg['flt'])
-    correct = round(a + b, 6)
+    correct = _canonicalize_float(a + b)
     if isinstance(a, int) and isinstance(b, int):
         correct = int(correct)
     # 50% correct, 50% wrong (add noise to result)
@@ -220,7 +267,7 @@ def gen_checkadd(cfg):
     else:
         # Perturb by a meaningful amount
         noise = sample_number(max(abs(correct) * 0.5, 10), True, cfg['flt'])
-        c = round(correct + noise, 4) if cfg['flt'] else int(correct + noise)
+        c = _canonicalize_float(correct + noise) if cfg['flt'] else int(correct + noise)
         label = "NO" if c != correct else "YES"
     # All numbers (a, b, c) are INPUT — output is just YES/NO
     return f"CHECKADD: {fmt(a)} + {fmt(b)} = {fmt(c)} →", label
@@ -254,7 +301,7 @@ def gen_sort(cfg):
 
 def gen_add(cfg):
     a, b = sample_numbers(2, cfg['range'], cfg['neg'], cfg['flt'])
-    result = round(a + b, 6)
+    result = _canonicalize_float(a + b)
     if isinstance(a, int) and isinstance(b, int):
         result = int(result)
     return f"ADD: {fmt(a)} + {fmt(b)} →", result
@@ -262,7 +309,7 @@ def gen_add(cfg):
 
 def gen_sub(cfg):
     a, b = sample_numbers(2, cfg['range'], cfg['neg'], cfg['flt'])
-    result = round(a - b, 6)
+    result = _canonicalize_float(a - b)
     if isinstance(a, int) and isinstance(b, int):
         result = int(result)
     return f"SUB: {fmt(a)} - {fmt(b)} →", result
@@ -285,7 +332,7 @@ def gen_max(cfg):
 def gen_sum(cfg):
     n = random.randint(cfg['min_len'], min(8, cfg['max_len']))
     nums = sample_numbers(n, cfg['range'], cfg['neg'], cfg['flt'])
-    result = round(sum(nums), 6)
+    result = _canonicalize_float(sum(nums))
     if all(isinstance(x, int) for x in nums):
         result = int(result)
     inp = " ".join(fmt(x) for x in nums)
@@ -406,8 +453,7 @@ def save_split(ids, nums, split, out_dir):
     num_arr.flush()
 
     num_count = int(np.sum(np.array(ids, dtype=np.uint32) == NUM_TOKEN_ID))
-    sme_count = int(np.sum(np.isin(np.array(ids, dtype=np.uint32),
-                                    list(range(SME_SIGN_POS, SME_DIGIT_BASE + 10)))))
+    sme_count = int(np.sum(np.isin(np.array(ids, dtype=np.uint32), list(SME_ALL_TOKENS))))
     print(f"  {split}: {arr_len:,} tokens, {num_count:,} <NUM> embeddings, "
           f"{sme_count:,} SME tokens ({sme_count / arr_len * 100:.1f}%)")
 
@@ -423,10 +469,10 @@ def main():
                         help="Block size for packing (must match train.py block_size)")
     parser.add_argument("--min-len", type=int, default=2,
                         help="Min sequence length for list tasks (default: 2)")
-    parser.add_argument("--max-len", type=int, default=15,
-                        help="Max sequence length for list tasks (default: 15)")
-    parser.add_argument("--number-range", type=float, default=100000,
-                        help="Max absolute value of numbers (default: 100000)")
+    parser.add_argument("--max-len", type=int, default=10,
+                        help="Max sequence length for list tasks (default: 10)")
+    parser.add_argument("--number-range", type=float, default=1000000000.0,
+                        help="Max absolute value of numbers (default: 1e9)")
     parser.add_argument("--allow-negative", action="store_true", default=True)
     parser.add_argument("--no-negative", action="store_true")
     parser.add_argument("--allow-float", action="store_true", default=True)
@@ -441,7 +487,7 @@ def main():
         args.allow_float = False
     if args.out_dir is None:
         args.out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                    'fe', 'data', 'numtasks_sme')
+                                    'fe', 'data', 'numtasks_sme_vardig_e9')
 
     random.seed(args.seed)
     np.random.seed(args.seed)
@@ -467,6 +513,8 @@ def main():
     print(f"  Block size:      {args.block_size}")
     print(f"  Sequence length: {args.min_len}-{args.max_len}")
     print(f"  Number range:    [-{args.number_range:g}, {args.number_range:g}]")
+    print(f"  SME exponents:   E{SME_EXP_MIN}..E{SME_EXP_MAX}")
+    print(f"  Max digits:      {SME_MAX_DIGITS} (+ END)")
     print(f"  Allow float:     {args.allow_float}")
     print(f"  Output dir:      {args.out_dir}")
     print(f"  Seed:            {args.seed}")
@@ -550,12 +598,15 @@ def main():
         'vocab_size': 50304,
         'num_token_id': NUM_TOKEN_ID,
         'sme_tokens': True,
-        'dataset': 'numtasks_sme',
+        'dataset': 'numtasks_sme_vardig_e9',
         'tasks': task_names,
         'n_train': args.n_train,
         'n_val': args.n_val,
         'block_size': args.block_size,
         'number_range': args.number_range,
+        'sme_exp_min': SME_EXP_MIN,
+        'sme_exp_max': SME_EXP_MAX,
+        'sme_max_digits': SME_MAX_DIGITS,
     }
     meta_path = os.path.join(args.out_dir, 'meta.pkl')
     with open(meta_path, 'wb') as f:
@@ -572,7 +623,7 @@ def main():
     print(f"  Length:  {len(ids)} tokens")
 
     print(f"\nDone. To train:")
-    print(f"  python fe/train.py dataset=numtasks_sme data_dir={args.out_dir}")
+    print(f"  python fe/train.py dataset=numtasks_sme_vardig_e9 data_dir={args.out_dir}")
 
 
 if __name__ == '__main__':

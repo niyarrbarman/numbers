@@ -33,9 +33,9 @@ from model import GPTConfig, GPT, NUM_TOKEN_ID
 
 # SME token ranges for diagnostics
 from prepare import (
-    SME_SIGN_POS, SME_SIGN_NEG, SME_EXP_BASE, SME_N_EXP,
-    SME_DIGIT_BASE, SME_ALL_TOKENS, SME_TOKENS_PER_NUM,
-    SME_N_DIGITS, sme_tokens_to_number,
+    SME_SIGN_POS, SME_SIGN_NEG, SME_EXP_BASE, SME_EXP_OFFSET, SME_N_EXP,
+    SME_DIGIT_BASE, SME_END, SME_ALL_TOKENS, sme_tokens_to_number,
+    parse_sme_number_tokens,
 )
 
 
@@ -292,58 +292,71 @@ _sme_token_set = torch.tensor(sorted(SME_ALL_TOKENS), dtype=torch.long)
 def compute_sme_accuracy(logits, targets):
     """Compute accuracy of SME token predictions.
 
-    Returns dict with sign, exp, d0, d1, d2, digit (avg), overall accuracies.
-    Digit positions are identified by offset from sign tokens in the target sequence.
+    Returns overall/sign/exp/digit/end plus d0/d1/d2 digit-position accuracies.
     """
-    # Move SME token set to same device
     sme_set = _sme_token_set.to(targets.device)
-
-    # Find SME positions in targets
     sme_mask = torch.isin(targets, sme_set)
     n_sme = sme_mask.sum().item()
     if n_sme == 0:
         return None
 
+    preds = logits.argmax(dim=-1)
     sme_targets = targets[sme_mask]
-    sme_preds = logits[sme_mask].argmax(dim=-1)
-    overall_acc = (sme_preds == sme_targets).float().mean().item()
+    sme_preds = preds[sme_mask]
 
-    # Break down by token type
+    overall_acc = (sme_preds == sme_targets).float().mean().item()
     sign_mask = (sme_targets == SME_SIGN_POS) | (sme_targets == SME_SIGN_NEG)
     exp_mask = (sme_targets >= SME_EXP_BASE) & (sme_targets < SME_EXP_BASE + SME_N_EXP)
     digit_mask = (sme_targets >= SME_DIGIT_BASE) & (sme_targets <= SME_DIGIT_BASE + 9)
+    end_mask = (sme_targets == SME_END)
 
     def acc(mask):
-        if mask.sum() == 0:
+        if int(mask.sum().item()) == 0:
             return 0.0
         return (sme_preds[mask] == sme_targets[mask]).float().mean().item()
 
-    # Per-digit breakdown: find sign positions in the FULL target tensor,
-    # then d0=sign+2, d1=sign+3, d2=sign+4
     B, T = targets.shape
-    flat_targets = targets.view(-1)
-    flat_preds = logits.view(-1, logits.size(-1)).argmax(dim=-1)
-    sign_positions = ((flat_targets == SME_SIGN_POS) | (flat_targets == SME_SIGN_NEG)).nonzero(as_tuple=True)[0]
+    t_cpu = targets.detach().cpu().tolist()
+    p_cpu = preds.detach().cpu().tolist()
+    d_pos = {"d0": [0, 0], "d1": [0, 0], "d2": [0, 0]}  # correct, total
 
-    d_acc = {}
-    for di in range(SME_N_DIGITS):
-        d_positions = sign_positions + 2 + di  # sign=+0, exp=+1, d0=+2, d1=+3, d2=+4
-        # Filter out-of-bounds
-        valid = d_positions < flat_targets.numel()
-        d_positions = d_positions[valid]
-        if len(d_positions) == 0:
-            d_acc[f'd{di}'] = 0.0
-        else:
-            d_acc[f'd{di}'] = (flat_preds[d_positions] == flat_targets[d_positions]).float().mean().item()
+    for b in range(B):
+        row_t = t_cpu[b]
+        row_p = p_cpu[b]
+        pos = 0
+        while pos < T:
+            tok = row_t[pos]
+            if tok not in (SME_SIGN_POS, SME_SIGN_NEG):
+                pos += 1
+                continue
+            parsed, next_pos = parse_sme_number_tokens(row_t, start_idx=pos)
+            if parsed is None:
+                pos += 1
+                continue
+
+            n_digits = len(parsed) - 3  # remove sign, exp, END
+            for di in range(min(3, n_digits)):
+                d_key = f"d{di}"
+                d_pos[d_key][1] += 1
+                d_idx = pos + 2 + di
+                if d_idx < T and row_p[d_idx] == row_t[d_idx]:
+                    d_pos[d_key][0] += 1
+
+            pos = max(next_pos, pos + 1)
+
+    def d_acc(key):
+        correct, total = d_pos[key]
+        return (correct / total) if total else 0.0
 
     return {
         'overall': overall_acc,
         'sign': acc(sign_mask),
         'exp': acc(exp_mask),
         'digit': acc(digit_mask),
-        'd0': d_acc.get('d0', 0.0),
-        'd1': d_acc.get('d1', 0.0),
-        'd2': d_acc.get('d2', 0.0),
+        'end': acc(end_mask),
+        'd0': d_acc('d0'),
+        'd1': d_acc('d1'),
+        'd2': d_acc('d2'),
         'n_sme': n_sme,
     }
 
@@ -353,10 +366,12 @@ def sme_token_label(tok_id):
     if tok_id == SME_SIGN_POS: return 'S+'
     if tok_id == SME_SIGN_NEG: return 'S-'
     if SME_EXP_BASE <= tok_id < SME_EXP_BASE + SME_N_EXP:
-        exp = (tok_id - SME_EXP_BASE) - 5  # SME_EXP_OFFSET = 5
+        exp = (tok_id - SME_EXP_BASE) - SME_EXP_OFFSET
         return f'E{exp}'
     if SME_DIGIT_BASE <= tok_id <= SME_DIGIT_BASE + 9:
         return f'D{tok_id - SME_DIGIT_BASE}'
+    if tok_id == SME_END:
+        return 'END'
     return f'?{tok_id}'
 
 
@@ -395,7 +410,7 @@ def eval_samples(max_samples=5):
         logits, loss = model(X, Y, num_values=NV, num_mask=NM)
     model.train()
 
-    B, T, V = logits.shape
+    B, T, _ = logits.shape
     preds = logits.argmax(dim=-1)  # (B, T)
 
     # Find complete task examples: scan for EOT boundaries in X
@@ -406,12 +421,18 @@ def eval_samples(max_samples=5):
         if n_shown >= max_samples:
             break
 
-        # Find first SME sign token in targets for this sequence
-        for t in range(T - SME_TOKENS_PER_NUM + 1):
+        y_row = Y[b].tolist()
+        p_row = preds[b].tolist()
+
+        # Find first parseable SME number in the target row
+        for t in range(T):
             if n_shown >= max_samples:
                 break
-            target_tok = Y[b, t].item()
+            target_tok = y_row[t]
             if target_tok not in (SME_SIGN_POS, SME_SIGN_NEG):
+                continue
+            first_num, _ = parse_sme_number_tokens(y_row, start_idx=t)
+            if first_num is None:
                 continue
 
             # Found an SME number — get context before it
@@ -426,17 +447,20 @@ def eval_samples(max_samples=5):
             target_nums = []
             pred_nums = []
             pos = t
-            while pos <= T - SME_TOKENS_PER_NUM:
-                tok = Y[b, pos].item()
+            while pos < T:
+                tok = y_row[pos]
                 if tok in (SME_SIGN_POS, SME_SIGN_NEG):
-                    t_sme = [Y[b, pos+i].item() for i in range(SME_TOKENS_PER_NUM)]
-                    p_sme = [preds[b, pos+i].item() for i in range(SME_TOKENS_PER_NUM)]
+                    t_sme, next_pos = parse_sme_number_tokens(y_row, start_idx=pos)
+                    p_sme, _ = parse_sme_number_tokens(p_row, start_idx=pos)
+                    if t_sme is None:
+                        pos += 1
+                        continue
                     t_val = sme_tokens_to_number(t_sme)
-                    p_val = sme_tokens_to_number(p_sme)
+                    p_val = sme_tokens_to_number(p_sme) if p_sme is not None else None
                     if t_val is not None:
                         target_nums.append((t_sme, t_val))
                         pred_nums.append((p_sme, p_val))
-                    pos += SME_TOKENS_PER_NUM
+                    pos = max(next_pos, pos + 1)
                 elif tok == 50256:  # EOT — end of task
                     break
                 else:
@@ -462,7 +486,10 @@ def eval_samples(max_samples=5):
                     p_strs.append(f"{p_val:.4g}")
                     errs.append(abs(t_val - p_val))
                 else:
-                    p_labels = ' '.join(sme_token_label(t) for t in p_sme)
+                    if p_sme is None:
+                        p_labels = "unparseable"
+                    else:
+                        p_labels = ' '.join(sme_token_label(t) for t in p_sme)
                     p_strs.append(f"INVALID({p_labels})")
                     errs.append(float('inf'))
 
@@ -606,7 +633,8 @@ while True:
             print(f"  SME accuracy: overall {sme_acc['overall']:.3f}, "
                   f"sign {sme_acc['sign']:.3f}, "
                   f"exp {sme_acc['exp']:.3f}, "
-                  f"digit {sme_acc['digit']:.3f} "
+                  f"digit {sme_acc['digit']:.3f}, "
+                  f"end {sme_acc['end']:.3f} "
                   f"[d0 {sme_acc['d0']:.3f} d1 {sme_acc['d1']:.3f} d2 {sme_acc['d2']:.3f}] "
                   f"({sme_acc['n_sme']} SME tokens)")
 
@@ -624,6 +652,7 @@ while True:
                     "sme/sign": sme_acc['sign'],
                     "sme/exp": sme_acc['exp'],
                     "sme/digit": sme_acc['digit'],
+                    "sme/end": sme_acc['end'],
                     "sme/d0": sme_acc['d0'],
                     "sme/d1": sme_acc['d1'],
                     "sme/d2": sme_acc['d2'],

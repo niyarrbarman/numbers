@@ -11,6 +11,7 @@ import os
 import argparse
 import pickle
 import random
+import math
 
 import numpy as np
 from tqdm import tqdm
@@ -19,28 +20,80 @@ import tiktoken
 enc = tiktoken.get_encoding("gpt2")
 EOT_TOKEN = enc.eot_token
 
+# Keep base data sampling aligned with FE range policy.
+MAX_SIG_DIGITS = 15
+EXP_MIN = -9
+EXP_MAX = 9
+
 
 # =============================================================================
 # Number sampling
 # =============================================================================
 
-def sample_number(number_range, allow_negative, allow_float):
-    """Sample a single random number with controlled variety."""
-    if random.random() < 0.3:
-        val = random.uniform(0, 10)
-    elif random.random() < 0.5:
-        val = random.uniform(10, min(1000, number_range))
-    else:
-        val = random.uniform(0, number_range)
+def _max_exp_for_range(number_range):
+    """Highest exponent that can fit in the configured absolute range."""
+    nr = max(float(number_range), 10.0 ** EXP_MIN)
+    hi = int(math.floor(math.log10(nr)))
+    return max(EXP_MIN, min(EXP_MAX, hi))
 
-    if allow_float and random.random() < 0.5:
-        decimals = random.randint(1, 4)
-        val = round(val, decimals)
+
+def _canonicalize_float(val, sig_digits=MAX_SIG_DIGITS):
+    """Round to a stable number of significant digits for reproducible text."""
+    return float(format(float(val), f".{sig_digits}g"))
+
+
+def sample_number(number_range, allow_negative, allow_float):
+    """Sample one number with broad exponent coverage and mixed precision."""
+    max_exp = _max_exp_for_range(number_range)
+    max_abs = max(float(number_range), 10.0 ** EXP_MIN)
+    return_as_int = False
+
+    if allow_float:
+        mode = random.random()
+
+        if mode < 0.65:
+            # Main mode: sample exponent explicitly so small/large magnitudes are seen.
+            exp = random.randint(EXP_MIN, max_exp)
+            max_mantissa = max_abs / (10.0 ** exp)
+            max_mantissa = max(1.0, min(9.999999999999, max_mantissa))
+            if max_mantissa <= 1.0 + 1e-12:
+                mantissa = 1.0
+            else:
+                mantissa = random.uniform(1.0, max_mantissa)
+            sig_digits = random.randint(1, MAX_SIG_DIGITS)
+            mantissa = _canonicalize_float(mantissa, sig_digits=sig_digits)
+            val = mantissa * (10.0 ** exp)
+        elif mode < 0.85:
+            # Uniform background coverage.
+            val = random.uniform(0.0, max_abs)
+            sig_digits = random.randint(1, min(8, MAX_SIG_DIGITS))
+            val = _canonicalize_float(val, sig_digits=sig_digits)
+        else:
+            # Integer/round-number bias for short textual outputs.
+            val = random.randint(0, max(1, int(max_abs)))
+            return_as_int = True
+            if random.random() < 0.25:
+                val *= 10.0 ** random.randint(0, max(0, min(4, max_exp)))
+                return_as_int = False
+
+        if random.random() < 0.25:
+            val = int(round(val))
+            return_as_int = True
     else:
-        val = int(val)
+        val = int(random.randint(0, max(1, int(max_abs))))
+        return_as_int = True
+
+    val = max(0.0, min(val, max_abs))
+    if return_as_int:
+        val = int(round(val))
+    else:
+        val = _canonicalize_float(val)
 
     if allow_negative and random.random() < 0.3:
         val = -val
+
+    if not allow_float:
+        val = int(round(val))
 
     return val
 
@@ -54,7 +107,7 @@ def fmt(val):
     """Format a number for text representation."""
     if isinstance(val, int):
         return str(val)
-    return f"{val:g}"
+    return f"{float(val):.15g}"
 
 
 # =============================================================================
@@ -134,7 +187,7 @@ def gen_checksort(cfg):
 
 def gen_checkadd(cfg):
     a, b = sample_numbers(2, cfg['range'], cfg['neg'], cfg['flt'])
-    correct = round(a + b, 6)
+    correct = _canonicalize_float(a + b)
     if isinstance(a, int) and isinstance(b, int):
         correct = int(correct)
     if random.random() < 0.5:
@@ -142,7 +195,7 @@ def gen_checkadd(cfg):
         label = "YES"
     else:
         noise = sample_number(max(abs(correct) * 0.5, 10), True, cfg['flt'])
-        c = round(correct + noise, 4) if cfg['flt'] else int(correct + noise)
+        c = _canonicalize_float(correct + noise) if cfg['flt'] else int(correct + noise)
         label = "NO" if c != correct else "YES"
     return f"CHECKADD: {fmt(a)} + {fmt(b)} = {fmt(c)} →", label
 
@@ -173,7 +226,7 @@ def gen_sort(cfg):
 
 def gen_add(cfg):
     a, b = sample_numbers(2, cfg['range'], cfg['neg'], cfg['flt'])
-    result = round(a + b, 6)
+    result = _canonicalize_float(a + b)
     if isinstance(a, int) and isinstance(b, int):
         result = int(result)
     return f"ADD: {fmt(a)} + {fmt(b)} →", result
@@ -181,7 +234,7 @@ def gen_add(cfg):
 
 def gen_sub(cfg):
     a, b = sample_numbers(2, cfg['range'], cfg['neg'], cfg['flt'])
-    result = round(a - b, 6)
+    result = _canonicalize_float(a - b)
     if isinstance(a, int) and isinstance(b, int):
         result = int(result)
     return f"SUB: {fmt(a)} - {fmt(b)} →", result
@@ -204,7 +257,7 @@ def gen_max(cfg):
 def gen_sum(cfg):
     n = random.randint(cfg['min_len'], min(8, cfg['max_len']))
     nums = sample_numbers(n, cfg['range'], cfg['neg'], cfg['flt'])
-    result = round(sum(nums), 6)
+    result = _canonicalize_float(sum(nums))
     if all(isinstance(x, int) for x in nums):
         result = int(result)
     inp = " ".join(fmt(x) for x in nums)
@@ -305,10 +358,10 @@ def main():
                         help="Block size for packing (must match train.py block_size)")
     parser.add_argument("--min-len", type=int, default=2,
                         help="Min sequence length for list tasks (default: 2)")
-    parser.add_argument("--max-len", type=int, default=15,
-                        help="Max sequence length for list tasks (default: 15)")
-    parser.add_argument("--number-range", type=float, default=100000,
-                        help="Max absolute value of numbers (default: 100000)")
+    parser.add_argument("--max-len", type=int, default=10,
+                        help="Max sequence length for list tasks (default: 10)")
+    parser.add_argument("--number-range", type=float, default=1000000000.0,
+                        help="Max absolute value of numbers (default: 1e9)")
     parser.add_argument("--allow-negative", action="store_true", default=True)
     parser.add_argument("--no-negative", action="store_true")
     parser.add_argument("--allow-float", action="store_true", default=True)
@@ -323,7 +376,7 @@ def main():
         args.allow_float = False
     if args.out_dir is None:
         args.out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                    'base', 'data', 'numtasks_base')
+                                    'base', 'data', 'numtasks_base_vardig_e9')
 
     random.seed(args.seed)
     np.random.seed(args.seed)
@@ -349,6 +402,8 @@ def main():
     print(f"  Block size:      {args.block_size}")
     print(f"  Sequence length: {args.min_len}-{args.max_len}")
     print(f"  Number range:    [-{args.number_range:g}, {args.number_range:g}]")
+    print(f"  Exponent target: E{EXP_MIN}..E{EXP_MAX}")
+    print(f"  Sig digits max:  {MAX_SIG_DIGITS}")
     print(f"  Allow float:     {args.allow_float}")
     print(f"  Output dir:      {args.out_dir}")
     print(f"  Seed:            {args.seed}")
@@ -414,12 +469,15 @@ def main():
 
     meta = {
         'vocab_size': 50304,
-        'dataset': 'numtasks_base',
+        'dataset': 'numtasks_base_vardig_e9',
         'tasks': task_names,
         'n_train': args.n_train,
         'n_val': args.n_val,
         'block_size': args.block_size,
         'number_range': args.number_range,
+        'exp_min_target': EXP_MIN,
+        'exp_max_target': EXP_MAX,
+        'sig_digits_max': MAX_SIG_DIGITS,
         'plain_text_numbers': True,
     }
     meta_path = os.path.join(args.out_dir, 'meta.pkl')

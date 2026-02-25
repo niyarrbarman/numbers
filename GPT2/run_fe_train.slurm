@@ -19,10 +19,10 @@ IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest
 NUM_EMB_CHECKPOINT="/tmpdir/m24047brmn/numbers/checkpoints/np_emb_v8_500k_model.pt"
 
 # Dataset
-DATASET="${DATASET:-numtasks_sme_1k}"
+DATASET="${DATASET:-numtasks_sme_vardig_e9}"
 
 # Data directory: absolute path to the folder containing {train,val}.bin
-DATA_DIR="${DATA_DIR:-/tmpdir/m24047brmn/numbers/data/numtasks_sme_1k}"
+DATA_DIR="${DATA_DIR:-/tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9}"
 
 # Training iterations (lr_decay_iters auto-set to match)
 MAX_ITERS="${MAX_ITERS:-15000}"
@@ -31,7 +31,7 @@ MAX_ITERS="${MAX_ITERS:-15000}"
 INIT_FROM="${INIT_FROM:-scratch}"
 
 # Output directory for checkpoints
-OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/model_checkpoints/sme}"
+OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/model_checkpoints/sme_vardig_e9}"
 
 GPUS_PER_NODE=2
 

@@ -14,6 +14,7 @@ import os
 import re
 import math
 import pickle
+from decimal import Decimal, InvalidOperation
 
 import numpy as np
 
@@ -36,86 +37,186 @@ NUM_TOKEN_ID = 50257  # GPT-2 vocab is 0..50256 (50256=EOT); 50257=<NUM>
 # =============================================================================
 # SME (Sign-Mantissa-Exponent) token constants
 # =============================================================================
-# Each number is encoded as exactly 5 tokens: Sign + Exponent + 3 Mantissa Digits
-# Token IDs sit in the padded vocab range (50258-50303, all within uint16)
+# Variable-length SME grammar:
+#   [SIGN] [EXP] [D0]...[Dk] [END], with 1 <= k <= SME_MAX_DIGITS
+# Token IDs sit in the padded vocab range (50258-50303, all within uint16).
+# Layout:
+#   50258-50259 : sign (S+, S-)
+#   50260-50278 : exponent (E-9..E9)
+#   50279-50288 : digits (D0..D9)
+#   50289       : END
 
 SME_SIGN_POS = 50258     # positive / zero
 SME_SIGN_NEG = 50259     # negative
 
 SME_EXP_BASE = 50260     # exponent tokens start here
-SME_EXP_OFFSET = 5       # E-5 = 50260, E0 = 50265, E5 = 50270
-SME_EXP_MIN = -5
-SME_EXP_MAX = 5
-SME_N_EXP = SME_EXP_MAX - SME_EXP_MIN + 1  # 11
+SME_EXP_OFFSET = 9       # E-9 = 50260, E0 = 50269, E9 = 50278
+SME_EXP_MIN = -9
+SME_EXP_MAX = 9
+SME_N_EXP = SME_EXP_MAX - SME_EXP_MIN + 1  # 19
 
-SME_DIGIT_BASE = 50271   # D0 = 50271, D9 = 50280
+SME_DIGIT_BASE = 50279   # D0 = 50279, D9 = 50288
+SME_END = 50289          # END token for variable-length mantissa
 
-SME_N_DIGITS = 3         # mantissa digits per number
-SME_TOKENS_PER_NUM = 5   # S + E + D + D + D
+SME_MAX_DIGITS = 15
+SME_MIN_DIGITS = 1
+
+# Backward-compatible aliases used in diagnostics code.
+SME_N_DIGITS = SME_MAX_DIGITS
+SME_TOKENS_PER_NUM = 2 + SME_MAX_DIGITS + 1  # S + E + up to 15 digits + END
 
 # All SME token IDs (for quick membership check)
-SME_ALL_TOKENS = set(range(SME_SIGN_POS, SME_DIGIT_BASE + 10))  # 50258-50280
+SME_ALL_TOKENS = set(range(SME_SIGN_POS, SME_END + 1))  # 50258-50289
 
 
-def number_to_sme_tokens(value, n_digits=SME_N_DIGITS):
+def is_sme_sign_token(tok):
+    return tok == SME_SIGN_POS or tok == SME_SIGN_NEG
+
+
+def is_sme_exp_token(tok):
+    return SME_EXP_BASE <= tok < SME_EXP_BASE + SME_N_EXP
+
+
+def is_sme_digit_token(tok):
+    return SME_DIGIT_BASE <= tok <= SME_DIGIT_BASE + 9
+
+
+def is_sme_token(tok):
+    return SME_SIGN_POS <= tok <= SME_END
+
+
+def _zero_sme_tokens(sign_token=SME_SIGN_POS):
+    return [sign_token, SME_EXP_BASE + SME_EXP_OFFSET, SME_DIGIT_BASE + 0, SME_END]
+
+
+def number_to_sme_tokens(value, max_digits=SME_MAX_DIGITS):
     """Convert a scalar number to a list of SME token IDs.
 
-    Returns exactly (2 + n_digits) token IDs: [sign, exponent, d0, d1, ...].
-    Default n_digits=3 gives 5 tokens per number.
+    Returns variable-length tokens:
+      [sign, exponent, d0, d1, ..., dK, END]
+    with 1 <= K <= max_digits.
 
     Examples:
-        42   -> [S+, E1, D4, D2, D0]
-       -17   -> [S-, E1, D1, D7, D0]
-      3.14   -> [S+, E0, D3, D1, D4]
-       0.5   -> [S+, E-1, D5, D0, D0]
-         0   -> [S+, E0, D0, D0, D0]
+        42   -> [S+, E1, D4, D2, END]
+       -17   -> [S-, E1, D1, D7, END]
+      3.14   -> [S+, E0, D3, D1, D4, END]
+       0.5   -> [S+, E-1, D5, END]
+         0   -> [S+, E0, D0, END]
     """
-    # Sign
-    sign_token = SME_SIGN_NEG if value < 0 else SME_SIGN_POS
+    if max_digits < 1:
+        raise ValueError("max_digits must be >= 1")
+    max_digits = min(int(max_digits), SME_MAX_DIGITS)
 
-    # Handle zero
-    abs_val = abs(float(value))
+    # Parse and sanitize value.
+    try:
+        val = float(value)
+    except (TypeError, ValueError):
+        val = 0.0
+    if not math.isfinite(val):
+        val = 0.0
+
+    sign_token = SME_SIGN_NEG if val < 0 else SME_SIGN_POS
+    abs_val = abs(val)
+
     if abs_val == 0 or abs_val < 10 ** (SME_EXP_MIN):
-        exp_token = SME_EXP_BASE + (0 + SME_EXP_OFFSET)  # E0
-        digit_tokens = [SME_DIGIT_BASE + 0] * n_digits    # D0 D0 D0
-        return [sign_token, exp_token] + digit_tokens
+        return _zero_sme_tokens(sign_token=sign_token)
 
-    # Exponent: floor(log10(abs_val))
-    exp = int(math.floor(math.log10(abs_val)))
-    exp = max(SME_EXP_MIN, min(SME_EXP_MAX, exp))
+    # Stable float -> decimal conversion with capped significant digits.
+    try:
+        dec = Decimal(format(abs_val, f".{max_digits}g")).normalize()
+    except (InvalidOperation, ValueError):
+        return _zero_sme_tokens(sign_token=sign_token)
+
+    if dec.is_zero():
+        return _zero_sme_tokens(sign_token=sign_token)
+
+    tup = dec.as_tuple()
+    digits = list(tup.digits)
+    if not digits:
+        return _zero_sme_tokens(sign_token=sign_token)
+
+    exp = int(tup.exponent + len(digits) - 1)
+
+    # Saturate rare out-of-range values.
+    if exp > SME_EXP_MAX:
+        exp_token = SME_EXP_BASE + (SME_EXP_MAX + SME_EXP_OFFSET)
+        max_digit_tokens = [SME_DIGIT_BASE + 9] * max_digits
+        return [sign_token, exp_token] + max_digit_tokens + [SME_END]
+    if exp < SME_EXP_MIN:
+        return _zero_sme_tokens(sign_token=sign_token)
+
     exp_token = SME_EXP_BASE + (exp + SME_EXP_OFFSET)
+    digit_tokens = [SME_DIGIT_BASE + int(d) for d in digits[:max_digits]]
+    return [sign_token, exp_token] + digit_tokens + [SME_END]
 
-    # Mantissa: normalize to [1, 10)
-    mantissa = abs_val / (10.0 ** exp)
-    # Clamp to valid range (handles floating point edge cases)
-    mantissa = max(1.0, min(mantissa, 9.999))
 
-    # Extract digits
-    digit_tokens = []
-    for _ in range(n_digits):
-        d = int(mantissa)
-        d = min(d, 9)  # safety clamp
-        digit_tokens.append(SME_DIGIT_BASE + d)
-        mantissa = (mantissa - d) * 10.0
+def parse_sme_number_tokens(tokens, start_idx=0, max_digits=SME_MAX_DIGITS):
+    """Parse one SME number from a token stream.
 
-    return [sign_token, exp_token] + digit_tokens
+    Args:
+        tokens: sequence of token ids
+        start_idx: index where a sign token is expected
+        max_digits: maximum digits to consume before implicit END
+
+    Returns:
+        (parsed_tokens, next_idx), where parsed_tokens includes END.
+        Returns (None, start_idx + 1) if parsing fails.
+    """
+    if max_digits < 1:
+        raise ValueError("max_digits must be >= 1")
+    max_digits = min(int(max_digits), SME_MAX_DIGITS)
+
+    n = len(tokens)
+    if start_idx + 2 > n:
+        return None, start_idx + 1
+
+    sign_tok = int(tokens[start_idx])
+    exp_tok = int(tokens[start_idx + 1])
+    if not is_sme_sign_token(sign_tok) or not is_sme_exp_token(exp_tok):
+        return None, start_idx + 1
+
+    out = [sign_tok, exp_tok]
+    idx = start_idx + 2
+    n_digits = 0
+
+    while idx < n and n_digits < max_digits:
+        tok = int(tokens[idx])
+        if is_sme_digit_token(tok):
+            out.append(tok)
+            n_digits += 1
+            idx += 1
+            continue
+        if tok == SME_END:
+            if n_digits == 0:
+                return None, start_idx + 1
+            out.append(SME_END)
+            return out, idx + 1
+        break
+
+    # Auto-append END at cap if the model did not emit it.
+    if n_digits == max_digits:
+        out.append(SME_END)
+        return out, idx
+
+    return None, start_idx + 1
 
 
 def sme_tokens_to_number(tokens):
     """Convert a list of SME token IDs back to a scalar number.
 
     Args:
-        tokens: list of 5 ints [sign, exponent, d0, d1, d2]
+        tokens: list of SME tokens for one number or a stream starting with one
 
     Returns:
         float value, or None if tokens are invalid
     """
-    if len(tokens) < SME_TOKENS_PER_NUM:
+    parsed, _ = parse_sme_number_tokens(tokens, start_idx=0, max_digits=SME_MAX_DIGITS)
+    if parsed is None:
         return None
 
-    sign_tok = tokens[0]
-    exp_tok = tokens[1]
-    d_toks = tokens[2:2 + SME_N_DIGITS]
+    sign_tok = parsed[0]
+    exp_tok = parsed[1]
+    d_toks = parsed[2:-1]  # drop END
 
     # Parse sign
     if sign_tok == SME_SIGN_POS:
@@ -133,7 +234,7 @@ def sme_tokens_to_number(tokens):
     # Parse mantissa digits
     mantissa = 0.0
     for i, dt in enumerate(d_toks):
-        if not (SME_DIGIT_BASE <= dt <= SME_DIGIT_BASE + 9):
+        if not is_sme_digit_token(dt):
             return None
         digit = dt - SME_DIGIT_BASE
         mantissa += digit * (10.0 ** (-i))

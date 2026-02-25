@@ -33,7 +33,7 @@ wandb_log = False # disabled by default
 wandb_project = 'owt'
 wandb_run_name = 'gpt2-base'
 # data
-dataset = 'numtasks_base_1k'
+dataset = 'numtasks_base_vardig_e9'
 data_dir = '' # override to set absolute path; if empty, uses data/{dataset}
 gradient_accumulation_steps = 5 * 8 # used to simulate larger batch sizes
 batch_size = 12 # if gradient_accumulation_steps > 1, this is the micro-batch size

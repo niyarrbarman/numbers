@@ -16,10 +16,10 @@ TRAIN_DIR="/work/m24047/m24047brmn/numbers/GPT2/base"
 IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest.sif"
 
 # Dataset
-DATASET="${DATASET:-numtasks_base_1k}"
+DATASET="${DATASET:-numtasks_base_vardig_e9}"
 
 # Data directory: absolute path to folder containing {train,val}.bin
-DATA_DIR="${DATA_DIR:-/tmpdir/m24047brmn/numbers/data/numtasks_base_1k}"
+DATA_DIR="${DATA_DIR:-/tmpdir/m24047brmn/numbers/data/numtasks_base_vardig_e9}"
 
 # Training iterations (lr_decay_iters auto-set to match)
 MAX_ITERS="${MAX_ITERS:-15000}"
@@ -28,7 +28,7 @@ MAX_ITERS="${MAX_ITERS:-15000}"
 INIT_FROM="${INIT_FROM:-scratch}"
 
 # Output directory for checkpoints
-OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/model_checkpoints/base_numtasks}"
+OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/model_checkpoints/base_numtasks_vardig_e9}"
 
 GPUS_PER_NODE=2
 

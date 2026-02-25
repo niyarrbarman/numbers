@@ -20,9 +20,9 @@ IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest
 
 N_TRAIN="${N_TRAIN:-1000000}"
 N_VAL="${N_VAL:-5000}"
-MAX_LEN="${MAX_LEN:-15}"
-NUMBER_RANGE="${NUMBER_RANGE:-1000}"
-OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/data/numtasks_base_1k}"
+MAX_LEN="${MAX_LEN:-10}"
+NUMBER_RANGE="${NUMBER_RANGE:-1000000000}"
+OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/data/numtasks_base_vardig_e9}"
 
 mkdir -p "${OUT_DIR}"
 
@@ -31,6 +31,7 @@ module load gnu/11.2.0
 echo "=========================================="
 echo "Generating BASE numtasks -> ${OUT_DIR}"
 echo "  NUMBER_RANGE=${NUMBER_RANGE}"
+echo "  MAX_LEN=${MAX_LEN}"
 echo "=========================================="
 
 apptainer exec \
