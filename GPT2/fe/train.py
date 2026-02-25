@@ -72,8 +72,9 @@ bias = False
 num_emb_checkpoint = ''  # path to NumberEncoder .pt checkpoint
 num_emb_dim = 128
 # adamw optimizer
-learning_rate = 6e-4
-max_iters = 15000
+learning_rate = 4e-4
+adapter_lr_scale = 0.5
+max_iters = 40000
 weight_decay = 1e-1
 beta1 = 0.9
 beta2 = 0.95
@@ -81,8 +82,8 @@ grad_clip = 1.0
 # learning rate decay settings
 decay_lr = True
 warmup_iters = 2000
-lr_decay_iters = 15000  # should match max_iters for full cosine schedule
-min_lr = 6e-5
+lr_decay_iters = 40000  # should match max_iters for full cosine schedule
+min_lr = 4e-5
 # DDP settings
 backend = 'nccl'
 # system
@@ -239,9 +240,19 @@ model.to(device)
 scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
 
 # optimizer
-optimizer = model.configure_optimizers(weight_decay, learning_rate, (beta1, beta2), device_type)
+optimizer = model.configure_optimizers(
+    weight_decay,
+    learning_rate,
+    (beta1, beta2),
+    device_type,
+    adapter_lr_scale=adapter_lr_scale,
+)
 if init_from == 'resume':
-    optimizer.load_state_dict(checkpoint['optimizer'])
+    try:
+        optimizer.load_state_dict(checkpoint['optimizer'])
+    except ValueError as e:
+        print(f"WARNING: could not load optimizer state from checkpoint: {e}")
+        print("WARNING: continuing with freshly initialized optimizer state.")
 checkpoint = None  # free up memory
 
 # compile the model
@@ -521,7 +532,9 @@ while True:
     # determine and set the learning rate for this iteration
     lr = get_lr(iter_num) if decay_lr else learning_rate
     for param_group in optimizer.param_groups:
-        param_group['lr'] = lr
+        lr_scale = float(param_group.get('lr_scale', 1.0))
+        param_group['lr'] = lr * lr_scale
+    adapter_lr = lr * adapter_lr_scale
 
     # evaluate the loss on train/val sets and write checkpoints
     if iter_num % eval_interval == 0 and master_process:
@@ -625,7 +638,7 @@ while True:
               f"transformer {grad_norm_transformer:.4f}, "
               f"adapter {grad_norm_adapter:.4f}")
         print(f"  <NUM> input tokens: {num_count}/{total_tokens} ({num_count / total_tokens * 100:.1f}%)")
-        print(f"  lr: {lr:.2e}")
+        print(f"  lr: base {lr:.2e}, adapter {adapter_lr:.2e}")
 
         # SME token accuracy
         sme_acc = compute_sme_accuracy(_diag_logits, _diag_targets)
@@ -649,6 +662,8 @@ while True:
                 "grad/transformer": grad_norm_transformer,
                 "grad/adapter": grad_norm_adapter,
                 "lr": lr,
+                "lr/base": lr,
+                "lr/adapter": adapter_lr,
             }
             if sme_acc is not None:
                 log_dict.update({

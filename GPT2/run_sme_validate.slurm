@@ -16,16 +16,16 @@ IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest
 SCRIPT_DIR="/work/m24047/m24047brmn/numbers/GPT2/fe"
 
 # Default checkpoint path in the SME checkpoint folder shared in your message.
-CKPT_PATH="${CKPT_PATH:-/tmpdir/m24047brmn/numbers/model_checkpoints/sme_vardig_e9/ckpt_best.pt}"
+CKPT_PATH="${CKPT_PATH:-/tmpdir/m24047brmn/numbers/model_checkpoints/sme_vardig_e9_numw2_curr_v1/ckpt_best.pt}"
 
 # Validation dataset path for variable-digit SME tasks.
-DATA_DIR="${DATA_DIR:-/tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9}"
+DATA_DIR="${DATA_DIR:-/tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9_numw2_curr_v1}"
 
 # Validator options
 BATCH_BLOCKS="${BATCH_BLOCKS:-64}"
 TOP_K_ERRORS="${TOP_K_ERRORS:-25}"
 MAX_BLOCKS="${MAX_BLOCKS:-0}"  # 0 => full val set
-OUTPUT_JSON="${OUTPUT_JSON:-/tmpdir/m24047brmn/numbers/model_checkpoints/sme_vardig_e9/val_report_${SLURM_JOB_ID}.json}"
+OUTPUT_JSON="${OUTPUT_JSON:-/tmpdir/m24047brmn/numbers/model_checkpoints/sme_vardig_e9_numw2_curr_v1/val_report_${SLURM_JOB_ID}.json}"
 
 module load gnu/11.2.0
 

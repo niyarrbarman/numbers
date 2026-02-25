@@ -22,7 +22,8 @@ DATASET="${DATASET:-numtasks_base_vardig_e9}"
 DATA_DIR="${DATA_DIR:-/tmpdir/m24047brmn/numbers/data/numtasks_base_vardig_e9}"
 
 # Training iterations (lr_decay_iters auto-set to match)
-MAX_ITERS="${MAX_ITERS:-15000}"
+MAX_ITERS="${MAX_ITERS:-40000}"
+LEARNING_RATE="${LEARNING_RATE:-4e-4}"
 
 # Init mode
 INIT_FROM="${INIT_FROM:-scratch}"
@@ -46,6 +47,7 @@ echo "  Total GPUs:     $((SLURM_NNODES * GPUS_PER_NODE))"
 echo "  Dataset:        ${DATASET}"
 echo "  Data dir:       ${DATA_DIR}"
 echo "  Max iters:      ${MAX_ITERS}"
+echo "  Learning rate:  ${LEARNING_RATE}"
 echo "  Init from:      ${INIT_FROM}"
 echo "  Out dir:        ${OUT_DIR}"
 echo "  Master:         ${MASTER_ADDR}:${MASTER_PORT}"
@@ -70,6 +72,7 @@ srun apptainer exec \
       dataset="${DATASET}" \
       data_dir="${DATA_DIR}" \
       out_dir="${OUT_DIR}" \
+      learning_rate="${LEARNING_RATE}" \
       max_iters="${MAX_ITERS}" \
       lr_decay_iters="${MAX_ITERS}" \
       init_from="${INIT_FROM}"

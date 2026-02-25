@@ -22,6 +22,9 @@ N_TRAIN="${N_TRAIN:-5000000}"
 N_VAL="${N_VAL:-50000}"
 MAX_LEN="${MAX_LEN:-10}"
 NUMBER_RANGE="${NUMBER_RANGE:-1000000000}"
+REASONING_WEIGHT="${REASONING_WEIGHT:-1}"
+NUMERIC_WEIGHT="${NUMERIC_WEIGHT:-2}"
+DIGIT_CURRICULUM="${DIGIT_CURRICULUM:-1}"  # 1=on, 0=off
 OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/data/numtasks_base_vardig_e9}"
 
 mkdir -p "${OUT_DIR}"
@@ -32,6 +35,9 @@ echo "=========================================="
 echo "Generating BASE numtasks -> ${OUT_DIR}"
 echo "  NUMBER_RANGE=${NUMBER_RANGE}"
 echo "  MAX_LEN=${MAX_LEN}"
+echo "  REASONING_WEIGHT=${REASONING_WEIGHT}"
+echo "  NUMERIC_WEIGHT=${NUMERIC_WEIGHT}"
+echo "  DIGIT_CURRICULUM=${DIGIT_CURRICULUM}"
 echo "=========================================="
 
 apptainer exec \
@@ -45,18 +51,28 @@ apptainer exec \
     N_VAL="${N_VAL}" \
     MAX_LEN="${MAX_LEN}" \
     NUMBER_RANGE="${NUMBER_RANGE}" \
+    REASONING_WEIGHT="${REASONING_WEIGHT}" \
+    NUMERIC_WEIGHT="${NUMERIC_WEIGHT}" \
+    DIGIT_CURRICULUM="${DIGIT_CURRICULUM}" \
     OUT_DIR="${OUT_DIR}" \
   bash -c '
     set -euo pipefail
     cd "${GPT2_DIR}"
     python3 -c "import tiktoken; print(\"tiktoken OK\")"
+    DIGIT_CURRICULUM_FLAG="--digit-curriculum"
+    if [[ "${DIGIT_CURRICULUM}" == "0" ]]; then
+      DIGIT_CURRICULUM_FLAG="--no-digit-curriculum"
+    fi
     python3 generate_data_base.py \
       --n-train "${N_TRAIN}" \
       --n-val "${N_VAL}" \
       --max-len "${MAX_LEN}" \
       --number-range "${NUMBER_RANGE}" \
+      --reasoning-weight "${REASONING_WEIGHT}" \
+      --numeric-weight "${NUMERIC_WEIGHT}" \
       --block-size 256 \
       --allow-negative \
       --allow-float \
+      ${DIGIT_CURRICULUM_FLAG} \
       --out-dir "${OUT_DIR}"
   '

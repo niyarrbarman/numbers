@@ -70,7 +70,68 @@ def _canonicalize_float(val, sig_digits=SME_MAX_DIGITS):
     return float(format(float(val), f".{sig_digits}g"))
 
 
-def sample_number(number_range, allow_negative, allow_float):
+def _sample_digits_from_bands(bands, max_digits=SME_MAX_DIGITS):
+    """Sample a digit count from weighted [lo, hi] bands."""
+    valid = []
+    total_w = 0.0
+    for lo, hi, w in bands:
+        lo = max(1, int(lo))
+        hi = min(int(hi), max_digits)
+        if hi < lo or w <= 0:
+            continue
+        w = float(w)
+        valid.append((lo, hi, w))
+        total_w += w
+    if not valid:
+        return random.randint(1, max_digits)
+
+    r = random.random() * total_w
+    c = 0.0
+    for lo, hi, w in valid:
+        c += w
+        if r <= c:
+            return random.randint(lo, hi)
+    lo, hi, _ = valid[-1]
+    return random.randint(lo, hi)
+
+
+def build_sig_digits_sampler(progress, use_curriculum=True, max_digits=SME_MAX_DIGITS):
+    """Create a per-example significant-digit sampler.
+
+    Curriculum phases:
+      1) mostly short mantissas (1-4 digits)
+      2) introduce medium (5-8)
+      3) full 1-max distribution
+    """
+    if max_digits < 1:
+        raise ValueError("max_digits must be >= 1")
+
+    if not use_curriculum:
+        return lambda: random.randint(1, max_digits)
+
+    progress = min(1.0, max(0.0, float(progress)))
+    short_hi = min(4, max_digits)
+    med_lo = min(5, max_digits)
+    med_hi = min(8, max_digits)
+    long_lo = min(9, max_digits)
+
+    if progress < (1.0 / 3.0):
+        # Phase 1: mostly short.
+        bands = [(1, short_hi, 0.9), (med_lo, med_hi, 0.1)]
+        return lambda: _sample_digits_from_bands(bands, max_digits=max_digits)
+    if progress < (2.0 / 3.0):
+        # Phase 2: medium emphasized, with some short and some long.
+        bands = [
+            (1, short_hi, 0.35),
+            (med_lo, med_hi, 0.50),
+            (long_lo, max_digits, 0.15),
+        ]
+        return lambda: _sample_digits_from_bands(bands, max_digits=max_digits)
+    # Phase 3: full range.
+    return lambda: random.randint(1, max_digits)
+
+
+def sample_number(number_range, allow_negative, allow_float, sig_digits_sampler=None):
     """Sample one number with broad exponent coverage and mixed precision."""
     max_exp = _max_exp_for_range(number_range)
     max_abs = max(float(number_range), 10.0 ** SME_EXP_MIN)
@@ -88,13 +149,21 @@ def sample_number(number_range, allow_negative, allow_float):
                 mantissa = 1.0
             else:
                 mantissa = random.uniform(1.0, max_mantissa)
-            sig_digits = random.randint(1, SME_MAX_DIGITS)
+            sig_digits = (
+                int(sig_digits_sampler()) if sig_digits_sampler is not None
+                else random.randint(1, SME_MAX_DIGITS)
+            )
+            sig_digits = max(1, min(sig_digits, SME_MAX_DIGITS))
             mantissa = _canonicalize_float(mantissa, sig_digits=sig_digits)
             val = mantissa * (10.0 ** exp)
         elif mode < 0.85:
             # Uniform background coverage.
             val = random.uniform(0.0, max_abs)
-            sig_digits = random.randint(1, min(8, SME_MAX_DIGITS))
+            sig_digits = (
+                int(sig_digits_sampler()) if sig_digits_sampler is not None
+                else random.randint(1, SME_MAX_DIGITS)
+            )
+            sig_digits = max(1, min(sig_digits, SME_MAX_DIGITS))
             val = _canonicalize_float(val, sig_digits=sig_digits)
         else:
             # Integer/round-number bias for short mantissas.
@@ -126,9 +195,17 @@ def sample_number(number_range, allow_negative, allow_float):
     return val
 
 
-def sample_numbers(n, number_range, allow_negative, allow_float):
+def sample_numbers(n, number_range, allow_negative, allow_float, sig_digits_sampler=None):
     """Sample a list of n random numbers."""
-    return [sample_number(number_range, allow_negative, allow_float) for _ in range(n)]
+    return [
+        sample_number(
+            number_range,
+            allow_negative,
+            allow_float,
+            sig_digits_sampler=sig_digits_sampler,
+        )
+        for _ in range(n)
+    ]
 
 
 def fmt(val):
@@ -196,7 +273,7 @@ def tokenize_task(input_text, output):
 
 def gen_cmp(cfg):
     """Compare two numbers → GREATER/LESS/EQUAL"""
-    a, b = sample_numbers(2, cfg['range'], cfg['neg'], cfg['flt'])
+    a, b = sample_numbers(2, cfg['range'], cfg['neg'], cfg['flt'], cfg.get('sig_digits_sampler'))
     if a > b:
         label = "GREATER"
     elif a < b:
@@ -208,14 +285,14 @@ def gen_cmp(cfg):
 
 def gen_gt(cfg):
     """Is first > second? → YES/NO"""
-    a, b = sample_numbers(2, cfg['range'], cfg['neg'], cfg['flt'])
+    a, b = sample_numbers(2, cfg['range'], cfg['neg'], cfg['flt'], cfg.get('sig_digits_sampler'))
     label = "YES" if a > b else "NO"
     return f"GT: {fmt(a)} {fmt(b)} →", label
 
 
 def gen_is_pos(cfg):
     """Is number positive? → YES/NO"""
-    a = sample_number(cfg['range'], cfg['neg'], cfg['flt'])
+    a = sample_number(cfg['range'], cfg['neg'], cfg['flt'], cfg.get('sig_digits_sampler'))
     label = "YES" if a > 0 else "NO"
     return f"IS_POS: {fmt(a)} →", label
 
@@ -223,7 +300,7 @@ def gen_is_pos(cfg):
 def gen_is_sorted(cfg):
     """Is sequence sorted ascending? → YES/NO"""
     n = random.randint(cfg['min_len'], min(10, cfg['max_len']))
-    nums = sample_numbers(n, cfg['range'], cfg['neg'], cfg['flt'])
+    nums = sample_numbers(n, cfg['range'], cfg['neg'], cfg['flt'], cfg.get('sig_digits_sampler'))
     # 50% of the time, actually sort it so we get balanced YES/NO
     if random.random() < 0.5:
         nums = sorted(nums)
@@ -236,7 +313,7 @@ def gen_is_sorted(cfg):
 def gen_checksort(cfg):
     """Verify if a proposed sort is correct → YES/NO"""
     n = random.randint(cfg['min_len'], min(8, cfg['max_len']))
-    nums = sample_numbers(n, cfg['range'], cfg['neg'], cfg['flt'])
+    nums = sample_numbers(n, cfg['range'], cfg['neg'], cfg['flt'], cfg.get('sig_digits_sampler'))
     inp = " ".join(fmt(x) for x in nums)
     correct_sorted = sorted(nums)
     # 50% correct, 50% wrong (swap two random elements)
@@ -256,7 +333,7 @@ def gen_checksort(cfg):
 
 def gen_checkadd(cfg):
     """Verify if a + b = c is correct → YES/NO"""
-    a, b = sample_numbers(2, cfg['range'], cfg['neg'], cfg['flt'])
+    a, b = sample_numbers(2, cfg['range'], cfg['neg'], cfg['flt'], cfg.get('sig_digits_sampler'))
     correct = _canonicalize_float(a + b)
     if isinstance(a, int) and isinstance(b, int):
         correct = int(correct)
@@ -266,7 +343,12 @@ def gen_checkadd(cfg):
         label = "YES"
     else:
         # Perturb by a meaningful amount
-        noise = sample_number(max(abs(correct) * 0.5, 10), True, cfg['flt'])
+        noise = sample_number(
+            max(abs(correct) * 0.5, 10),
+            True,
+            cfg['flt'],
+            cfg.get('sig_digits_sampler'),
+        )
         c = _canonicalize_float(correct + noise) if cfg['flt'] else int(correct + noise)
         label = "NO" if c != correct else "YES"
     # All numbers (a, b, c) are INPUT — output is just YES/NO
@@ -275,7 +357,7 @@ def gen_checkadd(cfg):
 
 def gen_sum_cmp(cfg):
     """Which pair sums to more? → FIRST/SECOND/EQUAL"""
-    a, b, c, d = sample_numbers(4, cfg['range'], cfg['neg'], cfg['flt'])
+    a, b, c, d = sample_numbers(4, cfg['range'], cfg['neg'], cfg['flt'], cfg.get('sig_digits_sampler'))
     sum1 = a + b
     sum2 = c + d
     if sum1 > sum2:
@@ -294,13 +376,13 @@ def gen_sum_cmp(cfg):
 
 def gen_sort(cfg):
     n = random.randint(cfg['min_len'], cfg['max_len'])
-    nums = sample_numbers(n, cfg['range'], cfg['neg'], cfg['flt'])
+    nums = sample_numbers(n, cfg['range'], cfg['neg'], cfg['flt'], cfg.get('sig_digits_sampler'))
     inp = " ".join(fmt(x) for x in nums)
     return f"SORT: {inp} →", sorted(nums)
 
 
 def gen_add(cfg):
-    a, b = sample_numbers(2, cfg['range'], cfg['neg'], cfg['flt'])
+    a, b = sample_numbers(2, cfg['range'], cfg['neg'], cfg['flt'], cfg.get('sig_digits_sampler'))
     result = _canonicalize_float(a + b)
     if isinstance(a, int) and isinstance(b, int):
         result = int(result)
@@ -308,7 +390,7 @@ def gen_add(cfg):
 
 
 def gen_sub(cfg):
-    a, b = sample_numbers(2, cfg['range'], cfg['neg'], cfg['flt'])
+    a, b = sample_numbers(2, cfg['range'], cfg['neg'], cfg['flt'], cfg.get('sig_digits_sampler'))
     result = _canonicalize_float(a - b)
     if isinstance(a, int) and isinstance(b, int):
         result = int(result)
@@ -317,21 +399,21 @@ def gen_sub(cfg):
 
 def gen_min(cfg):
     n = random.randint(cfg['min_len'], cfg['max_len'])
-    nums = sample_numbers(n, cfg['range'], cfg['neg'], cfg['flt'])
+    nums = sample_numbers(n, cfg['range'], cfg['neg'], cfg['flt'], cfg.get('sig_digits_sampler'))
     inp = " ".join(fmt(x) for x in nums)
     return f"MIN: {inp} →", min(nums)
 
 
 def gen_max(cfg):
     n = random.randint(cfg['min_len'], cfg['max_len'])
-    nums = sample_numbers(n, cfg['range'], cfg['neg'], cfg['flt'])
+    nums = sample_numbers(n, cfg['range'], cfg['neg'], cfg['flt'], cfg.get('sig_digits_sampler'))
     inp = " ".join(fmt(x) for x in nums)
     return f"MAX: {inp} →", max(nums)
 
 
 def gen_sum(cfg):
     n = random.randint(cfg['min_len'], min(8, cfg['max_len']))
-    nums = sample_numbers(n, cfg['range'], cfg['neg'], cfg['flt'])
+    nums = sample_numbers(n, cfg['range'], cfg['neg'], cfg['flt'], cfg.get('sig_digits_sampler'))
     result = _canonicalize_float(sum(nums))
     if all(isinstance(x, int) for x in nums):
         result = int(result)
@@ -341,7 +423,7 @@ def gen_sum(cfg):
 
 def gen_count(cfg):
     n = random.randint(cfg['min_len'], cfg['max_len'])
-    nums = sample_numbers(n, cfg['range'], cfg['neg'], cfg['flt'])
+    nums = sample_numbers(n, cfg['range'], cfg['neg'], cfg['flt'], cfg.get('sig_digits_sampler'))
     inp = " ".join(fmt(x) for x in nums)
     return f"COUNT: {inp} →", n
 
@@ -350,29 +432,34 @@ def gen_count(cfg):
 # Task registry with weights
 # =============================================================================
 
-# (generator, weight) — reasoning tasks get 2x weight
-TASK_GENERATORS = [
-    # Reasoning tasks (text output depends on values) — weight 2
-    (gen_cmp, 2),
-    (gen_gt, 2),
-    (gen_is_pos, 2),
-    (gen_is_sorted, 2),
-    (gen_checksort, 2),
-    (gen_checkadd, 2),
-    (gen_sum_cmp, 2),
-    # Regression tasks (SME number output) — weight 1
-    (gen_sort, 1),
-    (gen_add, 1),
-    (gen_sub, 1),
-    (gen_min, 1),
-    (gen_max, 1),
-    (gen_sum, 1),
-    (gen_count, 1),
+REASONING_TASK_GENERATORS = [
+    gen_cmp,
+    gen_gt,
+    gen_is_pos,
+    gen_is_sorted,
+    gen_checksort,
+    gen_checkadd,
+    gen_sum_cmp,
 ]
 
-# Build weighted list for random.choices
-_GENERATORS = [g for g, _ in TASK_GENERATORS]
-_WEIGHTS = [w for _, w in TASK_GENERATORS]
+NUMERIC_TASK_GENERATORS = [
+    gen_sort,
+    gen_add,
+    gen_sub,
+    gen_min,
+    gen_max,
+    gen_sum,
+    gen_count,
+]
+
+
+def build_task_generators(reasoning_weight, numeric_weight):
+    out = []
+    for g in REASONING_TASK_GENERATORS:
+        out.append((g, int(reasoning_weight)))
+    for g in NUMERIC_TASK_GENERATORS:
+        out.append((g, int(numeric_weight)))
+    return out
 
 
 # =============================================================================
@@ -477,6 +564,14 @@ def main():
     parser.add_argument("--no-negative", action="store_true")
     parser.add_argument("--allow-float", action="store_true", default=True)
     parser.add_argument("--integers-only", action="store_true")
+    parser.add_argument("--reasoning-weight", type=int, default=1,
+                        help="Sampling weight for reasoning tasks (default: 1)")
+    parser.add_argument("--numeric-weight", type=int, default=2,
+                        help="Sampling weight for numeric-output tasks (default: 2)")
+    parser.add_argument("--digit-curriculum", action="store_true", default=True,
+                        help="Enable mantissa digit curriculum (default: on)")
+    parser.add_argument("--no-digit-curriculum", dest="digit_curriculum", action="store_false",
+                        help="Disable mantissa digit curriculum")
     parser.add_argument("--out-dir", type=str, default=None)
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
@@ -485,6 +580,8 @@ def main():
         args.allow_negative = False
     if args.integers_only:
         args.allow_float = False
+    if args.reasoning_weight <= 0 or args.numeric_weight <= 0:
+        raise ValueError("reasoning-weight and numeric-weight must be > 0")
     if args.out_dir is None:
         args.out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                     'fe', 'data', 'numtasks_sme_vardig_e9')
@@ -492,22 +589,32 @@ def main():
     random.seed(args.seed)
     np.random.seed(args.seed)
 
+    task_generators = build_task_generators(
+        reasoning_weight=args.reasoning_weight,
+        numeric_weight=args.numeric_weight,
+    )
+    generators = [g for g, _ in task_generators]
+    weights = [w for _, w in task_generators]
+
     cfg = {
         'range': args.number_range,
         'neg': args.allow_negative,
         'flt': args.allow_float,
         'min_len': args.min_len,
         'max_len': args.max_len,
+        'sig_digits_sampler': (lambda: random.randint(1, SME_MAX_DIGITS)),
     }
 
-    task_names = [g.__name__[4:].upper() for g in _GENERATORS]
+    task_names = [g.__name__[4:].upper() for g in generators]
+    reasoning_names = [g.__name__[4:].upper() for g in REASONING_TASK_GENERATORS]
+    numeric_names = [g.__name__[4:].upper() for g in NUMERIC_TASK_GENERATORS]
 
     print("=" * 60)
     print("NUMERICAL TASK DATA GENERATOR (SME OUTPUT)")
     print("=" * 60)
     print(f"  Tasks:           {', '.join(task_names)}")
-    print(f"  Reasoning (2x):  {', '.join(g.__name__[4:].upper() for g, w in TASK_GENERATORS if w == 2)}")
-    print(f"  SME output (1x): {', '.join(g.__name__[4:].upper() for g, w in TASK_GENERATORS if w == 1)}")
+    print(f"  Reasoning ({args.reasoning_weight}x): {', '.join(reasoning_names)}")
+    print(f"  SME output ({args.numeric_weight}x): {', '.join(numeric_names)}")
     print(f"  Train examples:  {args.n_train:,}")
     print(f"  Val examples:    {args.n_val:,}")
     print(f"  Block size:      {args.block_size}")
@@ -515,6 +622,8 @@ def main():
     print(f"  Number range:    [-{args.number_range:g}, {args.number_range:g}]")
     print(f"  SME exponents:   E{SME_EXP_MIN}..E{SME_EXP_MAX}")
     print(f"  Max digits:      {SME_MAX_DIGITS} (+ END)")
+    print(f"  Digit curriculum:{'on' if args.digit_curriculum else 'off'} "
+          f"(phase1 1-4, phase2 5-8, phase3 1-{SME_MAX_DIGITS})")
     print(f"  Allow float:     {args.allow_float}")
     print(f"  Output dir:      {args.out_dir}")
     print(f"  Seed:            {args.seed}")
@@ -527,8 +636,14 @@ def main():
         # Generate structured examples
         examples_raw = []
         task_counts = {name: 0 for name in task_names}
-        for _ in tqdm(range(n_examples), desc=f"generating {split}"):
-            gen = random.choices(_GENERATORS, weights=_WEIGHTS, k=1)[0]
+        for i in tqdm(range(n_examples), desc=f"generating {split}"):
+            progress = (i / max(1, n_examples - 1)) if split == 'train' else 1.0
+            cfg['sig_digits_sampler'] = build_sig_digits_sampler(
+                progress=progress,
+                use_curriculum=args.digit_curriculum,
+                max_digits=SME_MAX_DIGITS,
+            )
+            gen = random.choices(generators, weights=weights, k=1)[0]
             input_text, output = gen(cfg)
             examples_raw.append((input_text, output))
             task_counts[gen.__name__[4:].upper()] += 1
@@ -548,7 +663,7 @@ def main():
                     else:
                         print(f"  {input_text} {fmt(output)}  (SME)")
                     seen.add(task_type)
-                if len(seen) == len(_GENERATORS):
+                if len(seen) == len(generators):
                     break
 
             # Show SME encoding example
@@ -607,6 +722,11 @@ def main():
         'sme_exp_min': SME_EXP_MIN,
         'sme_exp_max': SME_EXP_MAX,
         'sme_max_digits': SME_MAX_DIGITS,
+        'task_weights': {
+            'reasoning': args.reasoning_weight,
+            'numeric': args.numeric_weight,
+        },
+        'digit_curriculum': bool(args.digit_curriculum),
     }
     meta_path = os.path.join(args.out_dir, 'meta.pkl')
     with open(meta_path, 'wb') as f:

@@ -19,19 +19,21 @@ IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest
 NUM_EMB_CHECKPOINT="/tmpdir/m24047brmn/numbers/checkpoints/np_emb_v8_500k_model.pt"
 
 # Dataset
-DATASET="${DATASET:-numtasks_sme_vardig_e9}"
+DATASET="${DATASET:-numtasks_sme_vardig_e9_numw2_curr_v1}"
 
 # Data directory: absolute path to the folder containing {train,val}.bin
-DATA_DIR="${DATA_DIR:-/tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9}"
+DATA_DIR="${DATA_DIR:-/tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9_numw2_curr_v1}"
 
 # Training iterations (lr_decay_iters auto-set to match)
-MAX_ITERS="${MAX_ITERS:-15000}"
+MAX_ITERS="${MAX_ITERS:-40000}"
+LEARNING_RATE="${LEARNING_RATE:-4e-4}"
+ADAPTER_LR_SCALE="${ADAPTER_LR_SCALE:-0.5}"
 
 # Init mode
 INIT_FROM="${INIT_FROM:-scratch}"
 
 # Output directory for checkpoints
-OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/model_checkpoints/sme_vardig_e9}"
+OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/model_checkpoints/sme_vardig_e9_numw2_curr_v1}"
 
 GPUS_PER_NODE=2
 
@@ -50,6 +52,8 @@ echo "  Dataset:        ${DATASET}"
 echo "  Data dir:       ${DATA_DIR}"
 echo "  Checkpoint:     ${NUM_EMB_CHECKPOINT}"
 echo "  Max iters:      ${MAX_ITERS}"
+echo "  Learning rate:  ${LEARNING_RATE}"
+echo "  Adapter lr x:   ${ADAPTER_LR_SCALE}"
 echo "  Init from:      ${INIT_FROM}"
 echo "  Out dir:        ${OUT_DIR}"
 echo "  Master:         ${MASTER_ADDR}:${MASTER_PORT}"
@@ -75,8 +79,10 @@ srun apptainer exec \
       data_dir="${DATA_DIR}" \
       num_emb_checkpoint="${NUM_EMB_CHECKPOINT}" \
       out_dir="${OUT_DIR}" \
+      learning_rate="${LEARNING_RATE}" \
       max_iters="${MAX_ITERS}" \
       lr_decay_iters="${MAX_ITERS}" \
+      adapter_lr_scale="${ADAPTER_LR_SCALE}" \
       init_from="${INIT_FROM}"
 
 status=$?

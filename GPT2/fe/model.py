@@ -31,6 +31,15 @@ from np_emb_torch import NumberEncoder
 
 NUM_TOKEN_ID = 50257  # GPT-2 vocab is 0..50256; 50257 = <NUM>
 
+# SME token ids used for constrained generation.
+SME_SIGN_POS = 50258
+SME_SIGN_NEG = 50259
+SME_EXP_BASE = 50260
+SME_N_EXP = 19
+SME_DIGIT_BASE = 50279
+SME_END = 50289
+SME_MAX_DIGITS = 15
+
 
 # =============================================================================
 # Transformer building blocks (from nanoGPT base.py, unchanged)
@@ -319,22 +328,55 @@ class GPT(nn.Module):
 
         return model
 
-    def configure_optimizers(self, weight_decay, learning_rate, betas, device_type):
+    def configure_optimizers(self, weight_decay, learning_rate, betas, device_type,
+                             adapter_lr_scale=1.0):
         param_dict = {pn: p for pn, p in self.named_parameters()}
         param_dict = {pn: p for pn, p in param_dict.items() if p.requires_grad}
-        # 2D params get weight decay, 1D params (biases, LN) don't
-        decay_params = [p for n, p in param_dict.items() if p.dim() >= 2]
-        nodecay_params = [p for n, p in param_dict.items() if p.dim() < 2]
-        optim_groups = [
-            {'params': decay_params, 'weight_decay': weight_decay},
-            {'params': nodecay_params, 'weight_decay': 0.0}
+        adapter_lr_scale = float(adapter_lr_scale)
+        if adapter_lr_scale <= 0:
+            raise ValueError("adapter_lr_scale must be > 0")
+
+        # 2D params get weight decay, 1D params (biases, LN) don't.
+        # Split adapter and non-adapter so FE training can use a smaller adapter LR.
+        transformer_decay, transformer_nodecay = [], []
+        adapter_decay, adapter_nodecay = [], []
+        for name, p in param_dict.items():
+            is_adapter = name.startswith('num_adapter.')
+            use_decay = p.dim() >= 2
+            if is_adapter and use_decay:
+                adapter_decay.append(p)
+            elif is_adapter:
+                adapter_nodecay.append(p)
+            elif use_decay:
+                transformer_decay.append(p)
+            else:
+                transformer_nodecay.append(p)
+
+        optim_groups = []
+        group_specs = [
+            ("transformer_decay", transformer_decay, weight_decay, 1.0),
+            ("transformer_nodecay", transformer_nodecay, 0.0, 1.0),
+            ("adapter_decay", adapter_decay, weight_decay, adapter_lr_scale),
+            ("adapter_nodecay", adapter_nodecay, 0.0, adapter_lr_scale),
         ]
-        num_decay_params = sum(p.numel() for p in decay_params)
-        num_nodecay_params = sum(p.numel() for p in nodecay_params)
-        print(f"num decayed parameter tensors: {len(decay_params)}, "
-              f"with {num_decay_params:,} parameters")
-        print(f"num non-decayed parameter tensors: {len(nodecay_params)}, "
-              f"with {num_nodecay_params:,} parameters")
+        for group_name, params, decay, lr_scale in group_specs:
+            if not params:
+                continue
+            optim_groups.append({
+                'params': params,
+                'weight_decay': decay,
+                'lr': learning_rate * lr_scale,
+                'lr_scale': lr_scale,
+                'group_name': group_name,
+            })
+
+        print("optimizer parameter groups:")
+        for group_name, params, decay, lr_scale in group_specs:
+            if not params:
+                continue
+            n_params = sum(p.numel() for p in params)
+            print(f"  {group_name}: {len(params)} tensors, {n_params:,} params, "
+                  f"weight_decay={decay}, lr_scale={lr_scale}")
         fused_available = 'fused' in inspect.signature(torch.optim.AdamW).parameters
         use_fused = fused_available and device_type == 'cuda'
         extra_args = dict(fused=True) if use_fused else dict()
@@ -357,7 +399,8 @@ class GPT(nn.Module):
 
     @torch.no_grad()
     def generate(self, idx, max_new_tokens, temperature=1.0, top_k=None,
-                 num_values=None, num_mask=None):
+                 num_values=None, num_mask=None,
+                 constrain_sme=True, constrain_sme_max_digits=SME_MAX_DIGITS):
         """Generate tokens autoregressively.
 
         Input numbers are embedded via adapter. Output numbers come as
@@ -367,6 +410,8 @@ class GPT(nn.Module):
             idx:        (B, T) initial token IDs
             num_values: (B, T) float values at NUM positions (None = no numbers)
             num_mask:   (B, T) bool mask (None = inferred from idx)
+            constrain_sme: apply SME grammar constraints during generation
+            constrain_sme_max_digits: max mantissa digits before forcing END
 
         Returns:
             idx: (B, T + max_new_tokens) generated token IDs
@@ -375,6 +420,45 @@ class GPT(nn.Module):
             num_values = torch.zeros_like(idx, dtype=torch.float32)
         if num_mask is None:
             num_mask = (idx == NUM_TOKEN_ID)
+
+        constrain_sme_max_digits = max(
+            1,
+            min(int(constrain_sme_max_digits), SME_MAX_DIGITS),
+        )
+
+        def _advance_sme_state(tok, state, digit_count):
+            if state == 0:
+                if tok in (SME_SIGN_POS, SME_SIGN_NEG):
+                    return 1, 0
+                return 0, 0
+            if state == 1:
+                if SME_EXP_BASE <= tok < SME_EXP_BASE + SME_N_EXP:
+                    return 2, 0
+                if tok in (SME_SIGN_POS, SME_SIGN_NEG):
+                    return 1, 0
+                return 0, 0
+
+            # state == 2 (inside mantissa)
+            if SME_DIGIT_BASE <= tok <= SME_DIGIT_BASE + 9:
+                return 2, min(digit_count + 1, constrain_sme_max_digits)
+            if tok == SME_END:
+                return 0, 0
+            if tok in (SME_SIGN_POS, SME_SIGN_NEG):
+                return 1, 0
+            return 0, 0
+
+        if constrain_sme:
+            B = idx.size(0)
+            sme_state = [0] * B
+            sme_digit_count = [0] * B
+            # Initialize grammar state from the provided prompt.
+            for b, row in enumerate(idx.detach().cpu().tolist()):
+                state = 0
+                digit_count = 0
+                for tok in row:
+                    state, digit_count = _advance_sme_state(int(tok), state, digit_count)
+                sme_state[b] = state
+                sme_digit_count[b] = digit_count
 
         for step in range(max_new_tokens):
             T = idx.size(1)
@@ -390,12 +474,44 @@ class GPT(nn.Module):
             logits, _ = self(idx_cond, num_values=nv_cond, num_mask=nm_cond)
             logits = logits[:, -1, :] / temperature
 
+            if constrain_sme:
+                for b in range(logits.size(0)):
+                    state = sme_state[b]
+                    if state == 0:
+                        continue
+
+                    row = logits[b]
+                    constrained = torch.full_like(row, -float('inf'))
+                    if state == 1:
+                        constrained[SME_EXP_BASE:SME_EXP_BASE + SME_N_EXP] = \
+                            row[SME_EXP_BASE:SME_EXP_BASE + SME_N_EXP]
+                    else:
+                        digit_count = sme_digit_count[b]
+                        if digit_count <= 0:
+                            constrained[SME_DIGIT_BASE:SME_DIGIT_BASE + 10] = \
+                                row[SME_DIGIT_BASE:SME_DIGIT_BASE + 10]
+                        elif digit_count >= constrain_sme_max_digits:
+                            constrained[SME_END] = row[SME_END]
+                        else:
+                            constrained[SME_DIGIT_BASE:SME_DIGIT_BASE + 10] = \
+                                row[SME_DIGIT_BASE:SME_DIGIT_BASE + 10]
+                            constrained[SME_END] = row[SME_END]
+                    logits[b] = constrained
+
             if top_k is not None:
                 v, _ = torch.topk(logits, min(top_k, logits.size(-1)))
                 logits[logits < v[:, [-1]]] = -float('Inf')
 
             probs = F.softmax(logits, dim=-1)
             idx_next = torch.multinomial(probs, num_samples=1)  # (B, 1)
+
+            if constrain_sme:
+                for b, tok in enumerate(idx_next.squeeze(1).detach().cpu().tolist()):
+                    state, digit_count = _advance_sme_state(
+                        int(tok), sme_state[b], sme_digit_count[b]
+                    )
+                    sme_state[b] = state
+                    sme_digit_count[b] = digit_count
 
             idx = torch.cat([idx, idx_next], dim=1)
             # Generated tokens are text (including SME), not <NUM>, so no embedding needed
