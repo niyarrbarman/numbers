@@ -33,7 +33,7 @@ from model import GPTConfig, GPT, NUM_TOKEN_ID
 
 # SME token ranges for diagnostics
 from prepare import (
-    SME_SIGN_POS, SME_SIGN_NEG, SME_EXP_BASE, SME_EXP_OFFSET, SME_N_EXP,
+    SME_SIGN_POS, SME_SIGN_NEG, SME_EXP_BASE, SME_EXP_OFFSET, SME_N_EXP, SME_N_DIGITS,
     SME_DIGIT_BASE, SME_END, SME_ALL_TOKENS, sme_tokens_to_number,
     parse_sme_number_tokens,
 )
@@ -292,7 +292,7 @@ _sme_token_set = torch.tensor(sorted(SME_ALL_TOKENS), dtype=torch.long)
 def compute_sme_accuracy(logits, targets):
     """Compute accuracy of SME token predictions.
 
-    Returns overall/sign/exp/digit/end plus d0/d1/d2 digit-position accuracies.
+    Returns overall/sign/exp/digit/end plus per-position digit accuracies.
     """
     sme_set = _sme_token_set.to(targets.device)
     sme_mask = torch.isin(targets, sme_set)
@@ -318,7 +318,7 @@ def compute_sme_accuracy(logits, targets):
     B, T = targets.shape
     t_cpu = targets.detach().cpu().tolist()
     p_cpu = preds.detach().cpu().tolist()
-    d_pos = {"d0": [0, 0], "d1": [0, 0], "d2": [0, 0]}  # correct, total
+    d_pos = {f"d{i}": [0, 0] for i in range(SME_N_DIGITS)}  # correct, total
 
     for b in range(B):
         row_t = t_cpu[b]
@@ -335,7 +335,7 @@ def compute_sme_accuracy(logits, targets):
                 continue
 
             n_digits = len(parsed) - 3  # remove sign, exp, END
-            for di in range(min(3, n_digits)):
+            for di in range(min(SME_N_DIGITS, n_digits)):
                 d_key = f"d{di}"
                 d_pos[d_key][1] += 1
                 d_idx = pos + 2 + di
@@ -344,21 +344,21 @@ def compute_sme_accuracy(logits, targets):
 
             pos = max(next_pos, pos + 1)
 
-    def d_acc(key):
-        correct, total = d_pos[key]
-        return (correct / total) if total else 0.0
+    digit_pos_acc = {}
+    for key, (correct, total) in d_pos.items():
+        digit_pos_acc[key] = (correct / total) if total else 0.0
 
-    return {
+    out = {
         'overall': overall_acc,
         'sign': acc(sign_mask),
         'exp': acc(exp_mask),
         'digit': acc(digit_mask),
         'end': acc(end_mask),
-        'd0': d_acc('d0'),
-        'd1': d_acc('d1'),
-        'd2': d_acc('d2'),
+        'digit_pos': digit_pos_acc,
         'n_sme': n_sme,
     }
+    out.update(digit_pos_acc)  # keep flat d0..dN keys for backward-compatible consumers
+    return out
 
 
 def sme_token_label(tok_id):
@@ -630,12 +630,16 @@ while True:
         # SME token accuracy
         sme_acc = compute_sme_accuracy(_diag_logits, _diag_targets)
         if sme_acc is not None:
+            digit_pos_str = " ".join(
+                f"d{i} {sme_acc['digit_pos'].get(f'd{i}', 0.0):.3f}"
+                for i in range(SME_N_DIGITS)
+            )
             print(f"  SME accuracy: overall {sme_acc['overall']:.3f}, "
                   f"sign {sme_acc['sign']:.3f}, "
                   f"exp {sme_acc['exp']:.3f}, "
                   f"digit {sme_acc['digit']:.3f}, "
                   f"end {sme_acc['end']:.3f} "
-                  f"[d0 {sme_acc['d0']:.3f} d1 {sme_acc['d1']:.3f} d2 {sme_acc['d2']:.3f}] "
+                  f"[{digit_pos_str}] "
                   f"({sme_acc['n_sme']} SME tokens)")
 
         if wandb_log:
@@ -653,10 +657,9 @@ while True:
                     "sme/exp": sme_acc['exp'],
                     "sme/digit": sme_acc['digit'],
                     "sme/end": sme_acc['end'],
-                    "sme/d0": sme_acc['d0'],
-                    "sme/d1": sme_acc['d1'],
-                    "sme/d2": sme_acc['d2'],
                 })
+                for i in range(SME_N_DIGITS):
+                    log_dict[f"sme/d{i}"] = sme_acc['digit_pos'].get(f"d{i}", 0.0)
             wandb.log(log_dict)
 
     # --- Sample evaluation every sample_interval steps ---
