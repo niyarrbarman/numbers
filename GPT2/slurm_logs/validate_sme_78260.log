@@ -1,0 +1,44 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+==========================================
+SME Checkpoint Validation
+  Checkpoint:   /tmpdir/m24047brmn/numbers/model_checkpoints/sme_vardig_e9/ckpt_best.pt
+  Data dir:     /tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9
+  Batch blocks: 64
+  Top-K errors: 25
+  Max blocks:   0 (0 = full val set)
+  JSON output:  /tmpdir/m24047brmn/numbers/model_checkpoints/sme_vardig_e9/val_report_78260.json
+==========================================
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+======================================================================
+SME Checkpoint Validation (Full Val Set)
+======================================================================
+Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/sme_vardig_e9/ckpt_best.pt
+Data dir:   /tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9
+Device:     cuda
+Batch blk:  64
+Top-K err:  25
+Max blocks: ALL
+number of parameters: 22.42M
+----------------------------------------------------------------------
+Model block_size: 256
+Model vocab_size: 50304
+Checkpoint iter:  15000
+Best val loss:    0.5445834994316101
+Num emb ckpt:     /tmpdir/m24047brmn/numbers/checkpoints/np_emb_v8_500k_model.pt
+Meta vocab_size:  50304
+----------------------------------------------------------------------
+Validation tokens: 1,165,824
+Validation blocks: 4,554
+<NUM> tokens:      211,191
+SME token ids:     [50258, 50289]
+Traceback (most recent call last):
+  File "/work/m24047/m24047brmn/numbers/GPT2/fe/validate_checkpoint.py", line 625, in <module>
+    main()
+  File "/work/m24047/m24047brmn/numbers/GPT2/fe/validate_checkpoint.py", line 382, in main
+    sme_counts.update(logits, y)
+  File "/work/m24047/m24047brmn/numbers/GPT2/fe/validate_checkpoint.py", line 156, in update
+    self._add(key, ok, 1)
+  File "/work/m24047/m24047brmn/numbers/GPT2/fe/validate_checkpoint.py", line 112, in _add
+    self.counts[key][0] += int(correct)
+KeyError: 'd3'

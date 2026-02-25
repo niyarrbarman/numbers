@@ -1,0 +1,286 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+==========================================
+Base GPT-2 Checkpoint Validation
+  Checkpoint:   /tmpdir/m24047brmn/numbers/model_checkpoints/base_numtasks_vardig_e9/ckpt.pt
+  Data dir:     /tmpdir/m24047brmn/numbers/data/numtasks_base_vardig_e9
+  Batch blocks: 64
+  Top-K errors: 25
+  Max blocks:   0 (0 = full val set)
+  JSON output:  /tmpdir/m24047brmn/numbers/model_checkpoints/base_numtasks_vardig_e9/val_report_78259.json
+==========================================
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+======================================================================
+Base GPT-2 Checkpoint Validation (Full Val Set)
+======================================================================
+Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/base_numtasks_vardig_e9/ckpt.pt
+Data dir:   /tmpdir/m24047brmn/numbers/data/numtasks_base_vardig_e9
+Device:     cuda
+Batch blk:  64
+Top-K err:  25
+Max blocks: ALL
+number of parameters: 22.32M
+----------------------------------------------------------------------
+Model block_size: 256
+Model vocab_size: 50304
+Checkpoint iter:  15000
+Best val loss:    2.429821491241455
+Meta dataset:     numtasks_base_vardig_e9
+Meta vocab_size:  50304
+----------------------------------------------------------------------
+Validation tokens: 1,567,232
+Validation blocks: 6,122
+EOT tokens:        171,608
+======================================================================
+Validation Report
+======================================================================
+Tokens evaluated:              1,567,231
+Cross-entropy loss (avg):      2.350278
+Perplexity:                    10.488486
+----------------------------------------------------------------------
+Examples parsed (EOT-bounded): 50,000
+Examples evaluated:            50,000
+Output token accuracy:         0.9488 (161239/169946)
+Output exact-match rate:       0.9206 (46032/50000)
+Output token-seq exact rate:   0.9206 (46029/50000)
+----------------------------------------------------------------------
+Numeric Task Metrics
+----------------------------------------------------------------------
+Numeric examples:              16,748
+Numeric valid parses:          16,736
+Numeric invalid parses:        12
+Numeric exact-example rate:    0.7798 (13060/16748)
+MAE (value-level):             55930668648.814430
+RMSE (value-level):            6551839831436.604492
+Median abs err:                0.000000
+P90/P95/P99 abs err:           6.000000 / 439000000.000000 / 3836000018.000131
+Max abs err:                   827249445026399.000000
+MAPE (|target|>0):             371113391.847887
+----------------------------------------------------------------------
+Per-Task Metrics
+----------------------------------------------------------------------
+Task                N   OutExact     TokAcc   TokExact   NumValid   NumInv     NumMAE     NumP95
+ADD              2355     0.6866     0.9255     0.6858       2353        2 857299040.5374 1046601180.0000
+CHECKADD         4843     0.9612     0.9612     0.9612          0        0     0.0000     0.0000
+CHECKSORT        4793     0.9923     0.9923     0.9923          0        0     0.0000     0.0000
+CMP              4727     0.9987     0.9994     0.9987          0        0     0.0000     0.0000
+COUNT            2370     1.0000     1.0000     1.0000       2370        0     0.0000     0.0000
+GT               4760     0.9992     0.9992     0.9992          0        0     0.0000     0.0000
+IS_POS           4741     1.0000     1.0000     1.0000          0        0     0.0000     0.0000
+IS_SORTED        4628     0.9994     0.9994     0.9994          0        0     0.0000     0.0000
+MAX              2359     0.9924     0.9977     0.9924       2359        0 31809791.8780     0.0000
+MIN              2427     0.9971     0.9994     0.9971       2427        0 3048257.9930     0.0000
+SORT             2349     0.9553     0.9982     0.9553       2348        1 52255709773.7391     0.0000
+SUB              2406     0.6600     0.9210     0.6596       2405        1 5600258900.0794 1236005600.0000
+SUM              2482     0.1934     0.6374     0.1934       2474        8 339738228036.5015 3134871335.3500
+SUM_CMP          4760     0.9912     0.9941     0.9912          0        0     0.0000     0.0000
+----------------------------------------------------------------------
+Top 25 Worst Numeric Examples
+----------------------------------------------------------------------
+[01] task=SUM valid_numeric=False
+  prompt:      SUM: 4754195 1.9211763152e-09 1.9201795683e-08
+  target_text: 4754195.00000002
+  pred_text:   4754195<|endoftext|>00000002
+  target_nums: [4754195.00000002]
+  pred_nums:   [4754195.0, 2.0]
+  abs_err_max: None
+  abs_err_mean:None
+[02] task=SORT valid_numeric=False
+  prompt:      SORT: 1.5119858087e-06 4826.78867 2142 3796.420849388 620000000 -413420000 79633.545 76525600.3384 270383759 1
+  target_text: -413420000 1.5119858087e-06 1 2142 3796.420849388 4826.78867 79633.545 76525600.3384 270383759 620000000
+  pred_text:   -413420000 1.5119858087e-06 1 3142 3796.420849388 4826.78867 79633.545 76525600 2703384 270383759 620000000
+  target_nums: [-413420000.0, 1.5119858087e-06, 1.0, 2142.0, 3796.420849388, 4826.78867, 79633.545, 76525600.3384, 270383759.0, 620000000.0]
+  pred_nums:   [-413420000.0, 1.5119858087e-06, 1.0, 3142.0, 3796.420849388, 4826.78867, 79633.545, 76525600.0, 2703384.0, 270383759.0, 620000000.0]
+  abs_err_max: None
+  abs_err_mean:None
+[03] task=SUM valid_numeric=False
+  prompt:      SUM: 600000000 -53.7379022833 899100000 5.56963e-06 90243 -1000000000 -452347939
+  target_text: 46842250.2621033
+  pred_text:   -7926..2620927
+  target_nums: [46842250.2621033]
+  pred_nums:   [-7926.0, 0.2620927]
+  abs_err_max: None
+  abs_err_mean:None
+[04] task=SUM valid_numeric=False
+  prompt:      SUM: -321.6108403442 0 3.89814085e-09 -750000000 9.63554154066 499000000 241958067 -7.67741e-06
+  target_text: -9042244.97530644
+  pred_text:   -150813..92986
+  target_nums: [-9042244.97530644]
+  pred_nums:   [-150813.0, 0.92986]
+  abs_err_max: None
+  abs_err_mean:None
+[05] task=SUM valid_numeric=False
+  prompt:      SUM: 683437024 400000000 1.25762095e-06 700000000 4.91e-06
+  target_text: 1783437024.00001
+  pred_text:   1783437024<|endoftext|>00001
+  target_nums: [1783437024.00001]
+  pred_nums:   [1783437024.0, 1.0]
+  abs_err_max: None
+  abs_err_mean:None
+[06] task=SUM valid_numeric=False
+  prompt:      SUM: 59.00611 -210100000 -320669000 12630 824716700 -212446171
+  target_text: 81514218.00611
+  pred_text:   -0599..00611
+  target_nums: [81514218.00611]
+  pred_nums:   [-599.0, 0.00611]
+  abs_err_max: None
+  abs_err_mean:None
+[07] task=ADD valid_numeric=False
+  prompt:      ADD: 210000000 + 4.996246091854e-07
+  target_text: 210000000.000001
+  pred_text:   210000000<|endoftext|>000001
+  target_nums: [210000000.000001]
+  pred_nums:   [210000000.0, 1.0]
+  abs_err_max: None
+  abs_err_mean:None
+[08] task=ADD valid_numeric=False
+  prompt:      ADD: -6.792462e-07 + 7.1443635631e-07
+  target_text: 3.51901563100001e-08
+  pred_text:   1.3500015633e1e-08
+  target_nums: [3.51901563100001e-08]
+  pred_nums:   [13.500015633, -8.0]
+  abs_err_max: None
+  abs_err_mean:None
+[09] task=SUB valid_numeric=False
+  prompt:      SUB: -1.1474596711063e-05 - -6.57521e-09
+  target_text: -1.1468021501063e-05
+  pred_text:   -1.148021601006ee-05
+  target_nums: [-1.1468021501063e-05]
+  pred_nums:   [-1.148021601006, -5.0]
+  abs_err_max: None
+  abs_err_mean:None
+[10] task=SUM valid_numeric=False
+  prompt:      SUM: 303942600 676765000 5.895921115766e-07 -30064932 0 84200000 -1000000000 -997772713
+  target_text: -962930044.999999
+  pred_text:   -10240535<|endoftext|>999999
+  target_nums: [-962930044.999999]
+  pred_nums:   [-10240535.0, 999999.0]
+  abs_err_max: None
+  abs_err_mean:None
+[11] task=SUM valid_numeric=False
+  prompt:      SUM: -1.2717388677e-05 -2.3248035e-08 7.8158188043814e-07
+  target_text: -1.19590548315619e-05
+  pred_text:   -1.27008e19e-05
+  target_nums: [-1.19590548315619e-05]
+  pred_nums:   [-1.27008e+19, -5.0]
+  abs_err_max: None
+  abs_err_mean:None
+[12] task=SUM valid_numeric=False
+  prompt:      SUM: 3.819e-06 -126575.04613631 0 -853434450 572300000 108293139 27215.924 6.3248949086e-06
+  target_text: -172940670.122126
+  pred_text:   -70509..1213
+  target_nums: [-172940670.122126]
+  pred_nums:   [-70509.0, 0.1213]
+  abs_err_max: None
+  abs_err_mean:None
+[13] task=SUM valid_numeric=True
+  prompt:      SUM: -520033500 -18 -4562705.8945034 -244917300 -4.87195584197053e-08 6.94 769505331
+  target_text: -8185.95450329781
+  pred_text:   -827249445034585
+  target_nums: [-8185.95450329781]
+  pred_nums:   [-827249445034585.0]
+  abs_err_max: 827249445026399.0
+  abs_err_mean:827249445026399.0
+[14] task=SORT valid_numeric=True
+  prompt:      SORT: 849900000 835246687 73000000 127928230 73.3112068
+  target_text: 73.3112068 73000000 127928230 835246687 849900000
+  pred_text:   730000003112068 73000000 127928230 835246687 849900000
+  target_nums: [73.3112068, 73000000.0, 127928230.0, 835246687.0, 849900000.0]
+  pred_nums:   [730000003112068.0, 73000000.0, 127928230.0, 835246687.0, 849900000.0]
+  abs_err_max: 730000003111994.8
+  abs_err_mean:146000000622398.94
+[15] task=SUB valid_numeric=True
+  prompt:      SUB: 5.022781e-07 - 1000000000
+  target_text: -1000000000
+  pred_text:   -9999000000000
+  target_nums: [-1000000000.0]
+  pred_nums:   [-9999000000000.0]
+  abs_err_max: 9998000000000.0
+  abs_err_mean:9998000000000.0
+[16] task=SUM valid_numeric=True
+  prompt:      SUM: -164048534 83850.57 8 577440 0 163607954 0
+  target_text: 220718.569999993
+  pred_text:   9920579999999
+  target_nums: [220718.569999993]
+  pred_nums:   [9920579999999.0]
+  abs_err_max: 9920579779280.43
+  abs_err_mean:9920579779280.43
+[17] task=SUB valid_numeric=True
+  prompt:      SUB: 7964807.5382 - 857590870
+  target_text: -849626062.4618
+  pred_text:   -850496256062.4618
+  target_nums: [-849626062.4618]
+  pred_nums:   [-850496256062.4618]
+  abs_err_max: 849646630000.0
+  abs_err_mean:849646630000.0
+[18] task=ADD valid_numeric=True
+  prompt:      ADD: 347616026 + 195569.034
+  target_text: 347811595.034
+  pred_text:   347478115595.034
+  target_nums: [347811595.034]
+  pred_nums:   [347478115595.034]
+  abs_err_max: 347130304000.0
+  abs_err_mean:347130304000.0
+[19] task=SUB valid_numeric=True
+  prompt:      SUB: 80982504 - 407717212
+  target_text: -326734708
+  pred_text:   -327268349709
+  target_nums: [-326734708.0]
+  pred_nums:   [-327268349709.0]
+  abs_err_max: 326941615001.0
+  abs_err_mean:326941615001.0
+[20] task=ADD valid_numeric=True
+  prompt:      ADD: -312867849 + 9847.67631423
+  target_text: -312858001.323686
+  pred_text:   -312128579001.323686
+  target_nums: [-312858001.323686]
+  pred_nums:   [-312128579001.32367]
+  abs_err_max: 311815721000.0
+  abs_err_mean:311815721000.0
+[21] task=SUM valid_numeric=True
+  prompt:      SUM: 1000000000 0 0.0034236917045 201897000 1000000000
+  target_text: 2201897000.00342
+  pred_text:   220201897000.00342
+  target_nums: [2201897000.00342]
+  pred_nums:   [220201897000.00342]
+  abs_err_max: 218000000000.0
+  abs_err_mean:218000000000.0
+[22] task=SUM valid_numeric=True
+  prompt:      SUM: 3.443997188438 230731.74 1000000000 538000000 0
+  target_text: 1538230735.184
+  pred_text:   153823073634.18
+  target_nums: [1538230735.184]
+  pred_nums:   [153823073634.18]
+  abs_err_max: 152284842898.996
+  abs_err_mean:152284842898.996
+[23] task=SUM valid_numeric=True
+  prompt:      SUM: 0 2.56022e-05 150010100 1000000000 0 300754978 0.0940781088
+  target_text: 1450765078.0941
+  pred_text:   145500765078.0941
+  target_nums: [1450765078.0941]
+  pred_nums:   [145500765078.0941]
+  abs_err_max: 144050000000.0
+  abs_err_mean:144050000000.0
+[24] task=SUM valid_numeric=True
+  prompt:      SUM: 1200 -975137409 -145513697 -74712.3 67000
+  target_text: -1120657618.3
+  pred_text:   -112120751210.3
+  target_nums: [-1120657618.3]
+  pred_nums:   [-112120751210.3]
+  abs_err_max: 111000093592.0
+  abs_err_mean:111000093592.0
+[25] task=SUB valid_numeric=True
+  prompt:      SUB: 755047300 - -355621401
+  target_text: 1110668701
+  pred_text:   110106688701
+  target_nums: [1110668701.0]
+  pred_nums:   [110106688701.0]
+  abs_err_max: 108996020000.0
+  abs_err_mean:108996020000.0
+----------------------------------------------------------------------
+Saved JSON summary: /tmpdir/m24047brmn/numbers/model_checkpoints/base_numtasks_vardig_e9/val_report_78259.json
+======================================================================
+Validation finished.
+==========================================
+Validation finished with status 0
+==========================================
