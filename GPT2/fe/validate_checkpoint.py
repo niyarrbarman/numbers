@@ -20,7 +20,7 @@ import json
 import math
 import os
 import re
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
@@ -32,11 +32,12 @@ from prepare import (
     SME_SIGN_POS,
     SME_SIGN_NEG,
     SME_EXP_BASE,
+    SME_EXP_OFFSET,
     SME_N_EXP,
     SME_DIGIT_BASE,
+    SME_END,
     SME_ALL_TOKENS,
-    SME_TOKENS_PER_NUM,
-    SME_N_DIGITS,
+    parse_sme_number_tokens,
     sme_tokens_to_number,
 )
 
@@ -103,6 +104,7 @@ class RunningSMECounts:
             "sign": [0, 0],
             "exp": [0, 0],
             "digit": [0, 0],
+            "end": [0, 0],
             "d0": [0, 0],
             "d1": [0, 0],
             "d2": [0, 0],
@@ -140,20 +142,39 @@ class RunningSMECounts:
             t = digit_mask.sum().item()
             self._add("digit", c, t)
 
-        # Per-digit position based on sign token anchor: d0=+2, d1=+3, d2=+4
+        end_mask = (targets == SME_END)
+        if end_mask.any():
+            c = (preds[end_mask] == targets[end_mask]).sum().item()
+            t = end_mask.sum().item()
+            self._add("end", c, t)
+
+        # Per-digit position based on parsed SME numbers in targets.
         bsz, T = targets.shape
+        tgt_rows = targets.detach().cpu().tolist()
+        pred_rows = preds.detach().cpu().tolist()
         for b in range(bsz):
-            sign_pos = torch.nonzero(sign_mask[b], as_tuple=False).view(-1)
-            for pos in sign_pos.tolist():
-                if pos + 4 >= T:
+            row_t = tgt_rows[b]
+            row_p = pred_rows[b]
+            pos = 0
+            while pos < T:
+                if row_t[pos] not in (SME_SIGN_POS, SME_SIGN_NEG):
+                    pos += 1
                     continue
-                for di in range(SME_N_DIGITS):
+                parsed, next_pos = parse_sme_number_tokens(row_t, start_idx=pos)
+                if parsed is None:
+                    pos += 1
+                    continue
+
+                n_digits = len(parsed) - 3  # drop sign, exp, END
+                for di in range(min(3, n_digits)):
                     dpos = pos + 2 + di
-                    tgt = targets[b, dpos].item()
+                    tgt = row_t[dpos]
                     if SME_DIGIT_BASE <= tgt <= SME_DIGIT_BASE + 9:
                         key = f"d{di}"
-                        ok = int(preds[b, dpos].item() == tgt)
+                        ok = int(row_p[dpos] == tgt)
                         self._add(key, ok, 1)
+
+                pos = max(next_pos, pos + 1)
 
     def accuracy(self, key: str) -> float:
         c, t = self.counts[key]
@@ -181,10 +202,12 @@ def decode_context(token_ids: List[int], num_values: List[float], enc) -> str:
             elif tok == SME_SIGN_NEG:
                 parts.append("S-")
             elif SME_EXP_BASE <= tok < SME_EXP_BASE + SME_N_EXP:
-                exp = (tok - SME_EXP_BASE) - 5
+                exp = (tok - SME_EXP_BASE) - SME_EXP_OFFSET
                 parts.append(f"E{exp}")
             elif SME_DIGIT_BASE <= tok <= SME_DIGIT_BASE + 9:
                 parts.append(f"D{tok - SME_DIGIT_BASE}")
+            elif tok == SME_END:
+                parts.append("END")
             else:
                 parts.append(f"?{tok}")
         elif tok == 50256:
@@ -391,18 +414,18 @@ def main() -> None:
         B, T = y_cpu.shape
         for bi in range(B):
             # Find all sign token starts in target
+            row_t = y_cpu[bi].tolist()
+            row_p = p_cpu[bi].tolist()
             sign_positions = np.where(
                 (y_cpu[bi] == SME_SIGN_POS) | (y_cpu[bi] == SME_SIGN_NEG)
             )[0]
             for t in sign_positions.tolist():
-                if t + SME_TOKENS_PER_NUM > T:
+                tgt_toks, _ = parse_sme_number_tokens(row_t, start_idx=t)
+                if tgt_toks is None:
                     continue
-                tgt_toks = y_cpu[bi, t : t + SME_TOKENS_PER_NUM].tolist()
-                if not all(tok in SME_ALL_TOKENS for tok in tgt_toks):
-                    continue
-                pred_toks = p_cpu[bi, t : t + SME_TOKENS_PER_NUM].tolist()
+                pred_toks, _ = parse_sme_number_tokens(row_p, start_idx=t)
                 tgt_val = sme_tokens_to_number(tgt_toks)
-                pred_val = sme_tokens_to_number(pred_toks)
+                pred_val = sme_tokens_to_number(pred_toks) if pred_toks is not None else None
                 if tgt_val is None:
                     continue
 
@@ -423,7 +446,7 @@ def main() -> None:
                 task = infer_task(context)
                 stats = task_stats.setdefault(task, TaskStats())
 
-                exact_token = pred_toks == tgt_toks
+                exact_token = (pred_toks == tgt_toks)
                 if pred_val is None:
                     stats.add(
                         is_valid=False,
@@ -510,7 +533,7 @@ def main() -> None:
     print("-" * 70)
     print("SME Token Accuracy")
     print("-" * 70)
-    for key in ["overall", "sign", "exp", "digit", "d0", "d1", "d2"]:
+    for key in ["overall", "sign", "exp", "digit", "end", "d0", "d1", "d2"]:
         print(
             f"{key:>8}: {sme_counts.accuracy(key):.4f} "
             f"({sme_counts.counts[key][0]}/{sme_counts.counts[key][1]})"
@@ -575,7 +598,7 @@ def main() -> None:
                 "correct": sme_counts.counts[k][0],
                 "total": sme_counts.counts[k][1],
             }
-            for k in ["overall", "sign", "exp", "digit", "d0", "d1", "d2"]
+            for k in ["overall", "sign", "exp", "digit", "end", "d0", "d1", "d2"]
         },
         "number_metrics": {
             "total": total_num_preds,
