@@ -31,6 +31,7 @@ ADAPTER_LR_SCALE="${ADAPTER_LR_SCALE:-0.5}"
 
 # Init mode
 INIT_FROM="${INIT_FROM:-scratch}"
+RESUME_CKPT="${RESUME_CKPT:-}"
 
 # Output directory for checkpoints
 OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/model_checkpoints/sme_vardig_e9_numw2_curr_v1}"
@@ -55,6 +56,9 @@ echo "  Max iters:      ${MAX_ITERS}"
 echo "  Learning rate:  ${LEARNING_RATE}"
 echo "  Adapter lr x:   ${ADAPTER_LR_SCALE}"
 echo "  Init from:      ${INIT_FROM}"
+if [[ -n "${RESUME_CKPT}" ]]; then
+  echo "  Resume ckpt:    ${RESUME_CKPT}"
+fi
 echo "  Out dir:        ${OUT_DIR}"
 echo "  Master:         ${MASTER_ADDR}:${MASTER_PORT}"
 echo "=========================================="
@@ -83,6 +87,7 @@ srun apptainer exec \
       max_iters="${MAX_ITERS}" \
       lr_decay_iters="${MAX_ITERS}" \
       adapter_lr_scale="${ADAPTER_LR_SCALE}" \
+      resume_ckpt="${RESUME_CKPT}" \
       init_from="${INIT_FROM}"
 
 status=$?

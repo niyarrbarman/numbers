@@ -103,6 +103,20 @@ def build_sig_digits_sampler(progress, use_curriculum=True, max_digits=MAX_SIG_D
     return lambda: random.randint(1, max_digits)
 
 
+def build_fixed_sig_digits_sampler(min_digits, max_digits):
+    """Create a fixed-range significant-digit sampler."""
+    min_digits = int(min_digits)
+    max_digits = int(max_digits)
+    if min_digits < 1 or max_digits < 1:
+        raise ValueError("sig_digits bounds must be >= 1")
+    if min_digits > max_digits:
+        raise ValueError("sig_digits_min must be <= sig_digits_max")
+    max_cap = MAX_SIG_DIGITS
+    min_digits = min(min_digits, max_cap)
+    max_digits = min(max_digits, max_cap)
+    return lambda: random.randint(min_digits, max_digits)
+
+
 def sample_number(number_range, allow_negative, allow_float, sig_digits_sampler=None):
     """Sample one number with broad exponent coverage and mixed precision."""
     max_exp = _max_exp_for_range(number_range)
@@ -463,6 +477,10 @@ def main():
                         help="Enable mantissa digit curriculum (default: on)")
     parser.add_argument("--no-digit-curriculum", dest="digit_curriculum", action="store_false",
                         help="Disable mantissa digit curriculum")
+    parser.add_argument("--sig-digits-min", type=int, default=None,
+                        help="Force minimum significant digits for sampled floats")
+    parser.add_argument("--sig-digits-max", type=int, default=None,
+                        help="Force maximum significant digits for sampled floats")
     parser.add_argument("--out-dir", type=str, default=None)
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
@@ -473,6 +491,16 @@ def main():
         args.allow_float = False
     if args.reasoning_weight <= 0 or args.numeric_weight <= 0:
         raise ValueError("reasoning-weight and numeric-weight must be > 0")
+    if args.sig_digits_min is not None or args.sig_digits_max is not None:
+        smin = 1 if args.sig_digits_min is None else int(args.sig_digits_min)
+        smax = MAX_SIG_DIGITS if args.sig_digits_max is None else int(args.sig_digits_max)
+        if smin < 1 or smax < 1 or smin > smax:
+            raise ValueError("invalid sig-digits range; require 1 <= min <= max")
+        args.sig_digits_min = min(smin, MAX_SIG_DIGITS)
+        args.sig_digits_max = min(smax, MAX_SIG_DIGITS)
+    else:
+        args.sig_digits_min = None
+        args.sig_digits_max = None
     if args.out_dir is None:
         args.out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                     'base', 'data', 'numtasks_base_vardig_e9')
@@ -513,8 +541,12 @@ def main():
     print(f"  Number range:    [-{args.number_range:g}, {args.number_range:g}]")
     print(f"  Exponent target: E{EXP_MIN}..E{EXP_MAX}")
     print(f"  Sig digits max:  {MAX_SIG_DIGITS}")
-    print(f"  Digit curriculum:{'on' if args.digit_curriculum else 'off'} "
-          f"(phase1 1-4, phase2 5-8, phase3 1-{MAX_SIG_DIGITS})")
+    if args.sig_digits_min is not None:
+        print(f"  Digit range:     fixed {args.sig_digits_min}-{args.sig_digits_max}")
+        print("  Digit curriculum:off (fixed range overrides curriculum)")
+    else:
+        print(f"  Digit curriculum:{'on' if args.digit_curriculum else 'off'} "
+              f"(phase1 1-4, phase2 5-8, phase3 1-{MAX_SIG_DIGITS})")
     print(f"  Allow float:     {args.allow_float}")
     print(f"  Output dir:      {args.out_dir}")
     print(f"  Seed:            {args.seed}")
@@ -527,13 +559,22 @@ def main():
 
         examples_raw = []
         task_counts = {name: 0 for name in task_names}
-        for i in tqdm(range(n_examples), desc=f"generating {split}"):
-            progress = (i / max(1, n_examples - 1)) if split == 'train' else 1.0
-            cfg['sig_digits_sampler'] = build_sig_digits_sampler(
-                progress=progress,
-                use_curriculum=args.digit_curriculum,
-                max_digits=MAX_SIG_DIGITS,
+        fixed_sig_sampler = None
+        if args.sig_digits_min is not None:
+            fixed_sig_sampler = build_fixed_sig_digits_sampler(
+                args.sig_digits_min,
+                args.sig_digits_max,
             )
+        for i in tqdm(range(n_examples), desc=f"generating {split}"):
+            if fixed_sig_sampler is not None:
+                cfg['sig_digits_sampler'] = fixed_sig_sampler
+            else:
+                progress = (i / max(1, n_examples - 1)) if split == 'train' else 1.0
+                cfg['sig_digits_sampler'] = build_sig_digits_sampler(
+                    progress=progress,
+                    use_curriculum=args.digit_curriculum,
+                    max_digits=MAX_SIG_DIGITS,
+                )
             gen = random.choices(generators, weights=weights, k=1)[0]
             input_text, output = gen(cfg)
             examples_raw.append((input_text, output))
@@ -601,6 +642,8 @@ def main():
             'numeric': args.numeric_weight,
         },
         'digit_curriculum': bool(args.digit_curriculum),
+        'sig_digits_min': args.sig_digits_min,
+        'sig_digits_max': args.sig_digits_max,
     }
     meta_path = os.path.join(args.out_dir, 'meta.pkl')
     with open(meta_path, 'wb') as f:
