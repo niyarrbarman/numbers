@@ -24,7 +24,11 @@
 mkdir -p slurm_logs
 set -euo pipefail
 
-TRAIN_DIR="/work/m24047/m24047brmn/numbers/GPT2/fe"
+REPO_DIR="${SLURM_SUBMIT_DIR:-$(pwd)}"
+TRAIN_DIR="${REPO_DIR}/GPT2/fe"
+if [[ ! -f "${TRAIN_DIR}/train.py" ]]; then
+  TRAIN_DIR="/work/m24047/m24047brmn/numbers/GPT2/fe"
+fi
 IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest.sif"
 
 # Path to pretrained NumberEncoder checkpoint
@@ -151,4 +155,3 @@ echo "=========================================="
 echo "Training finished with status $status"
 echo "=========================================="
 exit $status
-

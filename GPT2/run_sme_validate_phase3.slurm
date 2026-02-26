@@ -15,7 +15,11 @@ mkdir -p slurm_logs
 set -euo pipefail
 
 IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest.sif"
-SCRIPT_DIR="/work/m24047/m24047brmn/numbers/GPT2/fe"
+REPO_DIR="${SLURM_SUBMIT_DIR:-$(pwd)}"
+SCRIPT_DIR="${REPO_DIR}/GPT2/fe"
+if [[ ! -f "${SCRIPT_DIR}/validate_checkpoint.py" ]]; then
+  SCRIPT_DIR="/work/m24047/m24047brmn/numbers/GPT2/fe"
+fi
 
 BASE_DATA_DIR="${BASE_DATA_DIR:-/tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9_numw2_curr_stage_v1}"
 DATA_DIR="${DATA_DIR:-${BASE_DATA_DIR}_p3_d1_15}"
@@ -58,4 +62,3 @@ echo "=========================================="
 echo "Validation finished with status ${status}"
 echo "=========================================="
 exit ${status}
-

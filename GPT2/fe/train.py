@@ -27,7 +27,7 @@ from contextlib import nullcontext
 import numpy as np
 import torch
 from torch.nn.parallel import DistributedDataParallel as DDP
-from torch.distributed import init_process_group, destroy_process_group
+from torch.distributed import init_process_group, destroy_process_group, barrier
 
 from model import GPTConfig, GPT, NUM_TOKEN_ID
 
@@ -268,18 +268,18 @@ if ddp:
 
 # helps estimate an arbitrarily accurate loss over either split using many batches
 @torch.no_grad()
-def estimate_loss():
+def estimate_loss(eval_model):
     out = {}
-    model.eval()
+    eval_model.eval()
     for split in ['train', 'val']:
         losses = torch.zeros(eval_iters)
         for k in range(eval_iters):
             X, Y, NV, NM = get_batch(split)
             with ctx:
-                logits, loss = model(X, Y, num_values=NV, num_mask=NM)
+                logits, loss = eval_model(X, Y, num_values=NV, num_mask=NM)
             losses[k] = loss.item()
         out[split] = losses.mean()
-    model.train()
+    eval_model.train()
     return out
 
 
@@ -406,7 +406,7 @@ def decode_context(token_ids, num_values, enc):
 
 
 @torch.no_grad()
-def eval_samples(max_samples=5):
+def eval_samples(eval_model, max_samples=5):
     """Run model on val batch, show full task context with predicted vs target numbers."""
     # Lazy load tiktoken (needs TIKTOKEN_CACHE_DIR set)
     try:
@@ -415,11 +415,11 @@ def eval_samples(max_samples=5):
     except Exception:
         enc = None
 
-    model.eval()
+    eval_model.eval()
     X, Y, NV, NM = get_batch('val')
     with ctx:
-        logits, loss = model(X, Y, num_values=NV, num_mask=NM)
-    model.train()
+        logits, loss = eval_model(X, Y, num_values=NV, num_mask=NM)
+    eval_model.train()
 
     B, T, _ = logits.shape
     preds = logits.argmax(dim=-1)  # (B, T)
@@ -537,38 +537,44 @@ while True:
     adapter_lr = lr * adapter_lr_scale
 
     # evaluate the loss on train/val sets and write checkpoints
-    if iter_num % eval_interval == 0 and master_process:
-        losses = estimate_loss()
-        print(f"step {iter_num}: train loss {losses['train']:.4f}, "
-              f"val loss {losses['val']:.4f}")
-        if wandb_log:
-            wandb.log({
-                "iter": iter_num,
-                "train/loss": losses['train'],
-                "val/loss": losses['val'],
-                "lr": lr,
-                "mfu": running_mfu * 100,
-            })
-        if losses['val'] < best_val_loss or always_save_checkpoint:
-            if iter_num > 0:
-                checkpoint = {
-                    'model': raw_model.state_dict(),
-                    'optimizer': optimizer.state_dict(),
-                    'model_args': model_args,
-                    'iter_num': iter_num,
-                    'best_val_loss': best_val_loss,
-                    'config': config,
-                }
-                # Always save latest (for resume)
-                torch.save(checkpoint, os.path.join(out_dir, 'ckpt.pt'))
-                # Save periodic snapshot
-                torch.save(checkpoint, os.path.join(out_dir, f'ckpt_iter{iter_num}.pt'))
-                print(f"saving checkpoint to {out_dir}/ckpt_iter{iter_num}.pt")
-                # Save best separately
-                if losses['val'] < best_val_loss:
-                    torch.save(checkpoint, os.path.join(out_dir, 'ckpt_best.pt'))
-                    print(f"  new best val loss: {losses['val']:.4f}")
-            best_val_loss = losses['val']
+    if iter_num % eval_interval == 0:
+        # Keep all ranks in lockstep around rank-0-only evaluation/checkpointing.
+        if ddp:
+            barrier()
+        if master_process:
+            losses = estimate_loss(raw_model)
+            print(f"step {iter_num}: train loss {losses['train']:.4f}, "
+                  f"val loss {losses['val']:.4f}")
+            if wandb_log:
+                wandb.log({
+                    "iter": iter_num,
+                    "train/loss": losses['train'],
+                    "val/loss": losses['val'],
+                    "lr": lr,
+                    "mfu": running_mfu * 100,
+                })
+            if losses['val'] < best_val_loss or always_save_checkpoint:
+                if iter_num > 0:
+                    checkpoint = {
+                        'model': raw_model.state_dict(),
+                        'optimizer': optimizer.state_dict(),
+                        'model_args': model_args,
+                        'iter_num': iter_num,
+                        'best_val_loss': best_val_loss,
+                        'config': config,
+                    }
+                    # Always save latest (for resume)
+                    torch.save(checkpoint, os.path.join(out_dir, 'ckpt.pt'))
+                    # Save periodic snapshot
+                    torch.save(checkpoint, os.path.join(out_dir, f'ckpt_iter{iter_num}.pt'))
+                    print(f"saving checkpoint to {out_dir}/ckpt_iter{iter_num}.pt")
+                    # Save best separately
+                    if losses['val'] < best_val_loss:
+                        torch.save(checkpoint, os.path.join(out_dir, 'ckpt_best.pt'))
+                        print(f"  new best val loss: {losses['val']:.4f}")
+                best_val_loss = losses['val']
+        if ddp:
+            barrier()
     if iter_num == 0 and eval_only:
         break
 
@@ -678,8 +684,13 @@ while True:
             wandb.log(log_dict)
 
     # --- Sample evaluation every sample_interval steps ---
-    if iter_num % sample_interval == 0 and master_process and iter_num > 0:
-        eval_samples()
+    if iter_num % sample_interval == 0 and iter_num > 0:
+        if ddp:
+            barrier()
+        if master_process:
+            eval_samples(raw_model)
+        if ddp:
+            barrier()
 
     iter_num += 1
     local_iter_num += 1
