@@ -356,8 +356,10 @@ def compute_sme_accuracy(logits, targets):
             pos = max(next_pos, pos + 1)
 
     digit_pos_acc = {}
+    digit_pos_totals = {}
     for key, (correct, total) in d_pos.items():
         digit_pos_acc[key] = (correct / total) if total else 0.0
+        digit_pos_totals[key] = total
 
     out = {
         'overall': overall_acc,
@@ -366,6 +368,7 @@ def compute_sme_accuracy(logits, targets):
         'digit': acc(digit_mask),
         'end': acc(end_mask),
         'digit_pos': digit_pos_acc,
+        'digit_pos_totals': digit_pos_totals,
         'n_sme': n_sme,
     }
     out.update(digit_pos_acc)  # keep flat d0..dN keys for backward-compatible consumers
@@ -649,9 +652,11 @@ while True:
         # SME token accuracy
         sme_acc = compute_sme_accuracy(_diag_logits, _diag_targets)
         if sme_acc is not None:
+            # Only show digit positions that have data
             digit_pos_str = " ".join(
                 f"d{i} {sme_acc['digit_pos'].get(f'd{i}', 0.0):.3f}"
                 for i in range(SME_N_DIGITS)
+                if sme_acc.get('digit_pos_totals', {}).get(f'd{i}', 0) > 0
             )
             print(f"  SME accuracy: overall {sme_acc['overall']:.3f}, "
                   f"sign {sme_acc['sign']:.3f}, "
@@ -680,7 +685,8 @@ while True:
                     "sme/end": sme_acc['end'],
                 })
                 for i in range(SME_N_DIGITS):
-                    log_dict[f"sme/d{i}"] = sme_acc['digit_pos'].get(f"d{i}", 0.0)
+                    if sme_acc.get('digit_pos_totals', {}).get(f'd{i}', 0) > 0:
+                        log_dict[f"sme/d{i}"] = sme_acc['digit_pos'].get(f"d{i}", 0.0)
             wandb.log(log_dict)
 
     # --- Sample evaluation every sample_interval steps ---

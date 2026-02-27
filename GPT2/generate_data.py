@@ -233,12 +233,13 @@ def fmt(val):
 # Task tokenization (SME-aware)
 # =============================================================================
 
-def tokenize_task(input_text, output):
+def tokenize_task(input_text, output, max_digits=SME_MAX_DIGITS):
     """Tokenize a task with SME encoding for output numbers.
 
     Args:
         input_text: str — input part (numbers become <NUM> with embeddings)
         output: str | number | list[number] — output part
+        max_digits: int — max mantissa digits for SME encoding of output numbers
 
     Returns:
         (ids, nums) — parallel lists ready for block packing
@@ -262,14 +263,14 @@ def tokenize_task(input_text, output):
             if i > 0:
                 ids.append(220)  # space between numbers
                 nums.append(0.0)
-            sme = number_to_sme_tokens(val)
+            sme = number_to_sme_tokens(val, max_digits=max_digits)
             ids.extend(sme)
             nums.extend([0.0] * len(sme))
     else:
         # Single number output → SME tokens
         ids.append(220)  # space token before number
         nums.append(0.0)
-        sme = number_to_sme_tokens(output)
+        sme = number_to_sme_tokens(output, max_digits=max_digits)
         ids.extend(sme)
         nums.extend([0.0] * len(sme))
 
@@ -347,8 +348,9 @@ def gen_checksort(cfg):
 
 def gen_checkadd(cfg):
     """Verify if a + b = c is correct → YES/NO"""
+    mod = cfg.get('max_output_digits', SME_MAX_DIGITS)
     a, b = sample_numbers(2, cfg['range'], cfg['neg'], cfg['flt'], cfg.get('sig_digits_sampler'))
-    correct = _canonicalize_float(a + b)
+    correct = _canonicalize_float(a + b, sig_digits=mod)
     if isinstance(a, int) and isinstance(b, int):
         correct = int(correct)
     # 50% correct, 50% wrong (add noise to result)
@@ -363,7 +365,7 @@ def gen_checkadd(cfg):
             cfg['flt'],
             cfg.get('sig_digits_sampler'),
         )
-        c = _canonicalize_float(correct + noise) if cfg['flt'] else int(correct + noise)
+        c = _canonicalize_float(correct + noise, sig_digits=mod) if cfg['flt'] else int(correct + noise)
         label = "NO" if c != correct else "YES"
     # All numbers (a, b, c) are INPUT — output is just YES/NO
     return f"CHECKADD: {fmt(a)} + {fmt(b)} = {fmt(c)} →", label
@@ -397,7 +399,7 @@ def gen_sort(cfg):
 
 def gen_add(cfg):
     a, b = sample_numbers(2, cfg['range'], cfg['neg'], cfg['flt'], cfg.get('sig_digits_sampler'))
-    result = _canonicalize_float(a + b)
+    result = _canonicalize_float(a + b, sig_digits=cfg.get('max_output_digits', SME_MAX_DIGITS))
     if isinstance(a, int) and isinstance(b, int):
         result = int(result)
     return f"ADD: {fmt(a)} + {fmt(b)} →", result
@@ -405,7 +407,7 @@ def gen_add(cfg):
 
 def gen_sub(cfg):
     a, b = sample_numbers(2, cfg['range'], cfg['neg'], cfg['flt'], cfg.get('sig_digits_sampler'))
-    result = _canonicalize_float(a - b)
+    result = _canonicalize_float(a - b, sig_digits=cfg.get('max_output_digits', SME_MAX_DIGITS))
     if isinstance(a, int) and isinstance(b, int):
         result = int(result)
     return f"SUB: {fmt(a)} - {fmt(b)} →", result
@@ -428,7 +430,7 @@ def gen_max(cfg):
 def gen_sum(cfg):
     n = random.randint(cfg['min_len'], min(8, cfg['max_len']))
     nums = sample_numbers(n, cfg['range'], cfg['neg'], cfg['flt'], cfg.get('sig_digits_sampler'))
-    result = _canonicalize_float(sum(nums))
+    result = _canonicalize_float(sum(nums), sig_digits=cfg.get('max_output_digits', SME_MAX_DIGITS))
     if all(isinstance(x, int) for x in nums):
         result = int(result)
     inp = " ".join(fmt(x) for x in nums)
@@ -624,6 +626,12 @@ def main():
     generators = [g for g, _ in task_generators]
     weights = [w for _, w in task_generators]
 
+    # max_output_digits: cap result precision to match input constraint
+    if args.sig_digits_max is not None:
+        max_output_digits = args.sig_digits_max
+    else:
+        max_output_digits = SME_MAX_DIGITS
+
     cfg = {
         'range': args.number_range,
         'neg': args.allow_negative,
@@ -631,6 +639,7 @@ def main():
         'min_len': args.min_len,
         'max_len': args.max_len,
         'sig_digits_sampler': (lambda: random.randint(1, SME_MAX_DIGITS)),
+        'max_output_digits': max_output_digits,
     }
 
     task_names = [g.__name__[4:].upper() for g in generators]
@@ -652,6 +661,7 @@ def main():
     print(f"  Max digits:      {SME_MAX_DIGITS} (+ END)")
     if args.sig_digits_min is not None:
         print(f"  Digit range:     fixed {args.sig_digits_min}-{args.sig_digits_max}")
+        print(f"  Output digits:   capped at {max_output_digits}")
         print("  Digit curriculum:off (fixed range overrides curriculum)")
     else:
         print(f"  Digit curriculum:{'on' if args.digit_curriculum else 'off'} "
@@ -719,10 +729,10 @@ def main():
             print()
 
         # Tokenize with SME encoding
-        print(f"Tokenizing {split} (with SME for output numbers)...")
+        print(f"Tokenizing {split} (with SME for output numbers, max_digits={max_output_digits})...")
         tokenized = []
         for input_text, output in tqdm(examples_raw, desc=f"tokenizing {split}"):
-            ids, nums = tokenize_task(input_text, output)
+            ids, nums = tokenize_task(input_text, output, max_digits=max_output_digits)
             tokenized.append((ids, nums))
 
         # Report token lengths
