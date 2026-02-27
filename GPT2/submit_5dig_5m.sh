@@ -29,7 +29,7 @@ echo "=========================================="
 
 GEN_SME=$(sbatch --parsable \
   --job-name=gen-sme-5m \
-  --time=12:00:00 \
+  --time=06:00:00 \
   --output=slurm_logs/gen_sme_5dig_5m_%j.log \
   --error=slurm_logs/gen_sme_5dig_5m_%j.log \
   --export=ALL,N_TRAIN=${N_TRAIN},N_VAL=${N_VAL},OUT_DIR=${DATA_ROOT}/numtasks_sme_5dig_5m \
@@ -38,7 +38,7 @@ echo "SME data gen:    ${GEN_SME}"
 
 GEN_BASE=$(sbatch --parsable \
   --job-name=gen-base-5m \
-  --time=12:00:00 \
+  --time=06:00:00 \
   --output=slurm_logs/gen_base_5dig_5m_%j.log \
   --error=slurm_logs/gen_base_5dig_5m_%j.log \
   --export=ALL,N_TRAIN=${N_TRAIN},N_VAL=${N_VAL},OUT_DIR=${DATA_ROOT}/numtasks_base_5dig_5m \
@@ -50,7 +50,7 @@ echo "Base data gen:   ${GEN_BASE}"
 TRAIN_SME=$(sbatch --parsable \
   --dependency=afterok:${GEN_SME} \
   --job-name=sme-5m-train \
-  --time=36:00:00 \
+  --time=24:00:00 \
   --output=slurm_logs/gpt2_sme_5dig_5m_%j.log \
   --error=slurm_logs/gpt2_sme_5dig_5m_%j.log \
   --export=ALL,MAX_ITERS=35000,DATASET=numtasks_sme_5dig_5m,DATA_DIR=${DATA_ROOT}/numtasks_sme_5dig_5m,OUT_DIR=${MODEL_ROOT}/sme_5dig_5m \
@@ -60,7 +60,7 @@ echo "SME training:    ${TRAIN_SME}  (after gen ${GEN_SME})"
 TRAIN_BASE=$(sbatch --parsable \
   --dependency=afterok:${GEN_BASE} \
   --job-name=base-5m-train \
-  --time=36:00:00 \
+  --time=24:00:00 \
   --output=slurm_logs/gpt2_base_5dig_5m_%j.log \
   --error=slurm_logs/gpt2_base_5dig_5m_%j.log \
   --export=ALL,MAX_ITERS=35000,DATASET=numtasks_base_5dig_5m,DATA_DIR=${DATA_ROOT}/numtasks_base_5dig_5m,OUT_DIR=${MODEL_ROOT}/base_5dig_5m \
