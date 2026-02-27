@@ -540,7 +540,7 @@ def main() -> None:
             f"({sme_counts.counts[key][0]}/{sme_counts.counts[key][1]})"
         )
     digit_keys = sorted(
-        [k for k in sme_counts.counts if k.startswith("d") and sme_counts.counts[k][1] > 0],
+        [k for k in sme_counts.counts if k.startswith("d") and k[1:].isdigit() and sme_counts.counts[k][1] > 0],
         key=lambda k: int(k[1:]),
     )
     for key in digit_keys:
