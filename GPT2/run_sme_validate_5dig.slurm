@@ -15,7 +15,7 @@ set -euo pipefail
 IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest.sif"
 SCRIPT_DIR="/work/m24047/m24047brmn/numbers/GPT2/fe"
 
-CKPT_PATH="${CKPT_PATH:-/tmpdir/m24047brmn/numbers/model_checkpoints/sme_5dig/ckpt_best.pt}"
+CKPT_PATH="${CKPT_PATH:-/tmpdir/m24047brmn/numbers/model_checkpoints/sme_5dig/ckpt.pt}"
 DATA_DIR="${DATA_DIR:-/tmpdir/m24047brmn/numbers/data/numtasks_sme_5dig}"
 
 BATCH_BLOCKS="${BATCH_BLOCKS:-64}"

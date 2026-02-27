@@ -1,0 +1,322 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+==========================================
+GPT-2 SME Training — 5-digit (no curriculum)
+  Nodes:          4
+  GPUs/node:      2
+  Total GPUs:     8
+  Dataset:        numtasks_sme_5dig
+  Data dir:       /tmpdir/m24047brmn/numbers/data/numtasks_sme_5dig
+  Checkpoint:     /tmpdir/m24047brmn/numbers/checkpoints/np_emb_v8_500k_model.pt
+  Max iters:      20000
+  Learning rate:  4e-4
+  Adapter lr x:   0.5
+  Init from:      scratch
+  Out dir:        /tmpdir/m24047brmn/numbers/model_checkpoints/sme_5dig
+  Master:         10.158.1.103:38493
+==========================================
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+W0227 14:05:49.210000 3402623 torch/distributed/run.py:793] 
+W0227 14:05:49.210000 3402623 torch/distributed/run.py:793] *****************************************
+W0227 14:05:49.210000 3402623 torch/distributed/run.py:793] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0227 14:05:49.210000 3402623 torch/distributed/run.py:793] *****************************************
+W0227 14:05:49.210000 2670044 torch/distributed/run.py:793] 
+W0227 14:05:49.210000 2670044 torch/distributed/run.py:793] *****************************************
+W0227 14:05:49.210000 2670044 torch/distributed/run.py:793] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0227 14:05:49.210000 2670044 torch/distributed/run.py:793] *****************************************
+W0227 14:05:49.285000 2370432 torch/distributed/run.py:793] 
+W0227 14:05:49.285000 2370432 torch/distributed/run.py:793] *****************************************
+W0227 14:05:49.285000 2370432 torch/distributed/run.py:793] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0227 14:05:49.285000 2370432 torch/distributed/run.py:793] *****************************************
+W0227 14:05:49.305000 337761 torch/distributed/run.py:793] 
+W0227 14:05:49.305000 337761 torch/distributed/run.py:793] *****************************************
+W0227 14:05:49.305000 337761 torch/distributed/run.py:793] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0227 14:05:49.305000 337761 torch/distributed/run.py:793] *****************************************
+tokens per iteration will be: 122,880
+tokens per iteration will be: 122,880
+tokens per iteration will be: 122,880
+tokens per iteration will be: 122,880
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks_sme_5dig
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks_sme_5dig
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks_sme_5dig
+found vocab_size = 50304 (inside /tmpdir/m24047brmn/numbers/data/numtasks_sme_5dig/meta.pkl)
+Initializing a new model from scratch
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks_sme_5dig
+found vocab_size = 50304 (inside /tmpdir/m24047brmn/numbers/data/numtasks_sme_5dig/meta.pkl)
+Initializing a new model from scratch
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+found vocab_size = 50304 (inside /tmpdir/m24047brmn/numbers/data/numtasks_sme_5dig/meta.pkl)
+Initializing a new model from scratch
+found vocab_size = 50304 (inside /tmpdir/m24047brmn/numbers/data/numtasks_sme_5dig/meta.pkl)
+Initializing a new model from scratch
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+tokens per iteration will be: 122,880
+tokens per iteration will be: 122,880
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks_sme_5dig
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks_sme_5dig
+found vocab_size = 50304 (inside /tmpdir/m24047brmn/numbers/data/numtasks_sme_5dig/meta.pkl)
+Initializing a new model from scratch
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+tokens per iteration will be: 122,880
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks_sme_5dig
+found vocab_size = 50304 (inside /tmpdir/m24047brmn/numbers/data/numtasks_sme_5dig/meta.pkl)
+Initializing a new model from scratch
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+found vocab_size = 50304 (inside /tmpdir/m24047brmn/numbers/data/numtasks_sme_5dig/meta.pkl)
+Initializing a new model from scratch
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+tokens per iteration will be: 122,880
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks_sme_5dig
+found vocab_size = 50304 (inside /tmpdir/m24047brmn/numbers/data/numtasks_sme_5dig/meta.pkl)
+Initializing a new model from scratch
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+number of parameters: 22.42M
+number of parameters: 22.42M
+number of parameters: 22.42M
+number of parameters: 22.42M
+number of parameters: 22.42M
+number of parameters: 22.42M
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:240: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+optimizer parameter groups:
+  transformer_decay: 50 tensors, 22,380,544 params, weight_decay=0.1, lr_scale=1.0
+  transformer_nodecay: 25 tensors, 6,400 params, weight_decay=0.0, lr_scale=1.0
+  adapter_decay: 2 tensors, 98,304 params, weight_decay=0.1, lr_scale=0.5
+  adapter_nodecay: 2 tensors, 512 params, weight_decay=0.0, lr_scale=0.5
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:240: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+optimizer parameter groups:
+  transformer_decay: 50 tensors, 22,380,544 params, weight_decay=0.1, lr_scale=1.0
+  transformer_nodecay: 25 tensors, 6,400 params, weight_decay=0.0, lr_scale=1.0
+  adapter_decay: 2 tensors, 98,304 params, weight_decay=0.1, lr_scale=0.5
+  adapter_nodecay: 2 tensors, 512 params, weight_decay=0.0, lr_scale=0.5
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:240: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+optimizer parameter groups:
+  transformer_decay: 50 tensors, 22,380,544 params, weight_decay=0.1, lr_scale=1.0
+  transformer_nodecay: 25 tensors, 6,400 params, weight_decay=0.0, lr_scale=1.0
+  adapter_decay: 2 tensors, 98,304 params, weight_decay=0.1, lr_scale=0.5
+  adapter_nodecay: 2 tensors, 512 params, weight_decay=0.0, lr_scale=0.5
+number of parameters: 22.42M
+number of parameters: 22.42M
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:240: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+optimizer parameter groups:
+  transformer_decay: 50 tensors, 22,380,544 params, weight_decay=0.1, lr_scale=1.0
+  transformer_nodecay: 25 tensors, 6,400 params, weight_decay=0.0, lr_scale=1.0
+  adapter_decay: 2 tensors, 98,304 params, weight_decay=0.1, lr_scale=0.5
+  adapter_nodecay: 2 tensors, 512 params, weight_decay=0.0, lr_scale=0.5
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:240: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+optimizer parameter groups:
+  transformer_decay: 50 tensors, 22,380,544 params, weight_decay=0.1, lr_scale=1.0
+  transformer_nodecay: 25 tensors, 6,400 params, weight_decay=0.0, lr_scale=1.0
+  adapter_decay: 2 tensors, 98,304 params, weight_decay=0.1, lr_scale=0.5
+  adapter_nodecay: 2 tensors, 512 params, weight_decay=0.0, lr_scale=0.5
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:240: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+optimizer parameter groups:
+  transformer_decay: 50 tensors, 22,380,544 params, weight_decay=0.1, lr_scale=1.0
+  transformer_nodecay: 25 tensors, 6,400 params, weight_decay=0.0, lr_scale=1.0
+  adapter_decay: 2 tensors, 98,304 params, weight_decay=0.1, lr_scale=0.5
+  adapter_nodecay: 2 tensors, 512 params, weight_decay=0.0, lr_scale=0.5
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:240: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+optimizer parameter groups:
+  transformer_decay: 50 tensors, 22,380,544 params, weight_decay=0.1, lr_scale=1.0
+  transformer_nodecay: 25 tensors, 6,400 params, weight_decay=0.0, lr_scale=1.0
+  adapter_decay: 2 tensors, 98,304 params, weight_decay=0.1, lr_scale=0.5
+  adapter_nodecay: 2 tensors, 512 params, weight_decay=0.0, lr_scale=0.5
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:240: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+optimizer parameter groups:
+  transformer_decay: 50 tensors, 22,380,544 params, weight_decay=0.1, lr_scale=1.0
+  transformer_nodecay: 25 tensors, 6,400 params, weight_decay=0.0, lr_scale=1.0
+  adapter_decay: 2 tensors, 98,304 params, weight_decay=0.1, lr_scale=0.5
+  adapter_nodecay: 2 tensors, 512 params, weight_decay=0.0, lr_scale=0.5
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+step 0: train loss 10.7922, val loss 10.7882
+iter 0: loss 10.7968, time 183474.81ms, mfu -100.00%
+  === DIAG iter 0 ===
+  loss: 10.7968
+  grads: total 1.0000, transformer 0.9986, adapter 0.0536
+  <NUM> input tokens: 561/3072 (18.3%)
+  lr: base 2.00e-07, adapter 1.00e-07
+  SME accuracy: overall 0.010, sign 0.000, exp 0.000, digit 0.019, end 0.000 [d0 0.000 d1 0.000 d2 0.016 d3 0.061 d4 0.029 d5 0.000 d6 0.000 d7 0.077 d8 0.077 d9 0.077 d10 0.100 d11 0.000 d12 0.000 d13 0.000 d14 0.000] (868 SME tokens)
+iter 1: loss 10.7747, time 815.45ms, mfu -100.00%
+iter 2: loss 10.7857, time 477.54ms, mfu -100.00%
+iter 3: loss 10.7581, time 328.80ms, mfu -100.00%
+iter 4: loss 10.6709, time 452.86ms, mfu -100.00%
+iter 5: loss 10.6608, time 519.56ms, mfu 1.36%
+iter 6: loss 10.6376, time 364.72ms, mfu 1.42%
+iter 7: loss 10.5670, time 500.18ms, mfu 1.42%
+iter 8: loss 10.4675, time 359.23ms, mfu 1.48%
+iter 9: loss 10.4506, time 552.19ms, mfu 1.46%
+iter 10: loss 10.3247, time 455.17ms, mfu 1.47%
+iter 11: loss 10.2760, time 446.22ms, mfu 1.48%
+iter 12: loss 10.2025, time 373.11ms, mfu 1.52%
+iter 13: loss 10.1674, time 320.92ms, mfu 1.59%
+iter 14: loss 10.0331, time 446.09ms, mfu 1.59%
+iter 15: loss 9.9782, time 302.08ms, mfu 1.67%
+iter 16: loss 9.8913, time 445.87ms, mfu 1.66%
+iter 17: loss 9.8444, time 415.11ms, mfu 1.66%
+iter 18: loss 9.7178, time 540.57ms, mfu 1.63%
+iter 19: loss 9.6371, time 369.98ms, mfu 1.66%
+iter 20: loss 9.5766, time 367.16ms, mfu 1.68%
+iter 21: loss 9.4874, time 465.73ms, mfu 1.67%
+iter 22: loss 9.4248, time 439.18ms, mfu 1.66%
+iter 23: loss 9.4369, time 305.84ms, mfu 1.73%
+iter 24: loss 9.3488, time 528.82ms, mfu 1.69%
+iter 25: loss 9.2643, time 453.79ms, mfu 1.68%
+iter 26: loss 9.2279, time 347.01ms, mfu 1.71%
+iter 27: loss 9.1241, time 458.11ms, mfu 1.70%
+iter 28: loss 9.1127, time 519.73ms, mfu 1.66%
+iter 29: loss 8.9595, time 273.68ms, mfu 1.76%
+iter 30: loss 8.9547, time 526.04ms, mfu 1.71%
+iter 31: loss 8.9335, time 374.64ms, mfu 1.73%
+iter 32: loss 8.8886, time 445.27ms, mfu 1.72%
+iter 33: loss 8.7858, time 395.59ms, mfu 1.73%
+iter 34: loss 8.7357, time 370.86ms, mfu 1.74%
+iter 35: loss 8.7239, time 401.25ms, mfu 1.75%
+iter 36: loss 8.6879, time 349.22ms, mfu 1.77%
+iter 37: loss 8.6277, time 454.32ms, mfu 1.75%
+iter 38: loss 8.5157, time 462.59ms, mfu 1.73%
+iter 39: loss 8.5309, time 268.58ms, mfu 1.82%
+iter 40: loss 8.5862, time 495.87ms, mfu 1.78%
+iter 41: loss 8.4165, time 315.14ms, mfu 1.83%
+iter 42: loss 8.3398, time 322.62ms, mfu 1.87%
+iter 43: loss 8.3106, time 417.20ms, mfu 1.85%
+iter 44: loss 8.2004, time 279.17ms, mfu 1.92%
+iter 45: loss 8.2694, time 441.89ms, mfu 1.89%
+iter 46: loss 8.1761, time 275.59ms, mfu 1.96%
+iter 47: loss 8.3619, time 350.71ms, mfu 1.96%
+iter 48: loss 8.1141, time 550.24ms, mfu 1.89%
+iter 49: loss 8.1503, time 353.45ms, mfu 1.91%
+iter 50: loss 8.1706, time 397.42ms, mfu 1.89%
+iter 51: loss 8.0959, time 413.35ms, mfu 1.88%
+iter 52: loss 7.8680, time 349.14ms, mfu 1.89%
+iter 53: loss 8.0152, time 349.45ms, mfu 1.90%
+iter 54: loss 7.8604, time 351.33ms, mfu 1.92%
+iter 55: loss 8.0152, time 386.62ms, mfu 1.91%
+iter 56: loss 7.8719, time 446.14ms, mfu 1.88%
+iter 57: loss 7.9236, time 503.44ms, mfu 1.83%
+iter 58: loss 7.8850, time 420.24ms, mfu 1.81%
+iter 59: loss 7.8504, time 423.59ms, mfu 1.80%
+iter 60: loss 7.9096, time 288.61ms, mfu 1.87%
+iter 61: loss 7.7938, time 345.72ms, mfu 1.88%
+iter 62: loss 7.7955, time 449.93ms, mfu 1.85%
+iter 63: loss 7.7306, time 252.18ms, mfu 1.95%
+iter 64: loss 7.6620, time 326.38ms, mfu 1.97%
+iter 65: loss 7.6386, time 492.37ms, mfu 1.92%
+iter 66: loss 7.6388, time 416.74ms, mfu 1.90%
+iter 67: loss 7.7970, time 597.95ms, mfu 1.83%
+iter 68: loss 7.6453, time 348.84ms, mfu 1.85%
+iter 69: loss 7.6931, time 563.42ms, mfu 1.79%
+iter 70: loss 7.5644, time 265.65ms, mfu 1.88%
+iter 71: loss 7.6507, time 329.03ms, mfu 1.90%
+iter 72: loss 7.5203, time 383.08ms, mfu 1.90%
+iter 73: loss 7.6636, time 423.17ms, mfu 1.88%
+iter 74: loss 7.4769, time 293.39ms, mfu 1.93%
+iter 75: loss 7.5229, time 401.44ms, mfu 1.91%
+iter 76: loss 7.6819, time 483.53ms, mfu 1.87%
+iter 77: loss 7.5550, time 517.78ms, mfu 1.82%
+iter 78: loss 7.4503, time 405.78ms, mfu 1.81%
+iter 79: loss 7.4303, time 442.09ms, mfu 1.79%
+iter 80: loss 7.4688, time 439.75ms, mfu 1.77%
+iter 81: loss 7.5029, time 407.35ms, mfu 1.77%
+iter 82: loss 7.3496, time 388.57ms, mfu 1.77%
+iter 83: loss 7.2900, time 415.77ms, mfu 1.77%
+iter 84: loss 7.3286, time 424.58ms, mfu 1.76%
+iter 85: loss 7.3974, time 299.50ms, mfu 1.82%
+iter 86: loss 7.2965, time 416.63ms, mfu 1.81%
+iter 87: loss 7.2428, time 297.63ms, mfu 1.86%
+iter 88: loss 7.4434, time 428.39ms, mfu 1.84%
+iter 89: loss 7.3411, time 441.63ms, mfu 1.82%
+iter 90: loss 7.2315, time 421.44ms, mfu 1.81%
+iter 91: loss 7.2026, time 394.19ms, mfu 1.80%
+iter 92: loss 7.3185, time 410.48ms, mfu 1.80%
+iter 93: loss 7.2679, time 510.85ms, mfu 1.76%
+iter 94: loss 7.2916, time 453.95ms, mfu 1.74%
+iter 95: loss 7.2300, time 437.18ms, mfu 1.73%
+iter 96: loss 7.2731, time 219.99ms, mfu 1.87%
+iter 97: loss 7.2269, time 453.03ms, mfu 1.84%
+iter 98: loss 7.1441, time 241.52ms, mfu 1.95%
+iter 99: loss 7.1319, time 438.40ms, mfu 1.92%
+iter 100: loss 7.2102, time 529.09ms, mfu 1.86%
+  === DIAG iter 100 ===
+  loss: 7.2102
+  grads: total 1.0000, transformer 0.9999, adapter 0.0147
+  <NUM> input tokens: 486/3072 (15.8%)
+  lr: base 2.02e-05, adapter 1.01e-05
+  SME accuracy: overall 0.280, sign 0.000, exp 0.324, digit 0.198, end 0.848 [d0 0.225 d1 0.000 d2 0.110 d3 0.113 d4 0.195 d5 0.304 d6 0.500 d7 0.500 d8 0.412 d9 0.333 d10 0.333 d11 0.308 d12 0.333 d13 0.286 d14 0.000] (1022 SME tokens)
+iter 101: loss 7.0383, time 232.72ms, mfu 1.98%
+iter 102: loss 7.1633, time 388.00ms, mfu 1.96%
+iter 103: loss 7.3517, time 344.67ms, mfu 1.97%
+iter 104: loss 7.0716, time 438.03ms, mfu 1.94%
+iter 105: loss 7.0653, time 466.20ms, mfu 1.90%
+iter 106: loss 7.0849, time 412.33ms, mfu 1.88%
+iter 107: loss 7.1674, time 277.79ms, mfu 1.95%
+iter 108: loss 6.9939, time 428.82ms, mfu 1.92%
+iter 109: loss 7.1547, time 387.58ms, mfu 1.91%
+iter 110: loss 7.0779, time 418.01ms, mfu 1.89%
+iter 111: loss 7.0361, time 356.89ms, mfu 1.90%
+iter 112: loss 7.1025, time 485.44ms, mfu 1.85%
+iter 113: loss 6.9525, time 364.70ms, mfu 1.86%
+iter 114: loss 6.9437, time 455.11ms, mfu 1.83%
+iter 115: loss 6.9268, time 311.81ms, mfu 1.88%
+iter 116: loss 6.8406, time 339.69ms, mfu 1.90%
+iter 117: loss 6.9440, time 483.50ms, mfu 1.85%
+iter 118: loss 6.9934, time 456.97ms, mfu 1.82%
+iter 119: loss 7.0211, time 421.90ms, mfu 1.81%
+iter 120: loss 6.9813, time 469.47ms, mfu 1.78%
+iter 121: loss 6.8539, time 391.03ms, mfu 1.78%
+iter 122: loss 6.9709, time 470.23ms, mfu 1.75%
+iter 123: loss 6.9626, time 452.49ms, mfu 1.74%
+iter 124: loss 6.9090, time 407.40ms, mfu 1.74%
+iter 125: loss 6.9160, time 410.34ms, mfu 1.74%
+iter 126: loss 6.8484, time 412.95ms, mfu 1.73%
+iter 127: loss 6.9555, time 263.80ms, mfu 1.83%
+iter 128: loss 6.8963, time 463.32ms, mfu 1.80%
+iter 129: loss 6.8364, time 440.66ms, mfu 1.78%
+iter 130: loss 6.8970, time 460.00ms, mfu 1.76%
+iter 131: loss 6.9671, time 336.13ms, mfu 1.79%
+iter 132: loss 6.8446, time 375.47ms, mfu 1.80%
+iter 133: loss 6.7490, time 522.75ms, mfu 1.76%
+iter 134: loss 6.7407, time 438.93ms, mfu 1.74%
+iter 135: loss 6.7410, time 354.86ms, mfu 1.77%
+iter 136: loss 6.8065, time 346.58ms, mfu 1.80%
+iter 137: loss 6.7618, time 344.22ms, mfu 1.82%
+iter 138: loss 6.7073, time 361.66ms, mfu 1.84%
+iter 139: loss 6.8663, time 375.31ms, mfu 1.84%
+iter 140: loss 6.7573, time 282.82ms, mfu 1.91%
+iter 141: loss 6.6473, time 455.02ms, mfu 1.87%
+iter 142: loss 6.8041, time 459.69ms, mfu 1.84%
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** JOB 78492 ON turpancomp3 CANCELLED AT 2026-02-27T14:10:05 ***
+slurmstepd: error: *** STEP 78492.0 ON turpancomp3 CANCELLED AT 2026-02-27T14:10:05 ***
+W0227 14:10:05.735000 3402623 torch/distributed/elastic/agent/server/api.py:704] Received Signals.SIGTERM death signal, shutting down workers
+W0227 14:10:05.734000 2670044 torch/distributed/elastic/agent/server/api.py:704] Received Signals.SIGTERM death signal, shutting down workers
+W0227 14:10:05.735000 3402623 torch/distributed/elastic/multiprocessing/api.py:890] Sending process 3402693 closing signal SIGTERM
+W0227 14:10:05.735000 2670044 torch/distributed/elastic/multiprocessing/api.py:890] Sending process 2670113 closing signal SIGTERM
+W0227 14:10:05.735000 3402623 torch/distributed/elastic/multiprocessing/api.py:890] Sending process 3402694 closing signal SIGTERM
+W0227 14:10:05.735000 2670044 torch/distributed/elastic/multiprocessing/api.py:890] Sending process 2670114 closing signal SIGTERM
