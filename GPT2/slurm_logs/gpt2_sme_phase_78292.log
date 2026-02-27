@@ -1,0 +1,592 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+==========================================
+GPT-2 SME Curriculum Training (phase1_short)
+  Phase:          1
+  Nodes:          4
+  GPUs/node:      2
+  Total GPUs:     8
+  Dataset label:  numtasks_sme_vardig_e9_numw2_curr_stage_v1
+  Data dir:       /tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9_numw2_curr_stage_v1_p1_d1_4
+  Checkpoint:     /tmpdir/m24047brmn/numbers/checkpoints/np_emb_v8_500k_model.pt
+  Init from:      resume
+  Resume ckpt:    /tmpdir/m24047brmn/numbers/model_checkpoints/sme_vardig_e9_numw2_curr_stage_v1/ckpt_best.pt
+  Max iters:      12000
+  Learning rate:  4e-4
+  Adapter lr x:   0.5
+  Out dir:        /tmpdir/m24047brmn/numbers/model_checkpoints/sme_vardig_e9_numw2_curr_stage_v1
+  Master:         10.158.1.104:38293
+==========================================
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+W0226 11:29:57.782000 2343821 torch/distributed/run.py:793] 
+W0226 11:29:57.782000 2343821 torch/distributed/run.py:793] *****************************************
+W0226 11:29:57.782000 2343821 torch/distributed/run.py:793] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0226 11:29:57.782000 2343821 torch/distributed/run.py:793] *****************************************
+W0226 11:29:57.793000 2628010 torch/distributed/run.py:793] 
+W0226 11:29:57.793000 2628010 torch/distributed/run.py:793] *****************************************
+W0226 11:29:57.793000 2628010 torch/distributed/run.py:793] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0226 11:29:57.793000 2628010 torch/distributed/run.py:793] *****************************************
+W0226 11:29:57.822000 305506 torch/distributed/run.py:793] 
+W0226 11:29:57.822000 305506 torch/distributed/run.py:793] *****************************************
+W0226 11:29:57.822000 305506 torch/distributed/run.py:793] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0226 11:29:57.822000 305506 torch/distributed/run.py:793] *****************************************
+W0226 11:29:57.864000 1828463 torch/distributed/run.py:793] 
+W0226 11:29:57.864000 1828463 torch/distributed/run.py:793] *****************************************
+W0226 11:29:57.864000 1828463 torch/distributed/run.py:793] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0226 11:29:57.864000 1828463 torch/distributed/run.py:793] *****************************************
+tokens per iteration will be: 122,880
+tokens per iteration will be: 122,880
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9_numw2_curr_stage_v1_p1_d1_4
+tokens per iteration will be: 122,880
+tokens per iteration will be: 122,880
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9_numw2_curr_stage_v1_p1_d1_4
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9_numw2_curr_stage_v1_p1_d1_4
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9_numw2_curr_stage_v1_p1_d1_4
+found vocab_size = 50304 (inside /tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9_numw2_curr_stage_v1_p1_d1_4/meta.pkl)
+Resuming training from /tmpdir/m24047brmn/numbers/model_checkpoints/sme_vardig_e9_numw2_curr_stage_v1/ckpt_best.pt
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:211: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  checkpoint = torch.load(ckpt_path, map_location=device)
+found vocab_size = 50304 (inside /tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9_numw2_curr_stage_v1_p1_d1_4/meta.pkl)
+Resuming training from /tmpdir/m24047brmn/numbers/model_checkpoints/sme_vardig_e9_numw2_curr_stage_v1/ckpt_best.pt
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:211: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  checkpoint = torch.load(ckpt_path, map_location=device)
+found vocab_size = 50304 (inside /tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9_numw2_curr_stage_v1_p1_d1_4/meta.pkl)
+Resuming training from /tmpdir/m24047brmn/numbers/model_checkpoints/sme_vardig_e9_numw2_curr_stage_v1/ckpt_best.pt
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:211: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  checkpoint = torch.load(ckpt_path, map_location=device)
+found vocab_size = 50304 (inside /tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9_numw2_curr_stage_v1_p1_d1_4/meta.pkl)
+Resuming training from /tmpdir/m24047brmn/numbers/model_checkpoints/sme_vardig_e9_numw2_curr_stage_v1/ckpt_best.pt
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:211: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  checkpoint = torch.load(ckpt_path, map_location=device)
+tokens per iteration will be: 122,880
+tokens per iteration will be: 122,880
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9_numw2_curr_stage_v1_p1_d1_4
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9_numw2_curr_stage_v1_p1_d1_4
+found vocab_size = 50304 (inside /tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9_numw2_curr_stage_v1_p1_d1_4/meta.pkl)
+Resuming training from /tmpdir/m24047brmn/numbers/model_checkpoints/sme_vardig_e9_numw2_curr_stage_v1/ckpt_best.pt
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:211: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  checkpoint = torch.load(ckpt_path, map_location=device)
+tokens per iteration will be: 122,880
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9_numw2_curr_stage_v1_p1_d1_4
+tokens per iteration will be: 122,880
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9_numw2_curr_stage_v1_p1_d1_4
+found vocab_size = 50304 (inside /tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9_numw2_curr_stage_v1_p1_d1_4/meta.pkl)
+Resuming training from /tmpdir/m24047brmn/numbers/model_checkpoints/sme_vardig_e9_numw2_curr_stage_v1/ckpt_best.pt
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:211: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  checkpoint = torch.load(ckpt_path, map_location=device)
+found vocab_size = 50304 (inside /tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9_numw2_curr_stage_v1_p1_d1_4/meta.pkl)
+Resuming training from /tmpdir/m24047brmn/numbers/model_checkpoints/sme_vardig_e9_numw2_curr_stage_v1/ckpt_best.pt
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:211: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  checkpoint = torch.load(ckpt_path, map_location=device)
+found vocab_size = 50304 (inside /tmpdir/m24047brmn/numbers/data/numtasks_sme_vardig_e9_numw2_curr_stage_v1_p1_d1_4/meta.pkl)
+Resuming training from /tmpdir/m24047brmn/numbers/model_checkpoints/sme_vardig_e9_numw2_curr_stage_v1/ckpt_best.pt
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:211: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  checkpoint = torch.load(ckpt_path, map_location=device)
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+number of parameters: 22.42M
+number of parameters: 22.42M
+number of parameters: 22.42M
+number of parameters: 22.42M
+number of parameters: 22.42M
+number of parameters: 22.42M
+number of parameters: 22.42M
+number of parameters: 22.42M
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:240: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+optimizer parameter groups:
+  transformer_decay: 50 tensors, 22,380,544 params, weight_decay=0.1, lr_scale=1.0
+  transformer_nodecay: 25 tensors, 6,400 params, weight_decay=0.0, lr_scale=1.0
+  adapter_decay: 2 tensors, 98,304 params, weight_decay=0.1, lr_scale=0.5
+  adapter_nodecay: 2 tensors, 512 params, weight_decay=0.0, lr_scale=0.5
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:240: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+optimizer parameter groups:
+  transformer_decay: 50 tensors, 22,380,544 params, weight_decay=0.1, lr_scale=1.0
+  transformer_nodecay: 25 tensors, 6,400 params, weight_decay=0.0, lr_scale=1.0
+  adapter_decay: 2 tensors, 98,304 params, weight_decay=0.1, lr_scale=0.5
+  adapter_nodecay: 2 tensors, 512 params, weight_decay=0.0, lr_scale=0.5
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:240: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+optimizer parameter groups:
+  transformer_decay: 50 tensors, 22,380,544 params, weight_decay=0.1, lr_scale=1.0
+  transformer_nodecay: 25 tensors, 6,400 params, weight_decay=0.0, lr_scale=1.0
+  adapter_decay: 2 tensors, 98,304 params, weight_decay=0.1, lr_scale=0.5
+  adapter_nodecay: 2 tensors, 512 params, weight_decay=0.0, lr_scale=0.5
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:240: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+optimizer parameter groups:
+  transformer_decay: 50 tensors, 22,380,544 params, weight_decay=0.1, lr_scale=1.0
+  transformer_nodecay: 25 tensors, 6,400 params, weight_decay=0.0, lr_scale=1.0
+  adapter_decay: 2 tensors, 98,304 params, weight_decay=0.1, lr_scale=0.5
+  adapter_nodecay: 2 tensors, 512 params, weight_decay=0.0, lr_scale=0.5
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:240: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+optimizer parameter groups:
+  transformer_decay: 50 tensors, 22,380,544 params, weight_decay=0.1, lr_scale=1.0
+  transformer_nodecay: 25 tensors, 6,400 params, weight_decay=0.0, lr_scale=1.0
+  adapter_decay: 2 tensors, 98,304 params, weight_decay=0.1, lr_scale=0.5
+  adapter_nodecay: 2 tensors, 512 params, weight_decay=0.0, lr_scale=0.5
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:240: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+optimizer parameter groups:
+  transformer_decay: 50 tensors, 22,380,544 params, weight_decay=0.1, lr_scale=1.0
+  transformer_nodecay: 25 tensors, 6,400 params, weight_decay=0.0, lr_scale=1.0
+  adapter_decay: 2 tensors, 98,304 params, weight_decay=0.1, lr_scale=0.5
+  adapter_nodecay: 2 tensors, 512 params, weight_decay=0.0, lr_scale=0.5
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:240: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+optimizer parameter groups:
+  transformer_decay: 50 tensors, 22,380,544 params, weight_decay=0.1, lr_scale=1.0
+  transformer_nodecay: 25 tensors, 6,400 params, weight_decay=0.0, lr_scale=1.0
+  adapter_decay: 2 tensors, 98,304 params, weight_decay=0.1, lr_scale=0.5
+  adapter_nodecay: 2 tensors, 512 params, weight_decay=0.0, lr_scale=0.5
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py:240: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+optimizer parameter groups:
+  transformer_decay: 50 tensors, 22,380,544 params, weight_decay=0.1, lr_scale=1.0
+  transformer_nodecay: 25 tensors, 6,400 params, weight_decay=0.0, lr_scale=1.0
+  adapter_decay: 2 tensors, 98,304 params, weight_decay=0.1, lr_scale=0.5
+  adapter_nodecay: 2 tensors, 512 params, weight_decay=0.0, lr_scale=0.5
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+step 10000: train loss 0.4704, val loss 0.4746
+saving checkpoint to /tmpdir/m24047brmn/numbers/model_checkpoints/sme_vardig_e9_numw2_curr_stage_v1/ckpt_iter10000.pt
+  new best val loss: 0.4746
+iter 10000: loss 0.4672, time 145489.17ms, mfu -100.00%
+  === DIAG iter 10000 ===
+  loss: 0.4672
+  grads: total 1.0000, transformer 0.1566, adapter 0.9877
+  <NUM> input tokens: 570/3072 (18.6%)
+  lr: base 7.44e-05, adapter 3.72e-05
+  SME accuracy: overall 0.664, sign 0.967, exp 0.919, digit 0.469, end 0.992 [d0 0.877 d1 0.390 d2 0.155 d3 0.156 d4 0.265 d5 0.265 d6 0.273 d7 0.355 d8 0.367 d9 0.632 d10 0.722 d11 0.667 d12 0.571 d13 0.700 d14 0.714] (931 SME tokens)
+  --- Sample eval (val) ---
+  MIN: <3e-08> <1.817e+08> <-7.85> <6.8e+07> <-1e+09> <-4.03> <5.909e+06> <0> <-200000> <1e-06> →
+    target: -1e+09
+    pred:   -1e+09
+    error:  0.00
+
+  D1END
+    target: 5e+07 1e+08 2.469e+08
+    pred:   2e+08 2e+08 2e+08
+    error:  150000000.00 100000000.00 46910975.00
+
+  
+    target: -7.191e+08
+    pred:   INVALID(unparseable)
+
+  MAX: <1> <0> <-530> <0> →
+    target: 1
+    pred:   1
+    error:  0.00
+
+  MAX: <29000> <0.002> <-10100> <3.59e+08> <4.95341e+08> →
+    target: 4.953e+08
+    pred:   5.98e+08
+    error:  102658998.00
+
+[rank1]:[E226 11:42:36.268839780 ProcessGroupNCCL.cpp:616] [Rank 1] Watchdog caught collective operation timeout: WorkNCCL(SeqNum=6, OpType=BROADCAST, NumelIn=80, NumelOut=80, Timeout(ms)=600000) ran for 600025 milliseconds before timing out.
+[rank1]:[E226 11:42:36.275426500 ProcessGroupNCCL.cpp:1795] [PG ID 0 PG GUID 0(default_pg) Rank 1] Exception (either an error or timeout) detected by watchdog at work: 6, last enqueued NCCL work: 6, last completed NCCL work: 5.
+[rank3]:[E226 11:42:36.818896914 ProcessGroupNCCL.cpp:616] [Rank 3] Watchdog caught collective operation timeout: WorkNCCL(SeqNum=6, OpType=BROADCAST, NumelIn=80, NumelOut=80, Timeout(ms)=600000) ran for 600062 milliseconds before timing out.
+[rank2]:[E226 11:42:36.819049074 ProcessGroupNCCL.cpp:616] [Rank 2] Watchdog caught collective operation timeout: WorkNCCL(SeqNum=6, OpType=BROADCAST, NumelIn=80, NumelOut=80, Timeout(ms)=600000) ran for 600049 milliseconds before timing out.
+[rank5]:[E226 11:42:36.948804777 ProcessGroupNCCL.cpp:616] [Rank 5] Watchdog caught collective operation timeout: WorkNCCL(SeqNum=6, OpType=BROADCAST, NumelIn=80, NumelOut=80, Timeout(ms)=600000) ran for 600055 milliseconds before timing out.
+[rank3]:[E226 11:42:36.825579181 ProcessGroupNCCL.cpp:1795] [PG ID 0 PG GUID 0(default_pg) Rank 3] Exception (either an error or timeout) detected by watchdog at work: 6, last enqueued NCCL work: 6, last completed NCCL work: 5.
+[rank5]:[E226 11:42:36.955368462 ProcessGroupNCCL.cpp:1795] [PG ID 0 PG GUID 0(default_pg) Rank 5] Exception (either an error or timeout) detected by watchdog at work: 6, last enqueued NCCL work: 6, last completed NCCL work: 5.
+[rank2]:[E226 11:42:36.840071995 ProcessGroupNCCL.cpp:1795] [PG ID 0 PG GUID 0(default_pg) Rank 2] Exception (either an error or timeout) detected by watchdog at work: 6, last enqueued NCCL work: 6, last completed NCCL work: 5.
+[rank6]:[E226 11:42:36.837202407 ProcessGroupNCCL.cpp:616] [Rank 6] Watchdog caught collective operation timeout: WorkNCCL(SeqNum=6, OpType=BROADCAST, NumelIn=80, NumelOut=80, Timeout(ms)=600000) ran for 600055 milliseconds before timing out.
+[rank7]:[E226 11:42:36.837354168 ProcessGroupNCCL.cpp:616] [Rank 7] Watchdog caught collective operation timeout: WorkNCCL(SeqNum=6, OpType=BROADCAST, NumelIn=80, NumelOut=80, Timeout(ms)=600000) ran for 600076 milliseconds before timing out.
+[rank6]:[E226 11:42:36.843980324 ProcessGroupNCCL.cpp:1795] [PG ID 0 PG GUID 0(default_pg) Rank 6] Exception (either an error or timeout) detected by watchdog at work: 6, last enqueued NCCL work: 6, last completed NCCL work: 5.
+[rank7]:[E226 11:42:36.860016010 ProcessGroupNCCL.cpp:1795] [PG ID 0 PG GUID 0(default_pg) Rank 7] Exception (either an error or timeout) detected by watchdog at work: 6, last enqueued NCCL work: 6, last completed NCCL work: 5.
+[rank4]:[E226 11:42:36.004194395 ProcessGroupNCCL.cpp:616] [Rank 4] Watchdog caught collective operation timeout: WorkNCCL(SeqNum=6, OpType=BROADCAST, NumelIn=80, NumelOut=80, Timeout(ms)=600000) ran for 600092 milliseconds before timing out.
+[rank4]:[E226 11:42:36.004269596 ProcessGroupNCCL.cpp:1795] [PG ID 0 PG GUID 0(default_pg) Rank 4] Exception (either an error or timeout) detected by watchdog at work: 6, last enqueued NCCL work: 6, last completed NCCL work: 5.
+[rank5]:[E226 11:42:37.339420801 ProcessGroupNCCL.cpp:1844] [PG ID 0 PG GUID 0(default_pg) Rank 5] Timeout at NCCL work: 6, last enqueued NCCL work: 6, last completed NCCL work: 5.
+[rank5]:[E226 11:42:37.339434641 ProcessGroupNCCL.cpp:630] [Rank 5] Some NCCL operations have failed or timed out. Due to the asynchronous nature of CUDA kernels, subsequent GPU operations might run on corrupted/incomplete data.
+[rank5]:[E226 11:42:37.339439281 ProcessGroupNCCL.cpp:636] [Rank 5] To avoid data inconsistency, we are taking the entire process down.
+[rank5]:[E226 11:42:37.342388061 ProcessGroupNCCL.cpp:1605] [PG ID 0 PG GUID 0(default_pg) Rank 5] Process group watchdog thread terminated with exception: [Rank 5] Watchdog caught collective operation timeout: WorkNCCL(SeqNum=6, OpType=BROADCAST, NumelIn=80, NumelOut=80, Timeout(ms)=600000) ran for 600055 milliseconds before timing out.
+Exception raised from checkTimeout at /opt/pytorch/pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:618 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0xd4 (0x4000705ab134 in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10.so)
+frame #1: <unknown function> + 0x14ac6f0 (0x40002b9ac6f0 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #2: c10d::ProcessGroupNCCL::WorkNCCL::checkTimeout(std::optional<std::chrono::duration<long, std::ratio<1l, 1000l> > >) + 0x224 (0x40002b9d5524 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #3: c10d::ProcessGroupNCCL::watchdogHandler() + 0x224 (0x40002b9e9084 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #4: c10d::ProcessGroupNCCL::ncclCommWatchdog() + 0x114 (0x40002b9ea6f4 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #5: <unknown function> + 0xd31fc (0x4000707331fc in /lib/aarch64-linux-gnu/libstdc++.so.6)
+frame #6: <unknown function> + 0x7d5c8 (0x40001f91d5c8 in /lib/aarch64-linux-gnu/libc.so.6)
+frame #7: <unknown function> + 0xe5edc (0x40001f985edc in /lib/aarch64-linux-gnu/libc.so.6)
+
+terminate called after throwing an instance of 'c10::DistBackendError'
+  what():  [PG ID 0 PG GUID 0(default_pg) Rank 5] Process group watchdog thread terminated with exception: [Rank 5] Watchdog caught collective operation timeout: WorkNCCL(SeqNum=6, OpType=BROADCAST, NumelIn=80, NumelOut=80, Timeout(ms)=600000) ran for 600055 milliseconds before timing out.
+Exception raised from checkTimeout at /opt/pytorch/pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:618 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0xd4 (0x4000705ab134 in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10.so)
+frame #1: <unknown function> + 0x14ac6f0 (0x40002b9ac6f0 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #2: c10d::ProcessGroupNCCL::WorkNCCL::checkTimeout(std::optional<std::chrono::duration<long, std::ratio<1l, 1000l> > >) + 0x224 (0x40002b9d5524 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #3: c10d::ProcessGroupNCCL::watchdogHandler() + 0x224 (0x40002b9e9084 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #4: c10d::ProcessGroupNCCL::ncclCommWatchdog() + 0x114 (0x40002b9ea6f4 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #5: <unknown function> + 0xd31fc (0x4000707331fc in /lib/aarch64-linux-gnu/libstdc++.so.6)
+frame #6: <unknown function> + 0x7d5c8 (0x40001f91d5c8 in /lib/aarch64-linux-gnu/libc.so.6)
+frame #7: <unknown function> + 0xe5edc (0x40001f985edc in /lib/aarch64-linux-gnu/libc.so.6)
+
+Exception raised from ncclCommWatchdog at /opt/pytorch/pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:1611 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0xd4 (0x4000705ab134 in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10.so)
+frame #1: <unknown function> + 0x14ac6f0 (0x40002b9ac6f0 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #2: c10d::ProcessGroupNCCL::ncclCommWatchdog() + 0x464 (0x40002b9eaa44 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #3: <unknown function> + 0xd31fc (0x4000707331fc in /lib/aarch64-linux-gnu/libstdc++.so.6)
+frame #4: <unknown function> + 0x7d5c8 (0x40001f91d5c8 in /lib/aarch64-linux-gnu/libc.so.6)
+frame #5: <unknown function> + 0xe5edc (0x40001f985edc in /lib/aarch64-linux-gnu/libc.so.6)
+
+[rank4]:[E226 11:42:37.345819164 ProcessGroupNCCL.cpp:1844] [PG ID 0 PG GUID 0(default_pg) Rank 4] Timeout at NCCL work: 6, last enqueued NCCL work: 6, last completed NCCL work: 5.
+[rank4]:[E226 11:42:37.345833045 ProcessGroupNCCL.cpp:630] [Rank 4] Some NCCL operations have failed or timed out. Due to the asynchronous nature of CUDA kernels, subsequent GPU operations might run on corrupted/incomplete data.
+[rank4]:[E226 11:42:37.345837205 ProcessGroupNCCL.cpp:636] [Rank 4] To avoid data inconsistency, we are taking the entire process down.
+[rank4]:[E226 11:42:37.347078733 ProcessGroupNCCL.cpp:1605] [PG ID 0 PG GUID 0(default_pg) Rank 4] Process group watchdog thread terminated with exception: [Rank 4] Watchdog caught collective operation timeout: WorkNCCL(SeqNum=6, OpType=BROADCAST, NumelIn=80, NumelOut=80, Timeout(ms)=600000) ran for 600092 milliseconds before timing out.
+Exception raised from checkTimeout at /opt/pytorch/pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:618 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0xd4 (0x400075b4b134 in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10.so)
+frame #1: <unknown function> + 0x14ac6f0 (0x400030f4c6f0 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #2: c10d::ProcessGroupNCCL::WorkNCCL::checkTimeout(std::optional<std::chrono::duration<long, std::ratio<1l, 1000l> > >) + 0x224 (0x400030f75524 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #3: c10d::ProcessGroupNCCL::watchdogHandler() + 0x224 (0x400030f89084 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #4: c10d::ProcessGroupNCCL::ncclCommWatchdog() + 0x114 (0x400030f8a6f4 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #5: <unknown function> + 0xd31fc (0x400075cd31fc in /lib/aarch64-linux-gnu/libstdc++.so.6)
+frame #6: <unknown function> + 0x7d5c8 (0x400024ebd5c8 in /lib/aarch64-linux-gnu/libc.so.6)
+frame #7: <unknown function> + 0xe5edc (0x400024f25edc in /lib/aarch64-linux-gnu/libc.so.6)
+
+terminate called after throwing an instance of 'c10::DistBackendError'
+  what():  [PG ID 0 PG GUID 0(default_pg) Rank 4] Process group watchdog thread terminated with exception: [Rank 4] Watchdog caught collective operation timeout: WorkNCCL(SeqNum=6, OpType=BROADCAST, NumelIn=80, NumelOut=80, Timeout(ms)=600000) ran for 600092 milliseconds before timing out.
+Exception raised from checkTimeout at /opt/pytorch/pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:618 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0xd4 (0x400075b4b134 in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10.so)
+frame #1: <unknown function> + 0x14ac6f0 (0x400030f4c6f0 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #2: c10d::ProcessGroupNCCL::WorkNCCL::checkTimeout(std::optional<std::chrono::duration<long, std::ratio<1l, 1000l> > >) + 0x224 (0x400030f75524 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #3: c10d::ProcessGroupNCCL::watchdogHandler() + 0x224 (0x400030f89084 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #4: c10d::ProcessGroupNCCL::ncclCommWatchdog() + 0x114 (0x400030f8a6f4 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #5: <unknown function> + 0xd31fc (0x400075cd31fc in /lib/aarch64-linux-gnu/libstdc++.so.6)
+frame #6: <unknown function> + 0x7d5c8 (0x400024ebd5c8 in /lib/aarch64-linux-gnu/libc.so.6)
+frame #7: <unknown function> + 0xe5edc (0x400024f25edc in /lib/aarch64-linux-gnu/libc.so.6)
+
+Exception raised from ncclCommWatchdog at /opt/pytorch/pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:1611 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0xd4 (0x400075b4b134 in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10.so)
+frame #1: <unknown function> + 0x14ac6f0 (0x400030f4c6f0 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #2: c10d::ProcessGroupNCCL::ncclCommWatchdog() + 0x464 (0x400030f8aa44 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #3: <unknown function> + 0xd31fc (0x400075cd31fc in /lib/aarch64-linux-gnu/libstdc++.so.6)
+frame #4: <unknown function> + 0x7d5c8 (0x400024ebd5c8 in /lib/aarch64-linux-gnu/libc.so.6)
+frame #5: <unknown function> + 0xe5edc (0x400024f25edc in /lib/aarch64-linux-gnu/libc.so.6)
+
+[rank3]:[E226 11:42:37.322403945 ProcessGroupNCCL.cpp:1844] [PG ID 0 PG GUID 0(default_pg) Rank 3] Timeout at NCCL work: 6, last enqueued NCCL work: 6, last completed NCCL work: 5.
+[rank3]:[E226 11:42:37.322417625 ProcessGroupNCCL.cpp:630] [Rank 3] Some NCCL operations have failed or timed out. Due to the asynchronous nature of CUDA kernels, subsequent GPU operations might run on corrupted/incomplete data.
+[rank3]:[E226 11:42:37.322422825 ProcessGroupNCCL.cpp:636] [Rank 3] To avoid data inconsistency, we are taking the entire process down.
+[rank3]:[E226 11:42:37.327334056 ProcessGroupNCCL.cpp:1605] [PG ID 0 PG GUID 0(default_pg) Rank 3] Process group watchdog thread terminated with exception: [Rank 3] Watchdog caught collective operation timeout: WorkNCCL(SeqNum=6, OpType=BROADCAST, NumelIn=80, NumelOut=80, Timeout(ms)=600000) ran for 600062 milliseconds before timing out.
+Exception raised from checkTimeout at /opt/pytorch/pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:618 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0xd4 (0x40007ffab134 in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10.so)
+frame #1: <unknown function> + 0x14ac6f0 (0x40003b3ac6f0 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #2: c10d::ProcessGroupNCCL::WorkNCCL::checkTimeout(std::optional<std::chrono::duration<long, std::ratio<1l, 1000l> > >) + 0x224 (0x40003b3d5524 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #3: c10d::ProcessGroupNCCL::watchdogHandler() + 0x224 (0x40003b3e9084 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #4: c10d::ProcessGroupNCCL::ncclCommWatchdog() + 0x114 (0x40003b3ea6f4 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #5: <unknown function> + 0xd31fc (0x4000801331fc in /lib/aarch64-linux-gnu/libstdc++.so.6)
+frame #6: <unknown function> + 0x7d5c8 (0x40002f31d5c8 in /lib/aarch64-linux-gnu/libc.so.6)
+frame #7: <unknown function> + 0xe5edc (0x40002f385edc in /lib/aarch64-linux-gnu/libc.so.6)
+
+terminate called after throwing an instance of 'c10::DistBackendError'
+  what():  [PG ID 0 PG GUID 0(default_pg) Rank 3] Process group watchdog thread terminated with exception: [Rank 3] Watchdog caught collective operation timeout: WorkNCCL(SeqNum=6, OpType=BROADCAST, NumelIn=80, NumelOut=80, Timeout(ms)=600000) ran for 600062 milliseconds before timing out.
+Exception raised from checkTimeout at /opt/pytorch/pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:618 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0xd4 (0x40007ffab134 in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10.so)
+frame #1: <unknown function> + 0x14ac6f0 (0x40003b3ac6f0 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #2: c10d::ProcessGroupNCCL::WorkNCCL::checkTimeout(std::optional<std::chrono::duration<long, std::ratio<1l, 1000l> > >) + 0x224 (0x40003b3d5524 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #3: c10d::ProcessGroupNCCL::watchdogHandler() + 0x224 (0x40003b3e9084 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #4: c10d::ProcessGroupNCCL::ncclCommWatchdog() + 0x114 (0x40003b3ea6f4 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #5: <unknown function> + 0xd31fc (0x4000801331fc in /lib/aarch64-linux-gnu/libstdc++.so.6)
+frame #6: <unknown function> + 0x7d5c8 (0x40002f31d5c8 in /lib/aarch64-linux-gnu/libc.so.6)
+frame #7: <unknown function> + 0xe5edc (0x40002f385edc in /lib/aarch64-linux-gnu/libc.so.6)
+
+Exception raised from ncclCommWatchdog at /opt/pytorch/pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:1611 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0xd4 (0x40007ffab134 in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10.so)
+frame #1: <unknown function> + 0x14ac6f0 (0x40003b3ac6f0 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #2: c10d::ProcessGroupNCCL::ncclCommWatchdog() + 0x464 (0x40003b3eaa44 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #3: <unknown function> + 0xd31fc (0x4000801331fc in /lib/aarch64-linux-gnu/libstdc++.so.6)
+frame #4: <unknown function> + 0x7d5c8 (0x40002f31d5c8 in /lib/aarch64-linux-gnu/libc.so.6)
+frame #5: <unknown function> + 0xe5edc (0x40002f385edc in /lib/aarch64-linux-gnu/libc.so.6)
+
+[rank2]:[E226 11:42:37.480834613 ProcessGroupNCCL.cpp:1844] [PG ID 0 PG GUID 0(default_pg) Rank 2] Timeout at NCCL work: 6, last enqueued NCCL work: 6, last completed NCCL work: 5.
+[rank2]:[E226 11:42:37.480849333 ProcessGroupNCCL.cpp:630] [Rank 2] Some NCCL operations have failed or timed out. Due to the asynchronous nature of CUDA kernels, subsequent GPU operations might run on corrupted/incomplete data.
+[rank2]:[E226 11:42:37.480854413 ProcessGroupNCCL.cpp:636] [Rank 2] To avoid data inconsistency, we are taking the entire process down.
+[rank2]:[E226 11:42:37.482102891 ProcessGroupNCCL.cpp:1605] [PG ID 0 PG GUID 0(default_pg) Rank 2] Process group watchdog thread terminated with exception: [Rank 2] Watchdog caught collective operation timeout: WorkNCCL(SeqNum=6, OpType=BROADCAST, NumelIn=80, NumelOut=80, Timeout(ms)=600000) ran for 600049 milliseconds before timing out.
+Exception raised from checkTimeout at /opt/pytorch/pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:618 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0xd4 (0x4000721bb134 in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10.so)
+frame #1: <unknown function> + 0x14ac6f0 (0x40002d5bc6f0 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #2: c10d::ProcessGroupNCCL::WorkNCCL::checkTimeout(std::optional<std::chrono::duration<long, std::ratio<1l, 1000l> > >) + 0x224 (0x40002d5e5524 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #3: c10d::ProcessGroupNCCL::watchdogHandler() + 0x224 (0x40002d5f9084 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #4: c10d::ProcessGroupNCCL::ncclCommWatchdog() + 0x114 (0x40002d5fa6f4 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #5: <unknown function> + 0xd31fc (0x4000723431fc in /lib/aarch64-linux-gnu/libstdc++.so.6)
+frame #6: <unknown function> + 0x7d5c8 (0x40002152d5c8 in /lib/aarch64-linux-gnu/libc.so.6)
+frame #7: <unknown function> + 0xe5edc (0x400021595edc in /lib/aarch64-linux-gnu/libc.so.6)
+
+terminate called after throwing an instance of 'c10::DistBackendError'
+  what():  [PG ID 0 PG GUID 0(default_pg) Rank 2] Process group watchdog thread terminated with exception: [Rank 2] Watchdog caught collective operation timeout: WorkNCCL(SeqNum=6, OpType=BROADCAST, NumelIn=80, NumelOut=80, Timeout(ms)=600000) ran for 600049 milliseconds before timing out.
+Exception raised from checkTimeout at /opt/pytorch/pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:618 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0xd4 (0x4000721bb134 in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10.so)
+frame #1: <unknown function> + 0x14ac6f0 (0x40002d5bc6f0 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #2: c10d::ProcessGroupNCCL::WorkNCCL::checkTimeout(std::optional<std::chrono::duration<long, std::ratio<1l, 1000l> > >) + 0x224 (0x40002d5e5524 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #3: c10d::ProcessGroupNCCL::watchdogHandler() + 0x224 (0x40002d5f9084 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #4: c10d::ProcessGroupNCCL::ncclCommWatchdog() + 0x114 (0x40002d5fa6f4 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #5: <unknown function> + 0xd31fc (0x4000723431fc in /lib/aarch64-linux-gnu/libstdc++.so.6)
+frame #6: <unknown function> + 0x7d5c8 (0x40002152d5c8 in /lib/aarch64-linux-gnu/libc.so.6)
+frame #7: <unknown function> + 0xe5edc (0x400021595edc in /lib/aarch64-linux-gnu/libc.so.6)
+
+Exception raised from ncclCommWatchdog at /opt/pytorch/pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:1611 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0xd4 (0x4000721bb134 in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10.so)
+frame #1: <unknown function> + 0x14ac6f0 (0x40002d5bc6f0 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #2: c10d::ProcessGroupNCCL::ncclCommWatchdog() + 0x464 (0x40002d5faa44 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #3: <unknown function> + 0xd31fc (0x4000723431fc in /lib/aarch64-linux-gnu/libstdc++.so.6)
+frame #4: <unknown function> + 0x7d5c8 (0x40002152d5c8 in /lib/aarch64-linux-gnu/libc.so.6)
+frame #5: <unknown function> + 0xe5edc (0x400021595edc in /lib/aarch64-linux-gnu/libc.so.6)
+
+[rank1]:[E226 11:42:37.949957985 ProcessGroupNCCL.cpp:1844] [PG ID 0 PG GUID 0(default_pg) Rank 1] Timeout at NCCL work: 6, last enqueued NCCL work: 6, last completed NCCL work: 5.
+[rank1]:[E226 11:42:37.949971666 ProcessGroupNCCL.cpp:630] [Rank 1] Some NCCL operations have failed or timed out. Due to the asynchronous nature of CUDA kernels, subsequent GPU operations might run on corrupted/incomplete data.
+[rank1]:[E226 11:42:37.949976266 ProcessGroupNCCL.cpp:636] [Rank 1] To avoid data inconsistency, we are taking the entire process down.
+[rank1]:[E226 11:42:37.954014610 ProcessGroupNCCL.cpp:1605] [PG ID 0 PG GUID 0(default_pg) Rank 1] Process group watchdog thread terminated with exception: [Rank 1] Watchdog caught collective operation timeout: WorkNCCL(SeqNum=6, OpType=BROADCAST, NumelIn=80, NumelOut=80, Timeout(ms)=600000) ran for 600025 milliseconds before timing out.
+Exception raised from checkTimeout at /opt/pytorch/pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:618 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0xd4 (0x4000631eb134 in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10.so)
+frame #1: <unknown function> + 0x14ac6f0 (0x40001e5ec6f0 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #2: c10d::ProcessGroupNCCL::WorkNCCL::checkTimeout(std::optional<std::chrono::duration<long, std::ratio<1l, 1000l> > >) + 0x224 (0x40001e615524 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #3: c10d::ProcessGroupNCCL::watchdogHandler() + 0x224 (0x40001e629084 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #4: c10d::ProcessGroupNCCL::ncclCommWatchdog() + 0x114 (0x40001e62a6f4 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #5: <unknown function> + 0xd31fc (0x4000633731fc in /lib/aarch64-linux-gnu/libstdc++.so.6)
+frame #6: <unknown function> + 0x7d5c8 (0x40001255d5c8 in /lib/aarch64-linux-gnu/libc.so.6)
+frame #7: <unknown function> + 0xe5edc (0x4000125c5edc in /lib/aarch64-linux-gnu/libc.so.6)
+
+terminate called after throwing an instance of 'c10::DistBackendError'
+  what():  [PG ID 0 PG GUID 0(default_pg) Rank 1] Process group watchdog thread terminated with exception: [Rank 1] Watchdog caught collective operation timeout: WorkNCCL(SeqNum=6, OpType=BROADCAST, NumelIn=80, NumelOut=80, Timeout(ms)=600000) ran for 600025 milliseconds before timing out.
+Exception raised from checkTimeout at /opt/pytorch/pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:618 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0xd4 (0x4000631eb134 in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10.so)
+frame #1: <unknown function> + 0x14ac6f0 (0x40001e5ec6f0 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #2: c10d::ProcessGroupNCCL::WorkNCCL::checkTimeout(std::optional<std::chrono::duration<long, std::ratio<1l, 1000l> > >) + 0x224 (0x40001e615524 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #3: c10d::ProcessGroupNCCL::watchdogHandler() + 0x224 (0x40001e629084 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #4: c10d::ProcessGroupNCCL::ncclCommWatchdog() + 0x114 (0x40001e62a6f4 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #5: <unknown function> + 0xd31fc (0x4000633731fc in /lib/aarch64-linux-gnu/libstdc++.so.6)
+frame #6: <unknown function> + 0x7d5c8 (0x40001255d5c8 in /lib/aarch64-linux-gnu/libc.so.6)
+frame #7: <unknown function> + 0xe5edc (0x4000125c5edc in /lib/aarch64-linux-gnu/libc.so.6)
+
+Exception raised from ncclCommWatchdog at /opt/pytorch/pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:1611 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0xd4 (0x4000631eb134 in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10.so)
+frame #1: <unknown function> + 0x14ac6f0 (0x40001e5ec6f0 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #2: c10d::ProcessGroupNCCL::ncclCommWatchdog() + 0x464 (0x40001e62aa44 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #3: <unknown function> + 0xd31fc (0x4000633731fc in /lib/aarch64-linux-gnu/libstdc++.so.6)
+frame #4: <unknown function> + 0x7d5c8 (0x40001255d5c8 in /lib/aarch64-linux-gnu/libc.so.6)
+frame #5: <unknown function> + 0xe5edc (0x4000125c5edc in /lib/aarch64-linux-gnu/libc.so.6)
+
+[rank7]:[E226 11:42:37.523142847 ProcessGroupNCCL.cpp:1844] [PG ID 0 PG GUID 0(default_pg) Rank 7] Timeout at NCCL work: 6, last enqueued NCCL work: 6, last completed NCCL work: 5.
+[rank7]:[E226 11:42:37.523155127 ProcessGroupNCCL.cpp:630] [Rank 7] Some NCCL operations have failed or timed out. Due to the asynchronous nature of CUDA kernels, subsequent GPU operations might run on corrupted/incomplete data.
+[rank7]:[E226 11:42:37.523159687 ProcessGroupNCCL.cpp:636] [Rank 7] To avoid data inconsistency, we are taking the entire process down.
+[rank7]:[E226 11:42:37.543006993 ProcessGroupNCCL.cpp:1605] [PG ID 0 PG GUID 0(default_pg) Rank 7] Process group watchdog thread terminated with exception: [Rank 7] Watchdog caught collective operation timeout: WorkNCCL(SeqNum=6, OpType=BROADCAST, NumelIn=80, NumelOut=80, Timeout(ms)=600000) ran for 600076 milliseconds before timing out.
+Exception raised from checkTimeout at /opt/pytorch/pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:618 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0xd4 (0x40008c6db134 in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10.so)
+frame #1: <unknown function> + 0x14ac6f0 (0x400047adc6f0 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #2: c10d::ProcessGroupNCCL::WorkNCCL::checkTimeout(std::optional<std::chrono::duration<long, std::ratio<1l, 1000l> > >) + 0x224 (0x400047b05524 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #3: c10d::ProcessGroupNCCL::watchdogHandler() + 0x224 (0x400047b19084 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #4: c10d::ProcessGroupNCCL::ncclCommWatchdog() + 0x114 (0x400047b1a6f4 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #5: <unknown function> + 0xd31fc (0x40008c8631fc in /lib/aarch64-linux-gnu/libstdc++.so.6)
+frame #6: <unknown function> + 0x7d5c8 (0x40003ba4d5c8 in /lib/aarch64-linux-gnu/libc.so.6)
+frame #7: <unknown function> + 0xe5edc (0x40003bab5edc in /lib/aarch64-linux-gnu/libc.so.6)
+
+terminate called after throwing an instance of 'c10::DistBackendError'
+  what():  [PG ID 0 PG GUID 0(default_pg) Rank 7] Process group watchdog thread terminated with exception: [Rank 7] Watchdog caught collective operation timeout: WorkNCCL(SeqNum=6, OpType=BROADCAST, NumelIn=80, NumelOut=80, Timeout(ms)=600000) ran for 600076 milliseconds before timing out.
+Exception raised from checkTimeout at /opt/pytorch/pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:618 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0xd4 (0x40008c6db134 in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10.so)
+frame #1: <unknown function> + 0x14ac6f0 (0x400047adc6f0 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #2: c10d::ProcessGroupNCCL::WorkNCCL::checkTimeout(std::optional<std::chrono::duration<long, std::ratio<1l, 1000l> > >) + 0x224 (0x400047b05524 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #3: c10d::ProcessGroupNCCL::watchdogHandler() + 0x224 (0x400047b19084 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #4: c10d::ProcessGroupNCCL::ncclCommWatchdog() + 0x114 (0x400047b1a6f4 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #5: <unknown function> + 0xd31fc (0x40008c8631fc in /lib/aarch64-linux-gnu/libstdc++.so.6)
+frame #6: <unknown function> + 0x7d5c8 (0x40003ba4d5c8 in /lib/aarch64-linux-gnu/libc.so.6)
+frame #7: <unknown function> + 0xe5edc (0x40003bab5edc in /lib/aarch64-linux-gnu/libc.so.6)
+
+Exception raised from ncclCommWatchdog at /opt/pytorch/pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:1611 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0xd4 (0x40008c6db134 in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10.so)
+frame #1: <unknown function> + 0x14ac6f0 (0x400047adc6f0 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #2: c10d::ProcessGroupNCCL::ncclCommWatchdog() + 0x464 (0x400047b1aa44 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #3: <unknown function> + 0xd31fc (0x40008c8631fc in /lib/aarch64-linux-gnu/libstdc++.so.6)
+frame #4: <unknown function> + 0x7d5c8 (0x40003ba4d5c8 in /lib/aarch64-linux-gnu/libc.so.6)
+frame #5: <unknown function> + 0xe5edc (0x40003bab5edc in /lib/aarch64-linux-gnu/libc.so.6)
+
+[rank6]:[E226 11:42:37.766215831 ProcessGroupNCCL.cpp:1844] [PG ID 0 PG GUID 0(default_pg) Rank 6] Timeout at NCCL work: 6, last enqueued NCCL work: 6, last completed NCCL work: 5.
+[rank6]:[E226 11:42:37.766229231 ProcessGroupNCCL.cpp:630] [Rank 6] Some NCCL operations have failed or timed out. Due to the asynchronous nature of CUDA kernels, subsequent GPU operations might run on corrupted/incomplete data.
+[rank6]:[E226 11:42:37.766234151 ProcessGroupNCCL.cpp:636] [Rank 6] To avoid data inconsistency, we are taking the entire process down.
+[rank6]:[E226 11:42:37.767486598 ProcessGroupNCCL.cpp:1605] [PG ID 0 PG GUID 0(default_pg) Rank 6] Process group watchdog thread terminated with exception: [Rank 6] Watchdog caught collective operation timeout: WorkNCCL(SeqNum=6, OpType=BROADCAST, NumelIn=80, NumelOut=80, Timeout(ms)=600000) ran for 600055 milliseconds before timing out.
+Exception raised from checkTimeout at /opt/pytorch/pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:618 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0xd4 (0x400054a5b134 in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10.so)
+frame #1: <unknown function> + 0x14ac6f0 (0x40000fe5c6f0 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #2: c10d::ProcessGroupNCCL::WorkNCCL::checkTimeout(std::optional<std::chrono::duration<long, std::ratio<1l, 1000l> > >) + 0x224 (0x40000fe85524 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #3: c10d::ProcessGroupNCCL::watchdogHandler() + 0x224 (0x40000fe99084 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #4: c10d::ProcessGroupNCCL::ncclCommWatchdog() + 0x114 (0x40000fe9a6f4 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #5: <unknown function> + 0xd31fc (0x400054be31fc in /lib/aarch64-linux-gnu/libstdc++.so.6)
+frame #6: <unknown function> + 0x7d5c8 (0x400003dcd5c8 in /lib/aarch64-linux-gnu/libc.so.6)
+frame #7: <unknown function> + 0xe5edc (0x400003e35edc in /lib/aarch64-linux-gnu/libc.so.6)
+
+terminate called after throwing an instance of 'c10::DistBackendError'
+  what():  [PG ID 0 PG GUID 0(default_pg) Rank 6] Process group watchdog thread terminated with exception: [Rank 6] Watchdog caught collective operation timeout: WorkNCCL(SeqNum=6, OpType=BROADCAST, NumelIn=80, NumelOut=80, Timeout(ms)=600000) ran for 600055 milliseconds before timing out.
+Exception raised from checkTimeout at /opt/pytorch/pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:618 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0xd4 (0x400054a5b134 in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10.so)
+frame #1: <unknown function> + 0x14ac6f0 (0x40000fe5c6f0 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #2: c10d::ProcessGroupNCCL::WorkNCCL::checkTimeout(std::optional<std::chrono::duration<long, std::ratio<1l, 1000l> > >) + 0x224 (0x40000fe85524 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #3: c10d::ProcessGroupNCCL::watchdogHandler() + 0x224 (0x40000fe99084 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #4: c10d::ProcessGroupNCCL::ncclCommWatchdog() + 0x114 (0x40000fe9a6f4 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #5: <unknown function> + 0xd31fc (0x400054be31fc in /lib/aarch64-linux-gnu/libstdc++.so.6)
+frame #6: <unknown function> + 0x7d5c8 (0x400003dcd5c8 in /lib/aarch64-linux-gnu/libc.so.6)
+frame #7: <unknown function> + 0xe5edc (0x400003e35edc in /lib/aarch64-linux-gnu/libc.so.6)
+
+Exception raised from ncclCommWatchdog at /opt/pytorch/pytorch/torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp:1611 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0xd4 (0x400054a5b134 in /usr/local/lib/python3.10/dist-packages/torch/lib/libc10.so)
+frame #1: <unknown function> + 0x14ac6f0 (0x40000fe5c6f0 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #2: c10d::ProcessGroupNCCL::ncclCommWatchdog() + 0x464 (0x40000fe9aa44 in /usr/local/lib/python3.10/dist-packages/torch/lib/libtorch_cuda.so)
+frame #3: <unknown function> + 0xd31fc (0x400054be31fc in /lib/aarch64-linux-gnu/libstdc++.so.6)
+frame #4: <unknown function> + 0x7d5c8 (0x400003dcd5c8 in /lib/aarch64-linux-gnu/libc.so.6)
+frame #5: <unknown function> + 0xe5edc (0x400003e35edc in /lib/aarch64-linux-gnu/libc.so.6)
+
+W0226 11:42:37.838000 2343821 torch/distributed/elastic/multiprocessing/api.py:890] Sending process 2343891 closing signal SIGTERM
+E0226 11:42:37.935000 2343821 torch/distributed/elastic/multiprocessing/api.py:862] failed (exitcode: -6) local_rank: 0 (pid: 2343890) of binary: /usr/bin/python
+Traceback (most recent call last):
+  File "/usr/local/bin/torchrun", line 33, in <module>
+    sys.exit(load_entry_point('torch==2.5.0a0+e000cf0ad9.nv24.10', 'console_scripts', 'torchrun')())
+  File "/usr/local/lib/python3.10/dist-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 355, in wrapper
+    return f(*args, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/torch/distributed/run.py", line 919, in main
+    run(args)
+  File "/usr/local/lib/python3.10/dist-packages/torch/distributed/run.py", line 910, in run
+    elastic_launch(
+  File "/usr/local/lib/python3.10/dist-packages/torch/distributed/launcher/api.py", line 138, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+  File "/usr/local/lib/python3.10/dist-packages/torch/distributed/launcher/api.py", line 269, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+========================================================
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py FAILED
+--------------------------------------------------------
+Failures:
+  <NO_OTHER_FAILURES>
+--------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-02-26_11:42:37
+  host      : turpancomp6.calmip.local
+  rank      : 4 (local_rank: 0)
+  exitcode  : -6 (pid: 2343890)
+  error_file: <N/A>
+  traceback : Signal 6 (SIGABRT) received by PID 2343890
+========================================================
+W0226 11:42:37.959000 305506 torch/distributed/elastic/multiprocessing/api.py:890] Sending process 305575 closing signal SIGTERM
+[rank0]:[E226 11:42:37.469820944 ProcessGroupNCCL.cpp:616] [Rank 0] Watchdog caught collective operation timeout: WorkNCCL(SeqNum=9, OpType=ALLREDUCE, NumelIn=262144, NumelOut=262144, Timeout(ms)=600000) ran for 600059 milliseconds before timing out.
+[rank0]:[E226 11:42:37.469903784 ProcessGroupNCCL.cpp:1795] [PG ID 0 PG GUID 0(default_pg) Rank 0] Exception (either an error or timeout) detected by watchdog at work: 9, last enqueued NCCL work: 12, last completed NCCL work: 8.
+E0226 11:42:37.991000 305506 torch/distributed/elastic/multiprocessing/api.py:862] failed (exitcode: -6) local_rank: 1 (pid: 305576) of binary: /usr/bin/python
+Traceback (most recent call last):
+  File "/usr/local/bin/torchrun", line 33, in <module>
+    sys.exit(load_entry_point('torch==2.5.0a0+e000cf0ad9.nv24.10', 'console_scripts', 'torchrun')())
+  File "/usr/local/lib/python3.10/dist-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 355, in wrapper
+    return f(*args, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/torch/distributed/run.py", line 919, in main
+    run(args)
+  File "/usr/local/lib/python3.10/dist-packages/torch/distributed/run.py", line 910, in run
+    elastic_launch(
+  File "/usr/local/lib/python3.10/dist-packages/torch/distributed/launcher/api.py", line 138, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+  File "/usr/local/lib/python3.10/dist-packages/torch/distributed/launcher/api.py", line 269, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+=======================================================
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py FAILED
+-------------------------------------------------------
+Failures:
+  <NO_OTHER_FAILURES>
+-------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-02-26_11:42:37
+  host      : turpancomp5.calmip.local
+  rank      : 3 (local_rank: 1)
+  exitcode  : -6 (pid: 305576)
+  error_file: <N/A>
+  traceback : Signal 6 (SIGABRT) received by PID 305576
+=======================================================
+W0226 11:42:38.124000 1828463 torch/distributed/elastic/multiprocessing/api.py:890] Sending process 1828532 closing signal SIGTERM
+E0226 11:42:38.266000 1828463 torch/distributed/elastic/multiprocessing/api.py:862] failed (exitcode: -6) local_rank: 1 (pid: 1828533) of binary: /usr/bin/python
+Traceback (most recent call last):
+  File "/usr/local/bin/torchrun", line 33, in <module>
+    sys.exit(load_entry_point('torch==2.5.0a0+e000cf0ad9.nv24.10', 'console_scripts', 'torchrun')())
+  File "/usr/local/lib/python3.10/dist-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 355, in wrapper
+    return f(*args, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/torch/distributed/run.py", line 919, in main
+    run(args)
+  File "/usr/local/lib/python3.10/dist-packages/torch/distributed/run.py", line 910, in run
+    elastic_launch(
+  File "/usr/local/lib/python3.10/dist-packages/torch/distributed/launcher/api.py", line 138, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+  File "/usr/local/lib/python3.10/dist-packages/torch/distributed/launcher/api.py", line 269, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+========================================================
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py FAILED
+--------------------------------------------------------
+Failures:
+  <NO_OTHER_FAILURES>
+--------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-02-26_11:42:38
+  host      : turpancomp7.calmip.local
+  rank      : 7 (local_rank: 1)
+  exitcode  : -6 (pid: 1828533)
+  error_file: <N/A>
+  traceback : Signal 6 (SIGABRT) received by PID 1828533
+========================================================
+W0226 11:42:38.353000 2628010 torch/distributed/elastic/multiprocessing/api.py:890] Sending process 2628080 closing signal SIGTERM
+E0226 11:42:38.461000 2628010 torch/distributed/elastic/multiprocessing/api.py:862] failed (exitcode: -6) local_rank: 1 (pid: 2628081) of binary: /usr/bin/python
+Traceback (most recent call last):
+  File "/usr/local/bin/torchrun", line 33, in <module>
+    sys.exit(load_entry_point('torch==2.5.0a0+e000cf0ad9.nv24.10', 'console_scripts', 'torchrun')())
+  File "/usr/local/lib/python3.10/dist-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 355, in wrapper
+    return f(*args, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/torch/distributed/run.py", line 919, in main
+    run(args)
+  File "/usr/local/lib/python3.10/dist-packages/torch/distributed/run.py", line 910, in run
+    elastic_launch(
+  File "/usr/local/lib/python3.10/dist-packages/torch/distributed/launcher/api.py", line 138, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+  File "/usr/local/lib/python3.10/dist-packages/torch/distributed/launcher/api.py", line 269, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+========================================================
+/work/m24047/m24047brmn/numbers/GPT2/fe/train.py FAILED
+--------------------------------------------------------
+Failures:
+  <NO_OTHER_FAILURES>
+--------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-02-26_11:42:38
+  host      : turpancomp4.calmip.local
+  rank      : 1 (local_rank: 1)
+  exitcode  : -6 (pid: 2628081)
+  error_file: <N/A>
+  traceback : Signal 6 (SIGABRT) received by PID 2628081
+========================================================
+srun: error: turpancomp6: task 2: Exited with exit code 1
+srun: error: turpancomp5: task 1: Exited with exit code 1
+srun: error: turpancomp7: task 3: Exited with exit code 1
+srun: error: turpancomp4: task 0: Exited with exit code 1
