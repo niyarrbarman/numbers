@@ -105,10 +105,8 @@ class RunningSMECounts:
             "exp": [0, 0],
             "digit": [0, 0],
             "end": [0, 0],
-            "d0": [0, 0],
-            "d1": [0, 0],
-            "d2": [0, 0],
         }
+        # d0..dN created dynamically as digit positions are encountered
 
     def _add(self, key: str, correct: int, total: int) -> None:
         self.counts[key][0] += int(correct)
@@ -166,11 +164,13 @@ class RunningSMECounts:
                     continue
 
                 n_digits = len(parsed) - 3  # drop sign, exp, END
-                for di in range(min(3, n_digits)):
+                for di in range(n_digits):
                     dpos = pos + 2 + di
                     tgt = row_t[dpos]
                     if SME_DIGIT_BASE <= tgt <= SME_DIGIT_BASE + 9:
                         key = f"d{di}"
+                        if key not in self.counts:
+                            self.counts[key] = [0, 0]
                         ok = int(row_p[dpos] == tgt)
                         self._add(key, ok, 1)
 
@@ -533,7 +533,17 @@ def main() -> None:
     print("-" * 70)
     print("SME Token Accuracy")
     print("-" * 70)
-    for key in ["overall", "sign", "exp", "digit", "end", "d0", "d1", "d2"]:
+    # Print fixed keys, then dynamic digit positions with data
+    for key in ["overall", "sign", "exp", "digit", "end"]:
+        print(
+            f"{key:>8}: {sme_counts.accuracy(key):.4f} "
+            f"({sme_counts.counts[key][0]}/{sme_counts.counts[key][1]})"
+        )
+    digit_keys = sorted(
+        [k for k in sme_counts.counts if k.startswith("d") and sme_counts.counts[k][1] > 0],
+        key=lambda k: int(k[1:]),
+    )
+    for key in digit_keys:
         print(
             f"{key:>8}: {sme_counts.accuracy(key):.4f} "
             f"({sme_counts.counts[key][0]}/{sme_counts.counts[key][1]})"
@@ -598,7 +608,8 @@ def main() -> None:
                 "correct": sme_counts.counts[k][0],
                 "total": sme_counts.counts[k][1],
             }
-            for k in ["overall", "sign", "exp", "digit", "end", "d0", "d1", "d2"]
+            for k in sme_counts.counts
+            if sme_counts.counts[k][1] > 0
         },
         "number_metrics": {
             "total": total_num_preds,
