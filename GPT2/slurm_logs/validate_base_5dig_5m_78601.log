@@ -1,0 +1,287 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+==========================================
+Base GPT-2 5-Digit Checkpoint Validation
+  Checkpoint:   /tmpdir/m24047brmn/numbers/model_checkpoints/base_5dig_5m/ckpt_best.pt
+  Data dir:     /tmpdir/m24047brmn/numbers/data/numtasks_base_5dig_5m
+  Batch blocks: 64
+  Top-K errors: 25
+  Max blocks:   0 (0 = full val set)
+  JSON output:  /base_5dig_5m/val_report_best.json
+==========================================
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+======================================================================
+Base GPT-2 Checkpoint Validation (Full Val Set)
+======================================================================
+Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/base_5dig_5m/ckpt_best.pt
+Data dir:   /tmpdir/m24047brmn/numbers/data/numtasks_base_5dig_5m
+Device:     cuda
+Batch blk:  64
+Top-K err:  25
+Max blocks: ALL
+number of parameters: 22.32M
+----------------------------------------------------------------------
+Model block_size: 256
+Model vocab_size: 50304
+Checkpoint iter:  20000
+Best val loss:    1.9746037721633911
+Meta dataset:     numtasks_base_vardig_e9
+Meta vocab_size:  50304
+----------------------------------------------------------------------
+Validation tokens: 247,040
+Validation blocks: 965
+EOT tokens:        23,978
+======================================================================
+Validation Report
+======================================================================
+Tokens evaluated:              247,039
+Cross-entropy loss (avg):      1.908025
+Perplexity:                    6.739768
+----------------------------------------------------------------------
+Examples parsed (EOT-bounded): 10,000
+Examples evaluated:            10,000
+Output token accuracy:         0.9826 (36381/37027)
+Output exact-match rate:       0.9471 (9471/10000)
+Output token-seq exact rate:   0.9471 (9471/10000)
+----------------------------------------------------------------------
+Numeric Task Metrics
+----------------------------------------------------------------------
+Numeric examples:              6,722
+Numeric valid parses:          6,720
+Numeric invalid parses:        2
+Numeric exact-example rate:    0.9256 (6222/6722)
+MAE (value-level):             16773.984819
+RMSE (value-level):            430355.537397
+Median abs err:                0.000000
+P90/P95/P99 abs err:           0.000000 / 0.000000 / 95000.000000
+Max abs err:                   22500100.000000
+MAPE (|target|>0):             0.220383
+----------------------------------------------------------------------
+Per-Task Metrics
+----------------------------------------------------------------------
+Task                N   OutExact     TokAcc   TokExact   NumValid   NumInv     NumMAE     NumP95
+ADD               960     0.9167     0.9683     0.9167        960        0 20804.5960     0.0009
+CHECKADD          480     0.9750     0.9750     0.9750          0        0     0.0000     0.0000
+CHECKSORT         471     0.9809     0.9809     0.9809          0        0     0.0000     0.0000
+CMP               469     1.0000     1.0000     1.0000          0        0     0.0000     0.0000
+COUNT             956     0.9990     0.9990     0.9990        956        0     0.0010     0.0000
+GT                475     0.9979     0.9979     0.9979          0        0     0.0000     0.0000
+IS_POS            458     1.0000     1.0000     1.0000          0        0     0.0000     0.0000
+IS_SORTED         463     1.0000     1.0000     1.0000          0        0     0.0000     0.0000
+MAX               953     0.9979     0.9991     0.9979        953        0  1887.7230     0.0000
+MIN               989     0.9990     0.9997     0.9990        989        0     0.5308     0.0000
+SORT              989     0.9818     0.9990     0.9818        988        1    49.4197     0.0000
+SUB               961     0.9313     0.9721     0.9313        961        0  4547.8427     0.0000
+SUM               914     0.6368     0.8342     0.6368        913        1 182959.4662 362399.4000
+SUM_CMP           462     0.9848     0.9900     0.9848          0        0     0.0000     0.0000
+----------------------------------------------------------------------
+Top 25 Worst Numeric Examples
+----------------------------------------------------------------------
+[01] task=SORT valid_numeric=False
+  prompt:      SORT: -1.18e-05 71500 2174 -8e-05 -857.1 -81115 -100000
+  target_text: -100000 -81115 -857.1 -8e-05 -1.18e-05 2174 71500
+  pred_text:   -100000 -81115 -857.1 -8.-05 -1.18e-05 2174 71500
+  target_nums: [-100000.0, -81115.0, -857.1, -8e-05, -1.18e-05, 2174.0, 71500.0]
+  pred_nums:   [-100000.0, -81115.0, -857.1, -8.0, -5.0, -1.18e-05, 2174.0, 71500.0]
+  abs_err_max: None
+  abs_err_mean:None
+[02] task=SUM valid_numeric=False
+  prompt:      SUM: 7.494e-09 5e-08 -1.3832e-06
+  target_text: -1.3257e-06
+  pred_text:   -1.34ee-06
+  target_nums: [-1.3257e-06]
+  pred_nums:   [-1.34, -6.0]
+  abs_err_max: None
+  abs_err_mean:None
+[03] task=SUM valid_numeric=True
+  prompt:      SUM: 48915 100000 -6246 7.639 -163.45 85200
+  target_text: 227710
+  pred_text:   22727810
+  target_nums: [227710.0]
+  pred_nums:   [22727810.0]
+  abs_err_max: 22500100.0
+  abs_err_mean:22500100.0
+[04] task=SUM valid_numeric=True
+  prompt:      SUM: 100000 100000 5030 4.887e-05 9648.5 12000
+  target_text: 226680
+  pred_text:   22626680
+  target_nums: [226680.0]
+  pred_nums:   [22626680.0]
+  abs_err_max: 22400000.0
+  abs_err_mean:22400000.0
+[05] task=SUM valid_numeric=True
+  prompt:      SUM: 0.000679 -751 90000 56100 45.67 77246 8e-09
+  target_text: 222640
+  pred_text:   22222640
+  target_nums: [222640.0]
+  pred_nums:   [22222640.0]
+  abs_err_max: 22000000.0
+  abs_err_mean:22000000.0
+[06] task=ADD valid_numeric=True
+  prompt:      ADD: 29996 + 100000
+  target_text: 130000
+  pred_text:   13000000
+  target_nums: [130000.0]
+  pred_nums:   [13000000.0]
+  abs_err_max: 12870000.0
+  abs_err_mean:12870000.0
+[07] task=SUM valid_numeric=True
+  prompt:      SUM: 14697 92640 -0.76 37200 -34560
+  target_text: 109980
+  pred_text:   11009080
+  target_nums: [109980.0]
+  pred_nums:   [11009080.0]
+  abs_err_max: 10899100.0
+  abs_err_mean:10899100.0
+[08] task=SUM valid_numeric=True
+  prompt:      SUM: 1 0 0.00067 -26 0 -100000 41
+  target_text: -99984
+  pred_text:   -9999984
+  target_nums: [-99984.0]
+  pred_nums:   [-9999984.0]
+  abs_err_max: 9900000.0
+  abs_err_mean:9900000.0
+[09] task=SUM valid_numeric=True
+  prompt:      SUM: -799 -78300 5e-05 0.0031 2426
+  target_text: -76673
+  pred_text:   -7676673
+  target_nums: [-76673.0]
+  pred_nums:   [-7676673.0]
+  abs_err_max: 7600000.0
+  abs_err_mean:7600000.0
+[10] task=SUM valid_numeric=True
+  prompt:      SUM: -17189 -100000 -6.1 1.3881e-09 45685 0.20921
+  target_text: -71510
+  pred_text:   -7141510
+  target_nums: [-71510.0]
+  pred_nums:   [-7141510.0]
+  abs_err_max: 7070000.0
+  abs_err_mean:7070000.0
+[11] task=SUM valid_numeric=True
+  prompt:      SUM: 53861 8000 750
+  target_text: 62611
+  pred_text:   6252611
+  target_nums: [62611.0]
+  pred_nums:   [6252611.0]
+  abs_err_max: 6190000.0
+  abs_err_mean:6190000.0
+[12] task=SUM valid_numeric=True
+  prompt:      SUM: -93291 70000 -49192 2e-06
+  target_text: -72483
+  pred_text:   -6252483
+  target_nums: [-72483.0]
+  pred_nums:   [-6252483.0]
+  abs_err_max: 6180000.0
+  abs_err_mean:6180000.0
+[13] task=SUM valid_numeric=True
+  prompt:      SUM: 2.934 91900 64000 42192 100000 100000 5.766e-08 7.13e-07
+  target_text: 398090
+  pred_text:   3988190
+  target_nums: [398090.0]
+  pred_nums:   [3988190.0]
+  abs_err_max: 3590100.0
+  abs_err_mean:3590100.0
+[14] task=SUM valid_numeric=True
+  prompt:      SUM: 7 -0.00076 31974 0
+  target_text: 31981
+  pred_text:   3191982
+  target_nums: [31981.0]
+  pred_nums:   [3191982.0]
+  abs_err_max: 3160001.0
+  abs_err_mean:3160001.0
+[15] task=SUM valid_numeric=True
+  prompt:      SUM: 0 740 4.7793e-07 8.8263e-06 63000 92000 86771 39000
+  target_text: 281510
+  pred_text:   2801510
+  target_nums: [281510.0]
+  pred_nums:   [2801510.0]
+  abs_err_max: 2520000.0
+  abs_err_mean:2520000.0
+[16] task=SUM valid_numeric=True
+  prompt:      SUM: 8.5e-08 750 80000 83830 100000
+  target_text: 264580
+  pred_text:   2644580
+  target_nums: [264580.0]
+  pred_nums:   [2644580.0]
+  abs_err_max: 2380000.0
+  abs_err_mean:2380000.0
+[17] task=SUM valid_numeric=True
+  prompt:      SUM: 5.1118e-06 0 40050 75672 0 99349
+  target_text: 215070
+  pred_text:   2145070
+  target_nums: [215070.0]
+  pred_nums:   [2145070.0]
+  abs_err_max: 1930000.0
+  abs_err_mean:1930000.0
+[18] task=SUM valid_numeric=True
+  prompt:      SUM: 0.0005811 78100 100000 -6.9079e-07 0.007989 33418 -17330
+  target_text: 194190
+  pred_text:   1942190
+  target_nums: [194190.0]
+  pred_nums:   [1942190.0]
+  abs_err_max: 1748000.0
+  abs_err_mean:1748000.0
+[19] task=SUM valid_numeric=True
+  prompt:      SUM: 60 0.5 90000 2.9e-05 2.1586e-08 94073
+  target_text: 184130
+  pred_text:   1844130
+  target_nums: [184130.0]
+  pred_nums:   [1844130.0]
+  abs_err_max: 1660000.0
+  abs_err_mean:1660000.0
+[20] task=SUM valid_numeric=True
+  prompt:      SUM: 0.041253 92500 82484
+  target_text: 174980
+  pred_text:   1754980
+  target_nums: [174980.0]
+  pred_nums:   [1754980.0]
+  abs_err_max: 1580000.0
+  abs_err_mean:1580000.0
+[21] task=SUM valid_numeric=True
+  prompt:      SUM: 75030 100000 -6554.5
+  target_text: 168480
+  pred_text:   1688480
+  target_nums: [168480.0]
+  pred_nums:   [1688480.0]
+  abs_err_max: 1520000.0
+  abs_err_mean:1520000.0
+[22] task=SUM valid_numeric=True
+  prompt:      SUM: 82.2 1e-05 0 87000 79970 3.075e-05
+  target_text: 167050
+  pred_text:   1677050
+  target_nums: [167050.0]
+  pred_nums:   [1677050.0]
+  abs_err_max: 1510000.0
+  abs_err_mean:1510000.0
+[23] task=SUM valid_numeric=True
+  prompt:      SUM: 7.0967e-09 95588 42520 0.0074614
+  target_text: 138110
+  pred_text:   1388110
+  target_nums: [138110.0]
+  pred_nums:   [1388110.0]
+  abs_err_max: 1250000.0
+  abs_err_mean:1250000.0
+[24] task=SUM valid_numeric=True
+  prompt:      SUM: 20000 0 0 24592 0 0.0003661 77770 852.17
+  target_text: 123210
+  pred_text:   1233210
+  target_nums: [123210.0]
+  pred_nums:   [1233210.0]
+  abs_err_max: 1110000.0
+  abs_err_mean:1110000.0
+[25] task=SUM valid_numeric=True
+  prompt:      SUM: 10000 50000 -75303 -6e-06 -100000
+  target_text: -115300
+  pred_text:   -1155300
+  target_nums: [-115300.0]
+  pred_nums:   [-1155300.0]
+  abs_err_max: 1040000.0
+  abs_err_mean:1040000.0
+Traceback (most recent call last):
+  File "/work/m24047/m24047brmn/numbers/GPT2/base/validate_checkpoint.py", line 558, in <module>
+    main()
+  File "/work/m24047/m24047brmn/numbers/GPT2/base/validate_checkpoint.py", line 547, in main
+    os.makedirs(out_dir, exist_ok=True)
+  File "/usr/lib/python3.10/os.py", line 225, in makedirs
+    mkdir(name, mode)
+OSError: [Errno 30] Read-only file system: '/base_5dig_5m'

@@ -1,0 +1,27 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+==========================================
+Base GPT-2 5-Digit Checkpoint Validation
+  Checkpoint:   /base_5dig_5m/ckpt_best.pt
+  Data dir:     /numtasks_base_5dig_5m
+  Batch blocks: 64
+  Top-K errors: 25
+  Max blocks:   0 (0 = full val set)
+  JSON output:  /base_5dig_5m/val_report_best.json
+==========================================
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+======================================================================
+Base GPT-2 Checkpoint Validation (Full Val Set)
+======================================================================
+Checkpoint: /base_5dig_5m/ckpt_best.pt
+Data dir:   /numtasks_base_5dig_5m
+Device:     cuda
+Batch blk:  64
+Top-K err:  25
+Max blocks: ALL
+Traceback (most recent call last):
+  File "/work/m24047/m24047brmn/numbers/GPT2/base/validate_checkpoint.py", line 558, in <module>
+    main()
+  File "/work/m24047/m24047brmn/numbers/GPT2/base/validate_checkpoint.py", line 195, in main
+    raise FileNotFoundError(f"Missing {val_bin}")
+FileNotFoundError: Missing /numtasks_base_5dig_5m/val.bin
