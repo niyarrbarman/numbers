@@ -255,7 +255,9 @@ class GPT(nn.Module):
             for k in range(self.num_positions):
                 mask_k = (pos_flat == k)
                 if mask_k.any():
-                    num_proj[mask_k] = self.num_projections[k](num_emb[mask_k])
+                    # AMP/autocast can return bf16/fp16 here even when num_proj is fp32.
+                    proj_k = self.num_projections[k](num_emb[mask_k]).to(num_proj.dtype)
+                    num_proj[mask_k] = proj_k
 
             tok_emb = tok_emb.clone()
             tok_emb[num_mask] = num_proj.to(tok_emb.dtype)
