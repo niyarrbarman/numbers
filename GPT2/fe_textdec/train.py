@@ -1,23 +1,27 @@
 """
-Training script for multi-position number-aware GPT-2 (SME output).
+Training script for number-aware GPT-2 (text output decoding).
 
-Extends nanoGPT's training loop to support triple-stream data:
-  - Token IDs ({split}.bin, uint16) with k × <NUM> placeholders per input number
+Extends nanoGPT's training loop to support dual-stream data:
+  - Token IDs ({split}.bin, uint16) with <NUM> placeholders for input numbers
   - Number values ({split}_nums.bin, float32) at <NUM> positions
-  - Position indices ({split}_pos.bin, int8) with 0..k-1 at NUM positions, -1 elsewhere
 
-Each input number occupies k consecutive <NUM> token positions. The model
-uses k separate projection heads to create position-specific embeddings.
+Output numbers are predicted as plain text BPE tokens (no SME encoding).
+All loss is standard cross-entropy — no separate number loss.
+
+Supports single GPU, DDP, gradient accumulation, mixed precision,
+wandb logging, and torch.compile — same as base nanoGPT.
 
 Usage:
-  python train.py
-  python train.py num_emb_checkpoint=path/to/model.pt
+  python train.py                          # defaults (scratch)
+  python train.py num_emb_checkpoint=path/to/model.pt  # with pretrained encoder
+  python train.py init_from=gpt2           # finetune from pretrained GPT-2
 """
 
 import os
 import sys
 import time
 import math
+import re
 import pickle
 from contextlib import nullcontext
 
@@ -27,13 +31,6 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import init_process_group, destroy_process_group, barrier
 
 from model import GPTConfig, GPT, NUM_TOKEN_ID
-
-# SME token ranges for diagnostics
-from prepare import (
-    SME_SIGN_POS, SME_SIGN_NEG, SME_EXP_BASE, SME_EXP_OFFSET, SME_N_EXP, SME_N_DIGITS,
-    SME_DIGIT_BASE, SME_END, SME_ALL_TOKENS, sme_tokens_to_number,
-    parse_sme_number_tokens, NUM_POSITIONS,
-)
 
 
 # -----------------------------------------------------------------------------
@@ -52,7 +49,7 @@ resume_ckpt = ''  # explicit checkpoint path for resume (overrides out_dir/ckpt.
 # wandb logging
 wandb_log = False
 wandb_project = 'owt'
-wandb_run_name = 'gpt2-sme-multipos'
+wandb_run_name = 'gpt2-textdec'
 # data
 dataset = 'openwebtext'
 data_dir = ''  # override to set absolute path; if empty, uses data/{dataset}
@@ -68,7 +65,6 @@ bias = False
 # number embedding
 num_emb_checkpoint = ''  # path to NumberEncoder .pt checkpoint
 num_emb_dim = 128
-num_positions = NUM_POSITIONS  # k positions per input number
 # adamw optimizer
 learning_rate = 4e-4
 adapter_lr_scale = 0.5
@@ -91,11 +87,13 @@ compile = True
 # -----------------------------------------------------------------------------
 config_keys = [k for k, v in globals().items()
                if not k.startswith('_') and isinstance(v, (int, float, bool, str))]
+# Simple configurator: parse key=value args from command line
 for arg in sys.argv[1:]:
     if '=' in arg:
         key, val = arg.split('=', 1)
         key = key.lstrip('-')
         if key in config_keys:
+            # Try to evaluate the value (handles int, float, bool)
             try:
                 val = eval(val)
             except Exception:
@@ -133,37 +131,32 @@ device_type = 'cuda' if 'cuda' in device else 'cpu'
 ptdtype = {'float32': torch.float32, 'bfloat16': torch.bfloat16, 'float16': torch.float16}[dtype]
 ctx = nullcontext() if device_type == 'cpu' else torch.amp.autocast(device_type=device_type, dtype=ptdtype)
 
-# poor man's data loader (triple-stream: tokens + numbers + position indices)
+# poor man's data loader (dual-stream: tokens + numbers for input embedding)
 if not data_dir:
     data_dir = os.path.join('data', dataset)
 print(f"data directory: {data_dir}")
 
 
 def get_batch(split):
-    """Load a batch of tokens, number values, and position indices.
+    """Load a batch of tokens and parallel number values.
 
     Returns:
         x:  (B, block_size) int64   input token IDs
         y:  (B, block_size) int64   target token IDs (shifted +1)
         nv: (B, block_size) float32 number values aligned with x
         nm: (B, block_size) bool    True where x == NUM_TOKEN_ID
-        pi: (B, block_size) int8    position index (0..k-1 at NUM, -1 elsewhere)
     """
+    # Recreate memmap each time to avoid memory leak
     data = np.memmap(os.path.join(data_dir, f'{split}.bin'), dtype=np.uint16, mode='r')
     nums = np.memmap(os.path.join(data_dir, f'{split}_nums.bin'), dtype=np.float32, mode='r')
-    pos = np.memmap(os.path.join(data_dir, f'{split}_pos.bin'), dtype=np.int8, mode='r')
 
-    # Sample at block-aligned offsets to avoid splitting multi-position
-    # number groups (k=5 consecutive <NUM> tokens per number).
-    n_blocks = len(data) // block_size
-    block_ix = torch.randint(n_blocks, (batch_size,))
-    ix = block_ix * block_size
+    # -1 extra because targets are shifted by 1
+    ix = torch.randint(len(data) - block_size - 1, (batch_size,))
 
     x = torch.stack([torch.from_numpy((data[i:i + block_size]).astype(np.int64)) for i in ix])
     y = torch.stack([torch.from_numpy((data[i + 1:i + 1 + block_size]).astype(np.int64)) for i in ix])
 
     nv = torch.stack([torch.from_numpy(nums[i:i + block_size].copy()) for i in ix])
-    pi = torch.stack([torch.from_numpy(pos[i:i + block_size].copy()) for i in ix])
 
     nm = (x == NUM_TOKEN_ID)
 
@@ -172,14 +165,12 @@ def get_batch(split):
         y = y.pin_memory().to(device, non_blocking=True)
         nv = nv.pin_memory().to(device, non_blocking=True)
         nm = nm.pin_memory().to(device, non_blocking=True)
-        pi = pi.pin_memory().to(device, non_blocking=True)
     else:
         x, y = x.to(device), y.to(device)
         nv = nv.to(device)
         nm = nm.to(device)
-        pi = pi.to(device)
 
-    return x, y, nv, nm, pi
+    return x, y, nv, nm
 
 
 # init these up here, can override if init_from='resume'
@@ -200,7 +191,6 @@ model_args = dict(
     n_layer=n_layer, n_head=n_head, n_embd=n_embd, block_size=block_size,
     bias=bias, vocab_size=None, dropout=dropout,
     num_emb_dim=num_emb_dim, num_emb_checkpoint=num_emb_checkpoint,
-    num_positions=num_positions,
 )
 if init_from == 'scratch':
     print("Initializing a new model from scratch")
@@ -215,7 +205,7 @@ elif init_from == 'resume':
     checkpoint = torch.load(ckpt_path, map_location=device)
     checkpoint_model_args = checkpoint['model_args']
     for k in ['n_layer', 'n_head', 'n_embd', 'block_size', 'bias', 'vocab_size',
-              'num_emb_dim', 'num_emb_checkpoint', 'num_positions']:
+              'num_emb_dim', 'num_emb_checkpoint']:
         model_args[k] = checkpoint_model_args[k]
     gptconf = GPTConfig(**model_args)
     model = GPT(gptconf)
@@ -230,7 +220,7 @@ elif init_from == 'resume':
 elif init_from.startswith('gpt2'):
     print(f"Initializing from OpenAI GPT-2 weights: {init_from}")
     override_args = dict(dropout=dropout, num_emb_checkpoint=num_emb_checkpoint,
-                         num_emb_dim=num_emb_dim, num_positions=num_positions)
+                         num_emb_dim=num_emb_dim)
     model = GPT.from_pretrained(init_from, override_args)
     for k in ['n_layer', 'n_head', 'n_embd', 'block_size', 'bias', 'vocab_size']:
         model_args[k] = getattr(model.config, k)
@@ -278,10 +268,9 @@ def estimate_loss(eval_model):
     for split in ['train', 'val']:
         losses = torch.zeros(eval_iters)
         for k in range(eval_iters):
-            X, Y, NV, NM, PI = get_batch(split)
+            X, Y, NV, NM = get_batch(split)
             with ctx:
-                logits, loss = eval_model(X, Y, num_values=NV, num_mask=NM,
-                                          pos_indices=PI)
+                logits, loss = eval_model(X, Y, num_values=NV, num_mask=NM)
             losses[k] = loss.item()
         out[split] = losses.mean()
     eval_model.train()
@@ -300,105 +289,46 @@ def get_lr(it):
     return min_lr + coeff * (learning_rate - min_lr)
 
 
-# SME diagnostic helper
-_sme_token_set = torch.tensor(sorted(SME_ALL_TOKENS), dtype=torch.long)
+# Text output diagnostic helpers
+_number_re = re.compile(r"[-+]?(?:\d*\.\d+|\d+)(?:[eE][-+]?\d+)?")
 
 
 @torch.no_grad()
-def compute_sme_accuracy(logits, targets):
-    """Compute accuracy of SME token predictions."""
-    sme_set = _sme_token_set.to(targets.device)
-    sme_mask = torch.isin(targets, sme_set)
-    n_sme = sme_mask.sum().item()
-    if n_sme == 0:
-        return None
+def compute_output_accuracy(logits, targets):
+    """Compute token-level accuracy on non-padding, non-EOT output tokens.
 
+    Returns dict with overall accuracy and number of tokens evaluated.
+    """
     preds = logits.argmax(dim=-1)
-    sme_targets = targets[sme_mask]
-    sme_preds = preds[sme_mask]
+    # Exclude padding (-1) and EOT (50256)
+    valid_mask = (targets >= 0) & (targets != 50256)
+    n_valid = valid_mask.sum().item()
+    if n_valid == 0:
+        return None
+    correct = (preds[valid_mask] == targets[valid_mask]).sum().item()
+    # Also check accuracy on <NUM> token predictions (should be rare in targets
+    # since NUM only appears in input, but check anyway)
+    num_mask = (targets == NUM_TOKEN_ID)
+    num_total = num_mask.sum().item()
+    num_correct = (preds[num_mask] == targets[num_mask]).sum().item() if num_total > 0 else 0
 
-    overall_acc = (sme_preds == sme_targets).float().mean().item()
-    sign_mask = (sme_targets == SME_SIGN_POS) | (sme_targets == SME_SIGN_NEG)
-    exp_mask = (sme_targets >= SME_EXP_BASE) & (sme_targets < SME_EXP_BASE + SME_N_EXP)
-    digit_mask = (sme_targets >= SME_DIGIT_BASE) & (sme_targets <= SME_DIGIT_BASE + 9)
-    end_mask = (sme_targets == SME_END)
-
-    def acc(mask):
-        if int(mask.sum().item()) == 0:
-            return 0.0
-        return (sme_preds[mask] == sme_targets[mask]).float().mean().item()
-
-    B, T = targets.shape
-    t_cpu = targets.detach().cpu().tolist()
-    p_cpu = preds.detach().cpu().tolist()
-    d_pos = {f"d{i}": [0, 0] for i in range(SME_N_DIGITS)}
-
-    for b in range(B):
-        row_t = t_cpu[b]
-        row_p = p_cpu[b]
-        pos = 0
-        while pos < T:
-            tok = row_t[pos]
-            if tok not in (SME_SIGN_POS, SME_SIGN_NEG):
-                pos += 1
-                continue
-            parsed, next_pos = parse_sme_number_tokens(row_t, start_idx=pos)
-            if parsed is None:
-                pos += 1
-                continue
-
-            n_digits = len(parsed) - 3
-            for di in range(min(SME_N_DIGITS, n_digits)):
-                d_key = f"d{di}"
-                d_pos[d_key][1] += 1
-                d_idx = pos + 2 + di
-                if d_idx < T and row_p[d_idx] == row_t[d_idx]:
-                    d_pos[d_key][0] += 1
-
-            pos = max(next_pos, pos + 1)
-
-    digit_pos_acc = {}
-    digit_pos_totals = {}
-    for key, (correct, total) in d_pos.items():
-        digit_pos_acc[key] = (correct / total) if total else 0.0
-        digit_pos_totals[key] = total
-
-    out = {
-        'overall': overall_acc,
-        'sign': acc(sign_mask),
-        'exp': acc(exp_mask),
-        'digit': acc(digit_mask),
-        'end': acc(end_mask),
-        'digit_pos': digit_pos_acc,
-        'digit_pos_totals': digit_pos_totals,
-        'n_sme': n_sme,
+    return {
+        'overall': correct / n_valid,
+        'n_tokens': n_valid,
+        'n_correct': correct,
+        'num_tok_total': num_total,
+        'num_tok_correct': num_correct,
     }
-    out.update(digit_pos_acc)
-    return out
-
-
-def sme_token_label(tok_id):
-    if tok_id == SME_SIGN_POS: return 'S+'
-    if tok_id == SME_SIGN_NEG: return 'S-'
-    if SME_EXP_BASE <= tok_id < SME_EXP_BASE + SME_N_EXP:
-        exp = (tok_id - SME_EXP_BASE) - SME_EXP_OFFSET
-        return f'E{exp}'
-    if SME_DIGIT_BASE <= tok_id <= SME_DIGIT_BASE + 9:
-        return f'D{tok_id - SME_DIGIT_BASE}'
-    if tok_id == SME_END:
-        return 'END'
-    return f'?{tok_id}'
 
 
 def decode_context(token_ids, num_values, enc):
+    """Decode a sequence of token IDs to readable text, showing <NUM:val> for number tokens."""
     parts = []
     for i, tok in enumerate(token_ids):
         if tok == NUM_TOKEN_ID:
             val = num_values[i]
             parts.append(f"<{val:g}>")
-        elif tok in SME_ALL_TOKENS:
-            parts.append(sme_token_label(tok))
-        elif tok == 50256:
+        elif tok == 50256:  # EOT
             break
         else:
             try:
@@ -410,6 +340,8 @@ def decode_context(token_ids, num_values, enc):
 
 @torch.no_grad()
 def eval_samples(eval_model, max_samples=5):
+    """Run model on val batch, show full task context with predicted vs target text output."""
+    # Lazy load tiktoken (needs TIKTOKEN_CACHE_DIR set)
     try:
         import tiktoken
         enc = tiktoken.get_encoding("gpt2")
@@ -417,13 +349,13 @@ def eval_samples(eval_model, max_samples=5):
         enc = None
 
     eval_model.eval()
-    X, Y, NV, NM, PI = get_batch('val')
+    X, Y, NV, NM = get_batch('val')
     with ctx:
-        logits, loss = eval_model(X, Y, num_values=NV, num_mask=NM, pos_indices=PI)
+        logits, loss = eval_model(X, Y, num_values=NV, num_mask=NM)
     eval_model.train()
 
     B, T, _ = logits.shape
-    preds = logits.argmax(dim=-1)
+    preds = logits.argmax(dim=-1)  # (B, T)
 
     print(f"  --- Sample eval (val) ---")
     n_shown = 0
@@ -431,82 +363,92 @@ def eval_samples(eval_model, max_samples=5):
         if n_shown >= max_samples:
             break
 
+        x_row = X[b].tolist()
         y_row = Y[b].tolist()
         p_row = preds[b].tolist()
+        nv_row = NV[b].tolist()
 
-        for t in range(T):
+        # Find the arrow token(s) in x to split input/output
+        if enc is None:
+            continue
+
+        # Decode full x to find arrow position
+        x_text = enc.decode([t for t in x_row if 0 <= t < 50257])
+
+        # Find tasks bounded by EOT tokens
+        # Look for EOT boundaries in x
+        eot_positions = [i for i, t in enumerate(x_row) if t == 50256]
+        if not eot_positions:
+            eot_positions = [0]
+
+        # Try each task segment
+        for seg_start_idx in range(len(eot_positions)):
             if n_shown >= max_samples:
                 break
-            target_tok = y_row[t]
-            if target_tok not in (SME_SIGN_POS, SME_SIGN_NEG):
-                continue
-            first_num, _ = parse_sme_number_tokens(y_row, start_idx=t)
-            if first_num is None:
-                continue
 
-            task_start = 0
-            for s in range(t - 1, -1, -1):
-                if X[b, s].item() == 50256:
-                    task_start = s + 1
+            seg_start = eot_positions[seg_start_idx] + 1 if seg_start_idx > 0 else 0
+            # Find next EOT in target to bound the output
+            seg_end = T
+            for t in range(seg_start, T):
+                if y_row[t] == 50256:
+                    seg_end = t
                     break
 
-            target_nums = []
-            pred_nums = []
-            pos = t
-            while pos < T:
-                tok = y_row[pos]
-                if tok in (SME_SIGN_POS, SME_SIGN_NEG):
-                    t_sme, next_pos = parse_sme_number_tokens(y_row, start_idx=pos)
-                    p_sme, _ = parse_sme_number_tokens(p_row, start_idx=pos)
-                    if t_sme is None:
-                        pos += 1
-                        continue
-                    t_val = sme_tokens_to_number(t_sme)
-                    p_val = sme_tokens_to_number(p_sme) if p_sme is not None else None
-                    if t_val is not None:
-                        target_nums.append((t_sme, t_val))
-                        pred_nums.append((p_sme, p_val))
-                    pos = max(next_pos, pos + 1)
-                elif tok == 50256:
-                    break
-                else:
-                    pos += 1
-
-            if not target_nums:
+            if seg_end <= seg_start + 2:
                 continue
 
-            if enc is not None:
-                ctx_ids = X[b, task_start:t].tolist()
-                ctx_nv = NV[b, task_start:t].tolist()
-                context = decode_context(ctx_ids, ctx_nv, enc)
-            else:
-                context = f"[tokens {task_start}:{t}]"
+            # Decode segment context from x
+            seg_x_ids = x_row[seg_start:seg_end]
+            seg_nv = nv_row[seg_start:seg_end]
+            context = decode_context(seg_x_ids, seg_nv, enc)
 
-            t_vals = [f"{v:.4g}" for _, v in target_nums]
-            p_strs = []
-            errs = []
-            for (p_sme, p_val), (_, t_val) in zip(pred_nums, target_nums):
-                if p_val is not None:
-                    p_strs.append(f"{p_val:.4g}")
-                    errs.append(abs(t_val - p_val))
-                else:
-                    if p_sme is None:
-                        p_labels = "unparseable"
-                    else:
-                        p_labels = ' '.join(sme_token_label(t) for t in p_sme)
-                    p_strs.append(f"INVALID({p_labels})")
-                    errs.append(float('inf'))
+            if "→" not in context:
+                continue
 
-            print(f"  {context}")
-            print(f"    target: {' '.join(t_vals)}")
-            print(f"    pred:   {' '.join(p_strs)}")
-            if any(e != float('inf') for e in errs):
-                err_strs = [f"{e:.2f}" if e != float('inf') else "N/A" for e in errs]
+            # Find arrow position within segment to split input/output
+            arrow_pos = None
+            for t in range(seg_start, seg_end):
+                tok_text = enc.decode([x_row[t]]) if 0 <= x_row[t] < 50257 else ""
+                if "→" in tok_text:
+                    arrow_pos = t
+                    break
+
+            if arrow_pos is None:
+                continue
+
+            # Target and predicted output (tokens after arrow)
+            out_start = arrow_pos + 1
+            if out_start >= seg_end:
+                continue
+
+            tgt_ids = y_row[out_start:seg_end]
+            pred_ids = p_row[out_start:seg_end]
+
+            tgt_text = enc.decode([t for t in tgt_ids if 0 <= t < 50257])
+            pred_text = enc.decode([t for t in pred_ids if 0 <= t < 50257])
+
+            # Parse numbers from both
+            tgt_nums = [float(v) for v in _number_re.findall(tgt_text)]
+            pred_nums = [float(v) for v in _number_re.findall(pred_text)]
+
+            # Input context (up to arrow)
+            input_ctx = decode_context(x_row[seg_start:arrow_pos + 1],
+                                       nv_row[seg_start:arrow_pos + 1], enc)
+
+            print(f"  {input_ctx}")
+            print(f"    target: {tgt_text.strip()}")
+            print(f"    pred:   {pred_text.strip()}")
+
+            if tgt_nums and pred_nums and len(tgt_nums) == len(pred_nums):
+                errs = [abs(t - p) for t, p in zip(tgt_nums, pred_nums)]
+                err_strs = [f"{e:.2f}" for e in errs]
                 print(f"    error:  {' '.join(err_strs)}")
+            elif tgt_nums and (not pred_nums or len(tgt_nums) != len(pred_nums)):
+                print(f"    (number count mismatch: target {len(tgt_nums)}, pred {len(pred_nums)})")
             print()
 
             n_shown += 1
-            break
+            break  # one sample per batch row, move to next b
 
 
 # logging
@@ -515,7 +457,7 @@ if wandb_log and master_process:
     wandb.init(project=wandb_project, name=wandb_run_name, config=config)
 
 # training loop
-X, Y, NV, NM, PI = get_batch('train')
+X, Y, NV, NM = get_batch('train')
 t0 = time.time()
 local_iter_num = 0
 raw_model = model.module if ddp else model
@@ -531,6 +473,7 @@ while True:
 
     # evaluate the loss on train/val sets and write checkpoints
     if iter_num % eval_interval == 0:
+        # Keep all ranks in lockstep around rank-0-only evaluation/checkpointing.
         if ddp:
             barrier()
         if master_process:
@@ -555,13 +498,16 @@ while True:
                         'best_val_loss': best_val_loss,
                         'config': config,
                     }
+                    # Always save latest (for resume)
                     torch.save(checkpoint, os.path.join(out_dir, 'ckpt.pt'))
+                    # Save periodic snapshot
                     torch.save(checkpoint, os.path.join(out_dir, f'ckpt_iter{iter_num}.pt'))
                     print(f"saving checkpoint to {out_dir}/ckpt_iter{iter_num}.pt")
+                    # Save best separately
                     if losses['val'] < best_val_loss:
                         torch.save(checkpoint, os.path.join(out_dir, 'ckpt_best.pt'))
                         print(f"  new best val loss: {losses['val']:.4f}")
-                        best_val_loss = losses['val']
+                    best_val_loss = losses['val']
         if ddp:
             barrier()
     if iter_num == 0 and eval_only:
@@ -572,12 +518,15 @@ while True:
         if ddp:
             model.require_backward_grad_sync = (micro_step == gradient_accumulation_steps - 1)
         with ctx:
-            logits, loss = model(X, Y, num_values=NV, num_mask=NM, pos_indices=PI)
+            logits, loss = model(X, Y, num_values=NV, num_mask=NM)
             loss = loss / gradient_accumulation_steps
+        # snapshot logits for diagnostics (last micro_step only)
         if micro_step == gradient_accumulation_steps - 1 and iter_num % diag_interval == 0 and master_process:
             _diag_logits = logits.detach()
             _diag_targets = Y.clone()
-        X, Y, NV, NM, PI = get_batch('train')
+        # async prefetch next batch
+        X, Y, NV, NM = get_batch('train')
+        # backward pass
         scaler.scale(loss).backward()
     # clip the gradient
     if grad_clip != 0.0:
@@ -591,7 +540,7 @@ while True:
             if p.grad is not None:
                 pnorm = p.grad.data.norm(2).item() ** 2
                 _diag_grad_total += pnorm
-                if 'num_projections' in name or 'num_encoder' in name:
+                if 'num_adapter' in name or 'num_encoder' in name:
                     _diag_grad_norms['adapter'] = _diag_grad_norms.get('adapter', 0.0) + pnorm
                 else:
                     _diag_grad_norms['transformer'] = _diag_grad_norms.get('transformer', 0.0) + pnorm
@@ -620,6 +569,7 @@ while True:
         grad_norm_adapter = _diag_grad_norms.get('adapter', 0.0)
         grad_norm_transformer = _diag_grad_norms.get('transformer', 0.0)
 
+        # Count NUM tokens in the batch
         num_count = int(NM.sum().item()) if NM is not None else 0
         total_tokens = batch_size * block_size
 
@@ -629,23 +579,13 @@ while True:
               f"transformer {grad_norm_transformer:.4f}, "
               f"adapter {grad_norm_adapter:.4f}")
         print(f"  <NUM> input tokens: {num_count}/{total_tokens} ({num_count / total_tokens * 100:.1f}%)")
-        print(f"  num_positions: {num_positions}")
         print(f"  lr: base {lr:.2e}, adapter {adapter_lr:.2e}")
 
-        sme_acc = compute_sme_accuracy(_diag_logits, _diag_targets)
-        if sme_acc is not None:
-            digit_pos_str = " ".join(
-                f"d{i} {sme_acc['digit_pos'].get(f'd{i}', 0.0):.3f}"
-                for i in range(SME_N_DIGITS)
-                if sme_acc.get('digit_pos_totals', {}).get(f'd{i}', 0) > 0
-            )
-            print(f"  SME accuracy: overall {sme_acc['overall']:.3f}, "
-                  f"sign {sme_acc['sign']:.3f}, "
-                  f"exp {sme_acc['exp']:.3f}, "
-                  f"digit {sme_acc['digit']:.3f}, "
-                  f"end {sme_acc['end']:.3f} "
-                  f"[{digit_pos_str}] "
-                  f"({sme_acc['n_sme']} SME tokens)")
+        # Token-level output accuracy
+        out_acc = compute_output_accuracy(_diag_logits, _diag_targets)
+        if out_acc is not None:
+            print(f"  output token accuracy: {out_acc['overall']:.3f} "
+                  f"({out_acc['n_correct']}/{out_acc['n_tokens']} tokens)")
 
         if wandb_log:
             log_dict = {
@@ -657,17 +597,8 @@ while True:
                 "lr/base": lr,
                 "lr/adapter": adapter_lr,
             }
-            if sme_acc is not None:
-                log_dict.update({
-                    "sme/overall": sme_acc['overall'],
-                    "sme/sign": sme_acc['sign'],
-                    "sme/exp": sme_acc['exp'],
-                    "sme/digit": sme_acc['digit'],
-                    "sme/end": sme_acc['end'],
-                })
-                for i in range(SME_N_DIGITS):
-                    if sme_acc.get('digit_pos_totals', {}).get(f'd{i}', 0) > 0:
-                        log_dict[f"sme/d{i}"] = sme_acc['digit_pos'].get(f"d{i}", 0.0)
+            if out_acc is not None:
+                log_dict["output/token_accuracy"] = out_acc['overall']
             wandb.log(log_dict)
 
     # --- Sample evaluation every sample_interval steps ---
@@ -682,6 +613,7 @@ while True:
     iter_num += 1
     local_iter_num += 1
 
+    # termination conditions
     if iter_num > max_iters:
         break
 
