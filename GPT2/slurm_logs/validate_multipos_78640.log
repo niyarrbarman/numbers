@@ -1,0 +1,33 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+==========================================
+Multi-Position (k=5) Checkpoint Validation
+  Checkpoint:   /tmpdir/m24047brmn/numbers/model_checkpoints/sme_5dig_multipos_v2/ckpt_best.pt
+  Data dir:     /tmpdir/m24047brmn/numbers/data/numtasks_sme_5dig_multipos
+  Batch blocks: 64
+  Top-K errors: 25
+  Max blocks:   0 (0 = full val set)
+  JSON output:  /tmpdir/m24047brmn/numbers/model_checkpoints/sme_5dig_multipos_v2/val_report_best.json
+==========================================
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+======================================================================
+Multi-Position SME Checkpoint Validation (Full Val Set)
+======================================================================
+Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/sme_5dig_multipos_v2/ckpt_best.pt
+Data dir:   /tmpdir/m24047brmn/numbers/data/numtasks_sme_5dig_multipos
+Device:     cuda
+Batch blk:  64
+Top-K err:  25
+Max blocks: ALL
+Traceback (most recent call last):
+  File "/work/m24047/m24047brmn/numbers/GPT2/fe_multipos/validate_checkpoint.py", line 549, in <module>
+    main()
+  File "/work/m24047/m24047brmn/numbers/GPT2/fe_multipos/validate_checkpoint.py", line 264, in main
+    checkpoint = torch.load(args.ckpt, map_location="cpu", weights_only=False)
+  File "/usr/local/lib/python3.10/dist-packages/torch/serialization.py", line 1234, in load
+    with _open_file_like(f, "rb") as opened_file:
+  File "/usr/local/lib/python3.10/dist-packages/torch/serialization.py", line 600, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+  File "/usr/local/lib/python3.10/dist-packages/torch/serialization.py", line 581, in __init__
+    super().__init__(open(name, mode))
+FileNotFoundError: [Errno 2] No such file or directory: '/tmpdir/m24047brmn/numbers/model_checkpoints/sme_5dig_multipos_v2/ckpt_best.pt'
