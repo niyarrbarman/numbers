@@ -1,0 +1,314 @@
+Log: logs/run_v9_20260302_192837.log
+Seed: 42  |  Max steps: 500000  |  Device: cuda
+Scale dims: 16  |  Residue periods: [10, 100, 1000, 10000, 100000]
+GPU: NVIDIA A100 80GB PCIe
+
+======================================================================
+NUMBER EMBEDDING v9 — MATH-AWARE MULTI-LANE ENCODER
+======================================================================
+
+Architecture:  71 raw → 128d embedding
+  Lane 1 (Scale):    16 dims — x * weight, additive
+  Lane 2 (Residue):  10 dims — sin/cos at periods [10.0, 100.0, 1000.0, 10000.0, 100000.0]
+  Lane 3 (Semantic): 102 dims — Fourier(64) + LogMag + Sign + Poly → proj → RMSNorm
+  Encoder params:    7,389
+  Probe params:      34,830 (discarded after pretraining)
+  Total params:      104,685
+  Device:            cuda
+
+Before training:
+      0.00000 → scale=  0.000  residue=2.236  semantic= 10.424
+      0.00000 → scale=  0.000  residue=2.236  semantic= 10.354
+      0.00100 → scale=  0.000  residue=2.236  semantic= 10.227
+      0.10000 → scale=  0.001  residue=2.236  semantic= 10.210
+      1.00000 → scale=  0.013  residue=2.236  semantic= 10.130
+      3.14159 → scale=  0.040  residue=2.236  semantic= 10.194
+    -42.00000 → scale=  0.541  residue=2.236  semantic= 10.223
+    100.00000 → scale=  1.289  residue=2.236  semantic= 10.207
+   1000.00000 → scale= 12.890  residue=2.236  semantic= 10.244
+  100000.00000 → scale=1288.963  residue=2.236  semantic= 10.325
+  -1234.50000 → scale= 15.912  residue=2.236  semantic= 10.284
+
+Training (500000 steps, batch 512)...
+  Step   5000/500000 | Loss: 5.937295 [P1] | lr: 5.00e-04 | scale_w: [-3.51e-03, 3.48e-03]
+  Step  10000/500000 | Loss: 2.084371 [P1] | lr: 5.00e-04 | scale_w: [-2.46e-03, 2.59e-03]
+  Step  15000/500000 | Loss: 0.860635 [P1] | lr: 4.99e-04 | scale_w: [-2.57e-03, 2.03e-03]
+  Step  20000/500000 | Loss: 0.198705 [P1] | lr: 4.98e-04 | scale_w: [-4.28e-04, 1.67e-03]
+  Step  25000/500000 | Loss: 0.046528 [P1] | lr: 4.97e-04 | scale_w: [-3.46e-04, 1.80e-03]
+  Step  30000/500000 | Loss: 0.042907 [P1] | lr: 4.96e-04 | scale_w: [-1.33e-03, 1.53e-03]
+  Step  35000/500000 | Loss: 0.024230 [P1] | lr: 4.95e-04 | scale_w: [-2.59e-04, 1.48e-03]
+  Step  40000/500000 | Loss: 0.032446 [P1] | lr: 4.93e-04 | scale_w: [-7.61e-04, 1.38e-03]
+  Step  45000/500000 | Loss: 0.027181 [P1] | lr: 4.91e-04 | scale_w: [-4.32e-04, 1.25e-03]
+  Step  50000/500000 | Loss: 0.028317 [P1] | lr: 4.89e-04 | scale_w: [-4.26e-04, 1.42e-03]
+  Step  55000/500000 | Loss: 0.125865 [P1 obj=0.1] | lr: 4.86e-04 | scale_w: [-5.23e-03, 8.58e-03]
+  Step  60000/500000 | Loss: 0.138412 [P1 obj=0.2] | lr: 4.83e-04 | scale_w: [-8.05e-03, 6.61e-03]
+  Step  65000/500000 | Loss: 0.112893 [P1 obj=0.3] | lr: 4.81e-04 | scale_w: [-8.35e-03, 9.42e-03]
+  Step  70000/500000 | Loss: 0.114655 [P1 obj=0.4] | lr: 4.77e-04 | scale_w: [-6.36e-03, 8.01e-03]
+  Step  75000/500000 | Loss: 0.122082 [P1 obj=0.5] | lr: 4.74e-04 | scale_w: [-4.91e-03, 7.01e-03]
+  Step  80000/500000 | Loss: 0.110589 [P1 obj=0.6] | lr: 4.70e-04 | scale_w: [-4.37e-03, 6.42e-03]
+  Step  85000/500000 | Loss: 0.092483 [P1 obj=0.7] | lr: 4.67e-04 | scale_w: [-4.44e-03, 7.34e-03]
+  Step  90000/500000 | Loss: 0.085562 [P1 obj=0.8] | lr: 4.62e-04 | scale_w: [-2.91e-03, 4.54e-03]
+  Step  95000/500000 | Loss: 0.086306 [P1 obj=0.9] | lr: 4.58e-04 | scale_w: [-3.85e-03, 5.67e-03]
+  Step 100000/500000 | Loss: 0.082697 [P1 obj=1.0] | lr: 4.54e-04 | scale_w: [-3.26e-03, 5.08e-03]
+  Step 105000/500000 | Loss: 0.086304 [P1 obj=1.0] | lr: 4.49e-04 | scale_w: [-3.25e-03, 4.62e-03]
+  Step 110000/500000 | Loss: 0.073627 [P1 obj=1.0] | lr: 4.44e-04 | scale_w: [-3.54e-03, 5.21e-03]
+  Step 115000/500000 | Loss: 0.091405 [P1 obj=1.0] | lr: 4.39e-04 | scale_w: [-2.91e-03, 4.15e-03]
+  Step 120000/500000 | Loss: 0.068357 [P1 obj=1.0] | lr: 4.34e-04 | scale_w: [-2.79e-03, 3.82e-03]
+  Step 125000/500000 | Loss: 0.071534 [P1 obj=1.0] | lr: 4.28e-04 | scale_w: [-1.95e-03, 3.41e-03]
+  Step 130000/500000 | Loss: 0.086557 [P1 obj=1.0] | lr: 4.23e-04 | scale_w: [-2.30e-03, 2.95e-03]
+  Step 135000/500000 | Loss: 0.066961 [P1 obj=1.0] | lr: 4.17e-04 | scale_w: [-2.07e-03, 3.28e-03]
+  Step 140000/500000 | Loss: 0.061743 [P1 obj=1.0] | lr: 4.11e-04 | scale_w: [-2.54e-03, 3.32e-03]
+  Step 145000/500000 | Loss: 0.060044 [P1 obj=1.0] | lr: 4.05e-04 | scale_w: [-2.23e-03, 2.83e-03]
+  Step 150000/500000 | Loss: 0.058753 [P1 obj=1.0] | lr: 3.99e-04 | scale_w: [-1.34e-03, 3.03e-03]
+  Step 155000/500000 | Loss: 0.055318 [P1 obj=1.0] | lr: 3.92e-04 | scale_w: [-2.41e-03, 2.75e-03]
+  Step 160000/500000 | Loss: 0.054620 [P1 obj=1.0] | lr: 3.86e-04 | scale_w: [-2.30e-03, 2.67e-03]
+  Step 165000/500000 | Loss: 0.049488 [P1 obj=1.0] | lr: 3.79e-04 | scale_w: [-2.16e-03, 2.45e-03]
+  Step 170000/500000 | Loss: 0.050595 [P1 obj=1.0] | lr: 3.72e-04 | scale_w: [-2.14e-03, 2.44e-03]
+  Step 175000/500000 | Loss: 0.047819 [P1 obj=1.0] | lr: 3.65e-04 | scale_w: [-1.89e-03, 2.31e-03]
+  Step 180000/500000 | Loss: 0.047197 [P1 obj=1.0] | lr: 3.58e-04 | scale_w: [-2.09e-03, 2.45e-03]
+  Step 185000/500000 | Loss: 0.045979 [P1 obj=1.0] | lr: 3.51e-04 | scale_w: [-1.81e-03, 2.56e-03]
+  Step 190000/500000 | Loss: 0.043979 [P1 obj=1.0] | lr: 3.44e-04 | scale_w: [-1.68e-03, 2.00e-03]
+  Step 195000/500000 | Loss: 0.042231 [P1 obj=1.0] | lr: 3.36e-04 | scale_w: [-1.68e-03, 2.10e-03]
+  Step 200000/500000 | Loss: 0.044026 [ramp obj=1.0] | lr: 3.29e-04 | scale_w: [-1.54e-03, 2.27e-03]
+  Step 205000/500000 | Loss: 0.045169 [ramp obj=1.0] | lr: 3.22e-04 | scale_w: [-1.34e-03, 2.06e-03]
+  Step 210000/500000 | Loss: 0.043352 [ramp obj=1.0] | lr: 3.14e-04 | scale_w: [-1.89e-03, 2.34e-03]
+  Step 215000/500000 | Loss: 0.040483 [ramp obj=1.0] | lr: 3.06e-04 | scale_w: [-1.85e-03, 2.19e-03]
+  Step 220000/500000 | Loss: 0.040757 [ramp obj=1.0] | lr: 2.99e-04 | scale_w: [-1.85e-03, 2.21e-03]
+  Step 225000/500000 | Loss: 0.043048 [ramp obj=1.0] | lr: 2.91e-04 | scale_w: [-1.65e-03, 2.19e-03]
+  Step 230000/500000 | Loss: 0.036022 [ramp obj=1.0] | lr: 2.83e-04 | scale_w: [-1.63e-03, 2.05e-03]
+  Step 235000/500000 | Loss: 0.034087 [ramp obj=1.0] | lr: 2.75e-04 | scale_w: [-1.81e-03, 1.73e-03]
+  Step 240000/500000 | Loss: 0.037684 [ramp obj=1.0] | lr: 2.67e-04 | scale_w: [-1.96e-03, 2.05e-03]
+  Step 245000/500000 | Loss: 0.042841 [ramp obj=1.0] | lr: 2.59e-04 | scale_w: [-1.42e-03, 1.84e-03]
+  Step 250000/500000 | Loss: 0.039934 [P2 obj=1.0] | lr: 2.52e-04 | scale_w: [-1.54e-03, 2.01e-03]
+  Step 255000/500000 | Loss: 0.037236 [P2 obj=1.0] | lr: 2.44e-04 | scale_w: [-1.57e-03, 1.75e-03]
+  Step 260000/500000 | Loss: 0.038970 [P2 obj=1.0] | lr: 2.36e-04 | scale_w: [-1.50e-03, 2.06e-03]
+  Step 265000/500000 | Loss: 0.036956 [P2 obj=1.0] | lr: 2.28e-04 | scale_w: [-1.64e-03, 1.76e-03]
+  Step 270000/500000 | Loss: 0.033770 [P2 obj=1.0] | lr: 2.20e-04 | scale_w: [-1.59e-03, 2.09e-03]
+  Step 275000/500000 | Loss: 0.034736 [P2 obj=1.0] | lr: 2.12e-04 | scale_w: [-1.54e-03, 1.97e-03]
+  Step 280000/500000 | Loss: 0.034226 [P2 obj=1.0] | lr: 2.05e-04 | scale_w: [-1.73e-03, 2.13e-03]
+  Step 285000/500000 | Loss: 0.030613 [P2 obj=1.0] | lr: 1.97e-04 | scale_w: [-1.57e-03, 1.81e-03]
+  Step 290000/500000 | Loss: 0.029103 [P2 obj=1.0] | lr: 1.89e-04 | scale_w: [-1.43e-03, 1.69e-03]
+  Step 295000/500000 | Loss: 0.032710 [P2 obj=1.0] | lr: 1.81e-04 | scale_w: [-1.43e-03, 1.72e-03]
+  Step 300000/500000 | Loss: 0.029225 [P2 obj=1.0] | lr: 1.74e-04 | scale_w: [-1.54e-03, 1.63e-03]
+  Step 305000/500000 | Loss: 0.026297 [P2 obj=1.0] | lr: 1.66e-04 | scale_w: [-1.43e-03, 1.50e-03]
+  Step 310000/500000 | Loss: 0.026439 [P2 obj=1.0] | lr: 1.59e-04 | scale_w: [-1.52e-03, 1.96e-03]
+  Step 315000/500000 | Loss: 0.027014 [P2 obj=1.0] | lr: 1.52e-04 | scale_w: [-1.38e-03, 1.50e-03]
+  Step 320000/500000 | Loss: 0.024439 [P2 obj=1.0] | lr: 1.45e-04 | scale_w: [-1.32e-03, 1.47e-03]
+  Step 325000/500000 | Loss: 0.023460 [P2 obj=1.0] | lr: 1.37e-04 | scale_w: [-1.33e-03, 1.52e-03]
+  Step 330000/500000 | Loss: 0.022988 [P2 obj=1.0] | lr: 1.31e-04 | scale_w: [-1.36e-03, 1.61e-03]
+  Step 335000/500000 | Loss: 0.023217 [P2 obj=1.0] | lr: 1.24e-04 | scale_w: [-1.39e-03, 1.47e-03]
+  Step 340000/500000 | Loss: 0.022375 [P2 obj=1.0] | lr: 1.17e-04 | scale_w: [-1.32e-03, 1.56e-03]
+  Step 345000/500000 | Loss: 0.022309 [P2 obj=1.0] | lr: 1.10e-04 | scale_w: [-1.42e-03, 1.46e-03]
+  Step 350000/500000 | Loss: 0.021872 [P2 obj=1.0] | lr: 1.04e-04 | scale_w: [-1.32e-03, 1.61e-03]
+  Step 355000/500000 | Loss: 0.026110 [P2 obj=1.0] | lr: 9.75e-05 | scale_w: [-1.23e-03, 1.41e-03]
+  Step 360000/500000 | Loss: 0.024862 [P2 obj=1.0] | lr: 9.13e-05 | scale_w: [-1.26e-03, 1.36e-03]
+  Step 365000/500000 | Loss: 0.023749 [P2 obj=1.0] | lr: 8.53e-05 | scale_w: [-1.11e-03, 1.44e-03]
+  Step 370000/500000 | Loss: 0.023373 [P2 obj=1.0] | lr: 7.95e-05 | scale_w: [-1.40e-03, 1.24e-03]
+  Step 375000/500000 | Loss: 0.023060 [P2 obj=1.0] | lr: 7.38e-05 | scale_w: [-1.10e-03, 1.47e-03]
+  Step 380000/500000 | Loss: 0.022187 [P2 obj=1.0] | lr: 6.83e-05 | scale_w: [-1.41e-03, 1.27e-03]
+  Step 385000/500000 | Loss: 0.023306 [P2 obj=1.0] | lr: 6.30e-05 | scale_w: [-1.19e-03, 1.54e-03]
+  Step 390000/500000 | Loss: 0.021942 [P2 obj=1.0] | lr: 5.78e-05 | scale_w: [-1.07e-03, 1.38e-03]
+  Step 395000/500000 | Loss: 0.020291 [P2 obj=1.0] | lr: 5.29e-05 | scale_w: [-1.07e-03, 1.29e-03]
+  Step 400000/500000 | Loss: 0.020761 [P2 obj=1.0] | lr: 4.81e-05 | scale_w: [-1.00e-03, 1.25e-03]
+  Step 405000/500000 | Loss: 0.019964 [P2 obj=1.0] | lr: 4.36e-05 | scale_w: [-1.17e-03, 1.39e-03]
+  Step 410000/500000 | Loss: 0.019450 [P2 obj=1.0] | lr: 3.92e-05 | scale_w: [-1.16e-03, 1.18e-03]
+  Step 415000/500000 | Loss: 0.019127 [P2 obj=1.0] | lr: 3.51e-05 | scale_w: [-1.14e-03, 1.16e-03]
+  Step 420000/500000 | Loss: 0.019184 [P2 obj=1.0] | lr: 3.12e-05 | scale_w: [-1.10e-03, 1.20e-03]
+  Step 425000/500000 | Loss: 0.018865 [P2 obj=1.0] | lr: 2.75e-05 | scale_w: [-1.06e-03, 1.15e-03]
+  Step 430000/500000 | Loss: 0.018731 [P2 obj=1.0] | lr: 2.40e-05 | scale_w: [-1.09e-03, 1.17e-03]
+  Step 435000/500000 | Loss: 0.018613 [P2 obj=1.0] | lr: 2.07e-05 | scale_w: [-1.11e-03, 1.20e-03]
+  Step 440000/500000 | Loss: 0.018310 [P2 obj=1.0] | lr: 1.77e-05 | scale_w: [-1.03e-03, 1.16e-03]
+  Step 445000/500000 | Loss: 0.018134 [P2 obj=1.0] | lr: 1.49e-05 | scale_w: [-1.09e-03, 1.11e-03]
+  Step 450000/500000 | Loss: 0.017928 [P2 obj=1.0] | lr: 1.23e-05 | scale_w: [-1.05e-03, 1.12e-03]
+  Step 455000/500000 | Loss: 0.017827 [P2 obj=1.0] | lr: 1.00e-05 | scale_w: [-1.06e-03, 1.12e-03]
+  Step 460000/500000 | Loss: 0.017704 [P2 obj=1.0] | lr: 7.92e-06 | scale_w: [-1.04e-03, 1.13e-03]
+  Step 465000/500000 | Loss: 0.017628 [P2 obj=1.0] | lr: 6.07e-06 | scale_w: [-1.05e-03, 1.11e-03]
+  Step 470000/500000 | Loss: 0.017495 [P2 obj=1.0] | lr: 4.46e-06 | scale_w: [-1.04e-03, 1.10e-03]
+  Step 475000/500000 | Loss: 0.017467 [P2 obj=1.0] | lr: 3.10e-06 | scale_w: [-1.05e-03, 1.11e-03]
+  Step 480000/500000 | Loss: 0.017397 [P2 obj=1.0] | lr: 1.99e-06 | scale_w: [-1.05e-03, 1.10e-03]
+  Step 485000/500000 | Loss: 0.017347 [P2 obj=1.0] | lr: 1.12e-06 | scale_w: [-1.05e-03, 1.10e-03]
+  Step 490000/500000 | Loss: 0.017345 [P2 obj=1.0] | lr: 4.97e-07 | scale_w: [-1.04e-03, 1.11e-03]
+  Step 495000/500000 | Loss: 0.017344 [P2 obj=1.0] | lr: 1.24e-07 | scale_w: [-1.04e-03, 1.10e-03]
+  Step 500000/500000 | Loss: 0.017331 [P2 obj=1.0] | lr: 0.00e+00 | scale_w: [-1.04e-03, 1.10e-03]
+  Done in 4233.2s
+
+After training:
+         Input  →         Decoded       Error
+  ────────────     ──────────────  ──────────
+       0.00000  →        -0.00000     0.00000
+       0.00000  →        -0.00000     0.00000
+       0.00100  →         0.00099     0.00001
+       0.10000  →         0.10080     0.00080
+       1.00000  →         0.99974     0.00026
+       3.14159  →         3.12415     0.01744
+     -42.00000  →       -42.11555     0.11555
+     100.00000  →       100.30717     0.30717
+    1000.00000  →      1005.71069     5.71069
+  100000.00000  →    104290.19531  4290.19531
+   -1234.50000  →     -1247.28931    12.78931
+
+Lane norms after training:
+      0.00000 → scale=  0.000  residue=2.236  semantic=  9.197
+      0.00000 → scale=  0.000  residue=2.236  semantic=  8.645
+      0.00100 → scale=  0.000  residue=2.236  semantic=  8.558
+      0.10000 → scale=  0.000  residue=2.236  semantic= 12.958
+      1.00000 → scale=  0.003  residue=2.236  semantic= 10.352
+      3.14159 → scale=  0.009  residue=2.236  semantic=  9.619
+    -42.00000 → scale=  0.125  residue=2.236  semantic= 10.354
+    100.00000 → scale=  0.298  residue=2.236  semantic= 10.406
+   1000.00000 → scale=  2.979  residue=2.236  semantic= 11.289
+  100000.00000 → scale=297.910  residue=2.236  semantic= 10.866
+  -1234.50000 → scale=  3.678  residue=2.236  semantic= 10.484
+
+  Model saved: /tmpdir/m24047brmn/numbers/checkpoints/np_emb_v9_500k_model.pt
+
+----------------------------------------------------------------------
+TEST 1: UNIQUENESS — Distinct numbers → distinct embeddings
+----------------------------------------------------------------------
+  [PASS] Max cosine sim < 0.99
+         Max cosine sim: 0.9558
+  [PASS] All pairwise L2 distances > 0
+         Min L2 dist: 3.896263
+  [PASS] 1.0000 vs 1.0001 distinguishable
+         L2 dist: 2.72819185
+----------------------------------------------------------------------
+TEST 2: CONTINUITY — Small perturbations → small embedding changes
+----------------------------------------------------------------------
+  [PASS] ε=0.1: bounded relative change
+         Max Δ: 14.9681, Relative: 1.4099
+  [PASS] ε=0.01: bounded relative change
+         Max Δ: 12.9957, Relative: 1.2241
+  [PASS] ε=0.001: bounded relative change
+         Max Δ: 7.1289, Relative: 0.6715
+  [PASS] Smaller ε → smaller (or comparable) embedding Δ
+         Deltas: ['14.9681', '12.9957', '7.1289']
+  [PASS] Distance monotonicity
+         Dists: ['4.3905', '5.7507', '6.9817', '11.2329']
+----------------------------------------------------------------------
+TEST 3: REVERSIBILITY — Round-trip reconstruction accuracy
+----------------------------------------------------------------------
+  [PASS] Reconstruction [Small positive]
+         |err|_max: 0.0009, rel_max: 0.0171
+  [PASS] Reconstruction [Medium]
+         |err|_max: 0.0410, rel_max: 0.0164
+  [PASS] Reconstruction [Large]
+         |err|_max: 1.5164, rel_max: 0.0076
+  [PASS] Reconstruction [Negative]
+         |err|_max: 0.2629, rel_max: 0.0053
+  [PASS] Reconstruction [Near zero]
+         |err|_max: 0.0000, rel_max: 0.2110
+  [PASS] Reconstruction [Integers]
+         |err|_max: 0.4340, rel_max: 0.0052
+
+         Input  →         Decoded     Abs Err     Rel Err
+  ────────────     ──────────────  ──────────  ──────────
+       0.00000  →        -0.00000     0.00000    6.1081%
+       0.00000  →        -0.00000     0.00000  194.0955%
+       0.00010  →         0.00010     0.00000    0.9485%
+       0.00012  →         0.00012     0.00000    0.0749%
+       0.00100  →         0.00099     0.00001    0.5627%
+       0.01000  →         0.00996     0.00004    0.4294%
+       0.10000  →         0.10098     0.00098    0.9846%
+       0.50000  →         0.49693     0.00307    0.6144%
+       1.00000  →         0.99848     0.00152    0.1525%
+       2.71828  →         2.70013     0.01815    0.6677%
+       3.14159  →         3.11858     0.02301    0.7323%
+       7.00000  →         6.98697     0.01303    0.1861%
+      10.00000  →         9.97393     0.02607    0.2607%
+      42.00000  →        42.22065     0.22065    0.5254%
+      99.00000  →        98.56073     0.43927    0.4437%
+     500.00000  →       507.05093     7.05093    1.4102%
+    1000.00000  →      1004.48047     4.48047    0.4480%
+    9999.00000  →     10041.10352    42.10352    0.4211%
+  100000.00000  →    104182.73438  4182.73438    4.1827%
+  1000000.00000  →   1037544.43750  37544.43750    3.7544%
+      -0.00100  →        -0.00100     0.00000    0.2403%
+      -0.50000  →        -0.49760     0.00240    0.4790%
+      -1.00000  →        -1.00251     0.00251    0.2509%
+      -3.14159  →        -3.10016     0.04143    1.3187%
+     -10.00000  →       -10.02376     0.02376    0.2376%
+     -42.00000  →       -42.15089     0.15089    0.3593%
+   -1000.00000  →     -1008.79614     8.79614    0.8796%
+   -1234.50000  →     -1246.17285    11.67285    0.9456%
+       0.33333  →         0.33024     0.00309    0.9258%
+       0.99999  →         0.98448     0.01551    1.5506%
+       1.00001  →         1.02134     0.02133    2.1325%
+  123456.00000  →    119923.19531  3532.80469    2.8616%
+  -99999.00000  →   -100276.34375   277.34375    0.2773%
+
+----------------------------------------------------------------------
+TEST 4: EXPRESSIVENESS — Structural properties of embedding space
+----------------------------------------------------------------------
+  [FAIL] High effective dimensionality (>20)
+         Effective dims: 3/128
+  [PASS] PC1 correlates with ordering
+         Spearman ρ = 0.9836
+  [PASS] Similar numbers cluster tighter
+         Intra max: 11.1181, Inter min: 15.1295
+----------------------------------------------------------------------
+TEST 5: MODEL COMPATIBILITY — Standard ops & integration
+----------------------------------------------------------------------
+  [PASS] Batch (64,) → (64, d)
+  [PASS] Single number works
+  [PASS] Downstream linear layer
+  [PASS] Dot-product attention
+  [PASS] Deterministic
+----------------------------------------------------------------------
+TEST 6: LANE STRUCTURE — Scale lane is linear, residue lane is periodic
+----------------------------------------------------------------------
+  [PASS] Scale lane dims scale linearly with x
+         Max ratio std: 0.000000
+  [FAIL] Residue period-10 dims repeat every 10
+         Max diff: 0.607087
+  Scale weight range: [-1.04e-03, 1.10e-03]
+======================================================================
+STANDARD TESTS: 22/24 PASSED, 2/24 FAILED
+======================================================================
+
+======================================================================
+PROBE TESTS — Can simple functions of embeddings recover math?
+======================================================================
+
+  Probe 1: LINEAR ADDITION — W @ [e(x); e(y)] → x+y
+  ------------------------------------------------------------
+    R² = 0.999722  |  MAE = 11.18
+    Subtraction:  R² = 0.999122  |  MAE = 19.39
+
+  Probe 2: LINEAR ORDER — w @ e(x) ranks numbers correctly
+  ------------------------------------------------------------
+    Spearman ρ = 0.999592
+
+  Probe 3: MAGNITUDE — predict exponent bucket from embedding
+  ------------------------------------------------------------
+    Accuracy = 0.7100 (13 classes)
+
+  Probe 4: PARITY — predict x mod 2 from embedding
+  ------------------------------------------------------------
+    Accuracy = 0.5180
+
+  Probe 5: LAST DIGIT — predict |x| mod 10 from embedding
+  ------------------------------------------------------------
+    Accuracy = 0.2240 (10 classes, chance=0.10)
+
+  Probe 6: ADDITIVITY — ||e(x+y) - (e(x)+e(y))|| / ||e(x+y)||
+  ------------------------------------------------------------
+             small+small:  full=1.3493  scale_lane=0.000000
+           medium+medium:  full=1.4990  scale_lane=0.000000
+             large+large:  full=0.2075  scale_lane=0.000000
+             small+large:  full=0.8312  scale_lane=0.000000
+                integers:  full=1.5351  scale_lane=0.000000
+
+    Overall:  full=1.0844  scale_lane=0.000000
+
+======================================================================
+PROBE SUMMARY
+======================================================================
+  Addition (linear):      R² = 0.9997, MAE = 11.2
+  Subtraction (linear):   R² = 0.9991, MAE = 19.4
+  Order (Spearman):       ρ  = 0.9996
+  Magnitude (13-class):   acc = 0.7100
+  Parity (binary):        acc = 0.5180
+  Last digit (10-class):  acc = 0.2240
+  Additivity (scale):     err = 0.000000
+  Additivity (full):      err = 1.0844
+======================================================================
