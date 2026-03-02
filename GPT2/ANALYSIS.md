@@ -16,6 +16,7 @@
 12. [Results](#12-results)
 13. [Extended Evaluation](#13-extended-evaluation)
 14. [Key Findings](#14-key-findings)
+15. [Additive Embeddings: Theory, Experiments, and v9 Redesign](#15-additive-embeddings-theory-experiments-and-v9-redesign)
 
 ---
 
@@ -1162,73 +1163,292 @@ The difficulty-controlled analysis (Section 13.2) reveals a consistent pattern a
 
 All three models achieve 0% exact match on SUM with 5+ operands (Section 13.3), including in-distribution lengths (5 and 8 are within the training range of 2-8). However, FE-Unfreeze maintains remarkably low MAE even out-of-distribution (48 at length 10 vs Base's 40,254 — an 839x ratio), demonstrating that the encoder's continuous representation preserves scale awareness even when the model cannot compute exact sums.
 
- What WOULD make embeddings additive
+---
 
-  The core mathematical insight is: the only continuous functions f: R → R^d satisfying f(x+y)
-  = f(x) + f(y) for all x, y are linear maps: f(x) = x * v for some fixed vector v ∈ R^d.
+## 15. Additive Embeddings: Theory, Experiments, and v9 Redesign
 
-  But that's a terrible embedding -- it maps all of R to a 1-dimensional subspace (a line
-  through the origin). No uniqueness across different magnitudes beyond a scalar.
+The extended evaluation (Section 13) showed that FE-Unfreeze's errors are numerically close to correct answers (CondMAE 776 vs Base's 317,166). This raised a natural question: **Can we make the embedding space directly support arithmetic?** Specifically, can we design an encoder where `e(x) + e(y) ≈ e(x + y)`, so that a downstream transformer could perform addition by simply summing embeddings?
 
-  So we need to relax the requirement. There are several approaches:
+### 15.1 Theoretical Foundation
 
-  Approach 1: Log-space additivity (for multiplication)
+**The impossibility result**: The only continuous functions `f: R → R^d` satisfying `f(x+y) = f(x) + f(y)` for all `x, y` are linear maps: `f(x) = x * v` for some fixed vector `v ∈ R^d`. But `f(x) = x * v` maps all of R to a 1-dimensional subspace (a line through the origin) — useless as an embedding since it collapses all structural information into a scalar multiple.
 
-  If we want e(x*y) ≈ e(x) + e(y) instead (multiplication becomes addition in embedding space),
-   then e(x) = log(x) * v works perfectly. This is actually what LogMagnitude already provides
-  for positive numbers. But we want addition, not multiplication.
+This means exact additivity across all 128 dimensions is fundamentally incompatible with the expressiveness needed for downstream tasks. Four relaxation strategies were considered:
 
-  Approach 2: Approximate additivity via a learned loss term
+| Approach | Strategy | Feasibility |
+|----------|----------|-------------|
+| 1. Log-space additivity | `e(x*y) ≈ e(x) + e(y)` (multiplication) | Already provided by LogMagnitude channel; wrong operation |
+| 2. Additivity loss | Add `\|\|e(x+y) - e(x) - e(y)\|\|²` penalty to training | Implemented and tested |
+| 3. Additive subspace | Reserve K dims for `x * w` (exact), rest unchanged | Implemented and tested |
+| 4. RNS-inspired | `sin/cos(2πx/p)` at coprime periods — rotation = addition | Incorporated into v9 as Residue lane |
 
-  The most practical approach: add an additivity loss during encoder training that penalizes
-  ||e(x+y) - e(x) - e(y)||^2. The encoder can't satisfy this exactly (because of the
-  mathematical impossibility above), but it can learn representations where the additivity
-  error is small relative to the embedding norm.
+Approaches 2 and 3 were implemented as `np_emb_additive.py` and `np_emb_additive_subspace.py` and trained for 500K steps on GPU.
 
-  This would look like adding to compute_loss():
+### 15.2 Approach 2: Additivity Loss (`np_emb_additive.py`)
 
-  # Sample pairs and compute additivity penalty
-  x1, x2 = x[:n//2], x[n//2:]
-  emb1 = self.encode(x1)
-  emb2 = self.encode(x2)
-  emb_sum = self.encode(x1 + x2)
-  loss_additive = F.mse_loss(emb_sum, emb1 + emb2)
+**Architecture**: Identical to v8 (Section 3) — same NumberEncoder, same decoder, same channels. The only change is an additional loss term during training.
 
-  The tension: this loss directly conflicts with the uniqueness and expressiveness goals. A
-  purely additive embedding would be 1D (as proven above), so the encoder must trade off
-  multi-scale structure against additivity.
+**Additivity loss**: For each batch, sample pairs `(x₁, x₂)` from the first and second halves, compute:
 
-  Approach 3: Additive subspace
+```
+L_add = ||e(x₁ + x₂) - (e(x₁) + e(x₂))||²
+```
 
-  A more nuanced design: reserve a subspace of the embedding for additivity and the rest for
-  other properties. For example:
+weighted by `--add-weight` (default 0.1).
 
-  - Dims 0-31: additive component -- a linear map x * v where v ∈ R^32
-  - Dims 32-127: non-additive component -- Fourier + LogMag + Sign + Poly (current
-  architecture)
+**Ramp schedule**: The additivity loss is off for the first 20% of training (pure reconstruction), linearly ramps from 20-30%, and reaches full weight at 30%+. This prevents the additivity objective from interfering with early feature learning.
 
-  The additive subspace satisfies e_add(x+y) = e_add(x) + e_add(y) exactly, while the
-  non-additive subspace provides uniqueness and expressiveness. The transformer's attention
-  mechanism can then learn to use the additive subspace for arithmetic tasks and the
-  non-additive subspace for comparison/ordering tasks.
+**Key property**: The encoder state_dict is identical to v8, making this a **drop-in replacement** — any model code that loads a v8 checkpoint can load this one without modification.
 
-  Approach 4: Residue Number System (RNS) inspired embedding
+**Training results** (SLURM job 78727, 500K steps):
 
-  Use modular arithmetic to get exact additivity for integers. Define:
-  e_k(x) = [sin(2π * x / p_k), cos(2π * x / p_k)]
-  where p_k are coprime integers. Then for integers:
-  e_k(x + y) = e_k((x + y) mod p_k)
+| Metric | Value |
+|--------|-------|
+| Final loss | 0.118 (vs 0.005 for v8) |
+| Reconstruction at 100K | 0.18% relative error |
+| Additivity relative error | **1.03** (error as large as the signal) |
+| Standard tests | 22/23 passed (additivity FAILED) |
 
-  And the angle 2π * x / p_k has the property that addition in the input maps to rotation in
-  the embedding — which is additive in the angle. This doesn't satisfy e(x+y) = e(x) + e(y) in
-  vector space, but it satisfies a related property: the representation of the sum is
-  computable from the representations of the parts via a simple operation (complex
-  multiplication, which is rotation).
+**Failure analysis**: The additivity test measured `||e(x+y) - (e(x) + e(y))|| / ||e(x+y)||` and found it ≈ 1.0 — meaning the additive combination `e(x) + e(y)` is no closer to `e(x+y)` than a random vector would be. The root cause is **LayerNorm**:
 
-  This is actually close to what the Fourier channel already does, but with frequencies chosen
-  for RNS-like properties rather than geometric spacing.
+```
+LayerNorm normalizes all embeddings to approximately the same L2 norm (~11.4).
+  e(x) has norm ~11.4
+  e(y) has norm ~11.4
+  e(x) + e(y) has norm ~16-23 (depends on alignment)
+  e(x+y) has norm ~11.4
 
-  Would you like me to implement one of these approaches? The most practical path would be
-  Approach 2 (additivity loss term) or Approach 3 (additive subspace), since they can be added
-  to the existing architecture with minimal disruption. Approach 3 is particularly elegant
-  because it gives exact additivity in a subspace while preserving all existing properties.
+The vector sum e(x)+e(y) lives in a fundamentally different norm shell than e(x+y).
+LayerNorm makes additivity structurally impossible.
+```
+
+The 24x higher training loss (0.118 vs 0.005) confirms the two objectives fought each other throughout training, with neither converging well.
+
+### 15.3 Approach 3: Additive Subspace (`np_emb_additive_subspace.py`)
+
+**Architecture**: Modified NumberEncoder with two explicit lanes:
+
+```
+Embedding layout (128 dims):
+  [0 .. K-1]   : Additive subspace — x * learned_weight (K=32 dims, NO bias/nonlinearity)
+  [K .. 127]   : Standard pipeline — 71 raw → Linear(71, 95) → LayerNorm → concat log_norm → 96 dims
+```
+
+The additive subspace satisfies `e_add(x+y) = e_add(x) + e_add(y)` **exactly** by construction, since it is a purely linear function of x with no bias or nonlinearity. The `additive_weight` parameter is initialized with `logspace(-5, -1, 32)` to cover multiple scales.
+
+**Key property**: This is **NOT** a drop-in replacement — the state_dict has different keys (`additive_weight`, different projection dimensions) and requires model code changes to load.
+
+**Training results** (SLURM job 78728, 500K steps):
+
+| Metric | Value |
+|--------|-------|
+| Final loss | 0.0037 |
+| Reconstruction at 100K | 2.05% relative error (vs 0.18% for v8) |
+| Additive subspace error | **0.000000** (exactly additive, by construction) |
+| Full embedding additivity error | 1.33 |
+| Standard tests | 24/25 passed (full additivity FAILED, subspace PASSED) |
+| Additive weight range | [-9.29e-06, 1.26e-04] |
+
+**Failure analysis**: The additive subspace is mathematically perfect (`err = 0.000000`), but the **weights collapsed toward zero** (~1e-4), making the additive signal ~600x weaker than the standard lane signal. Three forces drove this collapse:
+
+1. **Scale mismatch**: Pretraining numbers range up to 1e14. Even with `w = 1e-4`, the additive output for `x = 1e14` is `x * w = 1e10` — still very large. The optimizer pushed weights down to keep outputs bounded.
+2. **Spread loss conflict**: The spread loss penalizes high cosine similarity between embeddings. Since all additive dims are `x * w_k` (same sign structure for same-sign numbers), they inherently have high cosine similarity — the spread loss actively suppresses them.
+3. **Reconstruction doesn't need additivity**: The decoder can reconstruct x perfectly from the standard lane alone (Fourier + LogMag are sufficient). The additive lane provides no reconstruction benefit, so the optimizer has no incentive to keep its weights large.
+
+**Result**: The additive subspace is provably correct but practically useless — a ~600x signal-to-noise ratio means the downstream transformer would need extreme precision to extract the additive information.
+
+### 15.4 Summary of Failures
+
+Both approaches failed for the same fundamental reason: **the v8 architecture is hostile to additivity**.
+
+| Issue | Approach 2 Impact | Approach 3 Impact |
+|-------|-------------------|-------------------|
+| LayerNorm normalizes to constant norm | Prevents `e(x)+e(y) ≈ e(x+y)` structurally | Only affects standard lane (additive lane bypasses) |
+| Spread loss penalizes same-sign structure | Competes with additivity loss | Suppresses additive weight magnitudes |
+| Reconstruction-only pretraining | No incentive for arithmetic-useful features | No incentive to keep additive weights large |
+| Training distribution (up to 1e14) | Additivity loss dominated by large-number pairs | Forces additive weights very small |
+
+These results led to the v9 redesign, which addresses each failure mode directly.
+
+### 15.5 NumberEncoder v9: Math-Aware Multi-Lane Architecture (`np_emb_v9.py`)
+
+The v9 encoder is a ground-up redesign informed by the failure analysis of approaches 2 and 3, plus seven design recommendations:
+
+1. Multi-objective pretraining (not just reconstruction)
+2. Fix LayerNorm destroying scale (replace with RMSNorm)
+3. Protect additive lane from normalization/rotation
+4. Add digit/precision lane (modular arithmetic)
+5. Align sampling distribution with math tasks
+6. Probe-based evaluation
+7. Prioritize invariances for generic math
+
+#### 15.5.1 Three-Lane Architecture
+
+The 128-dim embedding is partitioned into three specialized lanes:
+
+```
+x (scalar)
+  |
+  +──→ Lane 1: ScaleLane ──→ 16 dims    [x * w, exactly additive, NOT normalized]
+  |
+  +──→ Lane 2: ResidueLane ──→ 10 dims  [sin/cos at digit periods, NOT normalized]
+  |
+  +──→ Lane 3: Semantic ──→ 102 dims    [Fourier+LogMag+Sign+Poly → proj → RMSNorm + log_norm]
+  |
+  v
+  concat ──→ 128 dims
+```
+
+**Lane 1 — Scale (16 dims)**: `output = x * weight` where `weight` is a learned parameter vector initialized with `logspace(-5, -2, 16)` with alternating signs. This lane satisfies `e_scale(x+y) = e_scale(x) + e_scale(y)` exactly by construction. Unlike Approach 3, the weights are initialized at larger magnitudes (1e-5 to 1e-2 vs 1e-5 to 1e-1) and the multi-objective training provides explicit incentive to keep them meaningful (see composition loss below).
+
+**Lane 2 — Residue (10 dims)**: For each period `p ∈ {10, 100, 1000, 10000, 100000}`, computes `[sin(2πx/p), cos(2πx/p)]`. These are **analytic** (no learnable parameters) and capture digit-level structure:
+
+| Period | What it captures | Example |
+|--------|-----------------|---------|
+| 10 | Last digit (ones place) | `sin(2π·42/10) = sin(2π·2/10)` — same for 2, 12, 22, ... |
+| 100 | Last two digits | Distinguishes 142 from 242 |
+| 1,000 | Last three digits | Carry detection across hundreds |
+| 10,000 | Four-digit patterns | Useful for 5-digit arithmetic |
+| 100,000 | Full 5-digit structure | Covers entire task number range |
+
+These features enable parity detection (period 10 encodes even/odd via `sin(2πx/10)`), carry detection (the 9→0 transition in `sin(2πx/10)` creates a phase discontinuity), and last-digit reasoning.
+
+This lane implements Approach 4 (RNS-inspired embedding) from the theoretical analysis. For integers, addition in the input maps to rotation in the `(sin, cos)` plane — the representation of the sum is computable from the representations of the parts via complex multiplication.
+
+**Lane 3 — Semantic (102 dims)**: Same four analytic channels as v8 (Fourier 64 + LogMag 1 + Sign 1 + Poly 5 = 71 raw dims), projected through `Linear(71, 101)`, then normalized with **RMSNorm** (not LayerNorm), with `log_norm` appended as the 102nd dimension.
+
+**RMSNorm vs LayerNorm**: This is the key architectural fix for the LayerNorm failure:
+
+```
+LayerNorm: normed = (x - mean(x)) / std(x) * γ + β
+  → Subtracts mean: destroys relative position between dimensions
+  → Divides by std: normalizes to constant norm (~11.4 for all inputs)
+
+RMSNorm: normed = x / RMS(x) * γ    where RMS = sqrt(mean(x²) + ε)
+  → Does NOT subtract mean: preserves relative structure
+  → Divides by RMS: still normalizes scale but preserves direction
+  → Learned per-dimension scale γ: different dims can have different magnitudes
+```
+
+RMSNorm normalizes the overall magnitude without subtracting the mean, so the direction of the projected vector is preserved. The learned per-dim scale `rms_scale` (initialized to 1.0) allows the network to assign different importance to different semantic dimensions.
+
+#### 15.5.2 Multi-Objective Pretraining
+
+The v9 training loss combines reconstruction (existing from v8) with three new probe-based objectives:
+
+```
+L = L_recon + L_compose + L_order + L_magnitude + L_spread
+```
+
+| Term | Weight | Description | Addresses |
+|------|--------|-------------|-----------|
+| L_slog | 1.0 | Signed-log MSE: `MSE(sign(x)·log(1+\|x\|), ...)` | Reconstruction |
+| L_bce | 0.1 | BCE on sign prediction | Sign accuracy |
+| L_lm | 0.3 | MSE on log-magnitude | Order-of-magnitude |
+| L_rel | 0.3 (ramped) | Relative MSE: `(x-x̂)²/(x²+1)` | Precise reconstruction |
+| L_spread | 0.05 | Cosine similarity penalty | Anti-collapse |
+| **L_compose** | **0.3** (ramped) | Addition probe: predict `x+y` from `[e(x); e(y)]` | **Arithmetic utility** |
+| **L_order** | **0.1** (ramped) | Hinge loss: `relu(0.1 - (score_b - score_a) · sign(x_b - x_a))` | **Ordering utility** |
+| **L_magnitude** | **0.1** (ramped) | Cross-entropy for 13-class exponent bucket prediction | **Scale awareness** |
+
+**Composition loss (L_compose)**: An `AdditionProbe` (2-layer MLP: `Linear(256, 128) → GELU → Linear(128, 1)`) is trained jointly with the encoder to predict `x₁ + x₂` from the concatenated embeddings `[e(x₁); e(x₂)]`. The prediction and target are compared in **signed-log space** (`sign(z) · log(1+|z|)`) for scale-invariant comparison. This directly rewards the encoder for producing embeddings from which addition is recoverable — the exact property that Approaches 2 and 3 failed to achieve.
+
+**Order loss (L_order)**: An `OrderProbe` (linear: `Linear(128, 1, bias=False)`) maps embeddings to scalars. For pairs `(x_a, x_b)` where `x_a < x_b`, we want `score(e(x_b)) > score(e(x_a))` with a margin of 0.1. Violations are penalized with a hinge loss. This ensures the embedding space preserves numerical ordering via a simple linear readout.
+
+**Magnitude loss (L_magnitude)**: A `MagnitudeProbe` (linear: `Linear(128, 13)`) classifies embeddings into 13 exponent buckets: `{< -6, [-6,-5), ..., [4,5), ≥ 5}`, covering the full range from sub-microscopic to 100K+. Trained with cross-entropy.
+
+**Ramp schedule**: The three new objectives are off for the first 10% of training (pure reconstruction), linearly ramp from 10-20%, and reach full weight at 20%+. The relative MSE term ramps separately at 40-50% (same as v8). This two-phase approach ensures the encoder first learns a stable representation, then the probes refine it for arithmetic utility.
+
+**Probes are discarded**: The AdditionProbe, OrderProbe, and MagnitudeProbe are only used during pretraining. The saved checkpoint contains only the encoder state_dict. These probes shape the encoder's representation but are not part of the downstream GPT-2 model.
+
+#### 15.5.3 Operation-Aware Sampling
+
+The v8 encoder was trained on log-uniform samples — good for covering the number line but poorly aligned with the arithmetic tasks the downstream model faces. The v9 sampling distribution includes:
+
+| Fraction | Source | Purpose |
+|----------|--------|---------|
+| 30% | Positive log-uniform (1e-14 to 1e14) | Standard coverage |
+| 30% | Negative log-uniform | Negative number coverage |
+| 10% | Near-zero (-0.01 to 0.01) | Precision near origin |
+| 10% | Integers [-1000, 1000] | Integer arithmetic alignment |
+| 10% | Operation results (x+y, x-y for random integer pairs) | Direct arithmetic exposure |
+| 10% | Carry-heavy/structured (999, 9999, powers of 10, etc.) | Boundary case exposure |
+
+The operation-results fraction ensures the encoder sees (x, y, x+y, x-y) tuples in the same batch, directly benefiting the composition loss which samples pairs within the batch.
+
+#### 15.5.4 Probe-Based Evaluation
+
+After training, the encoder is evaluated with six probes that measure how useful the embeddings are for downstream math — not just reconstruction accuracy:
+
+| Probe | Method | What it measures |
+|-------|--------|-----------------|
+| **Linear Addition** | Least-squares `W @ [e(x); e(y)] → x+y` | Can addition be recovered linearly? (R²) |
+| **Linear Subtraction** | Least-squares `W @ [e(x); e(y)] → x-y` | Can subtraction be recovered linearly? (R²) |
+| **Linear Order** | Least-squares `w @ e(x) → x`, then Spearman ρ | Does a linear readout preserve ordering? |
+| **Magnitude** | Linear classifier → 13 exponent buckets | Can magnitude be read off the embedding? |
+| **Parity** | Linear classifier → even/odd | Does the residue lane capture parity? |
+| **Last Digit** | Linear classifier → 10 classes (\|x\| mod 10) | Does the residue lane capture digit structure? |
+
+Additionally, the standard v8 tests (uniqueness, continuity, reversibility, expressiveness, compatibility) are preserved, plus a new lane structure test verifying that the scale lane dims scale linearly with x and the residue lane dims repeat with the correct period.
+
+#### 15.5.5 Encoder Parameters
+
+| Component | Parameters | Learnable |
+|-----------|-----------|-----------|
+| ScaleLane weight | 16 | Yes |
+| ResidueLane | 0 | No (analytic) |
+| FourierChannel | 0 | No (analytic) |
+| LogMagnitudeChannel | 0 | No (analytic) |
+| SignChannel | 0 | No (analytic) |
+| PolynomialChannel | 0 | No (analytic) |
+| Linear(71, 101) projection | 71 * 101 + 101 = 7,272 | Yes |
+| RMSNorm scale | 101 | Yes |
+| **Encoder total** | **~7,389** | |
+| AdditionProbe (training only) | 256 * 128 + 128 + 128 * 1 + 1 = 33,025 | Discarded |
+| OrderProbe (training only) | 128 | Discarded |
+| MagnitudeProbe (training only) | 128 * 13 + 13 = 1,677 | Discarded |
+| Decoder (training only) | ~38K | Discarded |
+
+The encoder itself has ~7.4K learnable parameters (vs ~9.2K in v8). The probes add ~34.8K during pretraining but are discarded afterward. The checkpoint saves only the encoder state_dict.
+
+#### 15.5.6 How v9 Addresses Each Failure
+
+| Failure Mode (Approaches 2&3) | v9 Fix |
+|-------------------------------|--------|
+| LayerNorm normalizes to constant norm | RMSNorm preserves direction; scale lane bypasses normalization entirely |
+| Spread loss suppresses additive weights | Scale lane is only 16 dims (vs 32); multi-objective losses provide positive incentive to keep them meaningful |
+| No incentive for additive structure | Composition loss (L_compose) directly rewards arithmetic recoverability from embeddings |
+| Reconstruction-only pretraining | Order loss + magnitude loss ensure embeddings encode comparison and scale information |
+| Training distribution misaligned with tasks | Operation-aware sampling includes (x+y, x-y) tuples and carry-heavy numbers |
+| No digit-level features | Residue lane provides exact digit-period structure for parity, carry, last-digit reasoning |
+| Evaluation measures only reconstruction | Probe-based evaluation directly measures downstream math utility |
+
+#### 15.5.7 Compatibility with GPT-2 Model
+
+The v9 encoder is **NOT** a drop-in replacement for the v8 encoder. The state_dict has different keys:
+
+| v8 Key | v9 Key | Notes |
+|--------|--------|-------|
+| `proj.weight` (71→127) | `proj.weight` (71→101) | Different output dimension |
+| N/A | `scale_lane.weight` | New parameter (16 dims) |
+| N/A | `residue_lane.periods` | Buffer, not parameter |
+| N/A | `rms_scale` | New parameter (101 dims) |
+
+Integrating v9 into the GPT-2 model (fe_unfreeze, fe_textdec) would require:
+1. Updating `model.py` to import and instantiate the v9 `NumberEncoder`
+2. Updating the adapter input dimension if needed (still 128→256, unchanged)
+3. Loading the v9 checkpoint with the correct key mapping
+4. No changes to the transformer blocks, attention, or loss computation
+
+
+  ┌────────────────┬───────────┬────────────┐
+  │     Probe      │ SLURM run │ --load run │
+  ├────────────────┼───────────┼────────────┤
+  │ Addition R²    │ 0.9997    │ 0.999994   │
+  ├────────────────┼───────────┼────────────┤
+  │ Addition MAE   │ 11.2      │ 1.1        │
+  ├────────────────┼───────────┼────────────┤
+  │ Subtraction R² │ 0.9991    │ 1.000000   │
+  ├────────────────┼───────────┼────────────┤
+  │ Order ρ        │ 0.9996    │ 1.000000   │
+  └────────────────┴───────────┴────────────┘

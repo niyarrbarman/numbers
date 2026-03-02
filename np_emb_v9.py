@@ -935,8 +935,13 @@ def run_standard_tests(system: NumberEmbeddingSystem):
     print("TEST 4: EXPRESSIVENESS — Structural properties of embedding space")
     print("-" * 70)
 
-    embs_s = _encode_np(system,
-                        sample_training_numbers(500, system.device).cpu().numpy())
+    # Use task-range numbers (not training range up to 1e14) to avoid
+    # scale lane dominating SVD with extreme values
+    task_range_nums = np.concatenate([
+        np.random.uniform(-100000, 100000, 400),
+        np.random.uniform(-100, 100, 100),
+    ]).astype(np.float32)
+    embs_s = _encode_np(system, task_range_nums)
     _, S, _ = np.linalg.svd(embs_s - embs_s.mean(axis=0), full_matrices=False)
     eff = int(np.sum(S > 0.01 * S[0]))
     check("High effective dimensionality (>20)", eff > 20,
@@ -1005,11 +1010,19 @@ def run_standard_tests(system: NumberEmbeddingSystem):
           f"Max ratio std: {max_ratio_std:.6f}")
 
     # Residue lane periodicity: e_residue(x) ≈ e_residue(x+10) for period-10 dims
+    # ResidueLane output layout: [sin(p1),...,sin(p5), cos(p1),...,cos(p5)]
+    # Period-10 is the first period, so sin at index K+0, cos at index K+n_periods
+    n_periods = len(system.encoder.residue_lane.periods)
     x_base = torch.tensor([42.0, 137.0, 9999.0], device=system.device)
     x_plus10 = x_base + 10.0
     with torch.no_grad():
-        e_base = system.encode(x_base)[:, K:K + 2]  # sin/cos of period 10
-        e_p10 = system.encode(x_plus10)[:, K:K + 2]
+        e_base_full = system.encode(x_base)
+        e_p10_full = system.encode(x_plus10)
+        # sin(2πx/10) at index K, cos(2πx/10) at index K+n_periods
+        idx_sin = K
+        idx_cos = K + n_periods
+        e_base = torch.stack([e_base_full[:, idx_sin], e_base_full[:, idx_cos]], dim=-1)
+        e_p10 = torch.stack([e_p10_full[:, idx_sin], e_p10_full[:, idx_cos]], dim=-1)
     period10_err = (e_base - e_p10).abs().max().item()
     check("Residue period-10 dims repeat every 10", period10_err < 0.01,
           f"Max diff: {period10_err:.6f}")
@@ -1133,8 +1146,10 @@ if __name__ == "__main__":
                         help="Scale lane dimensions (default: 16)")
     parser.add_argument("--residue-periods", type=str, default="10,100,1000,10000,100000",
                         help="Comma-separated residue periods (default: 10,100,1000,10000,100000)")
+    parser.add_argument("--load", type=str, default=None,
+                        help="Load checkpoint and run tests (skip training)")
     parser.add_argument("--test-only", action="store_true",
-                        help="Run tests without training")
+                        help="Run tests on random (untrained) model")
     parser.add_argument("--demo-only", action="store_true",
                         help="Run demo only, skip tests")
     parser.add_argument("--seed", type=int, default=42,
@@ -1176,7 +1191,28 @@ if __name__ == "__main__":
     print()
 
     try:
-        if args.test_only:
+        if args.load:
+            # Load a saved checkpoint and run tests
+            ckpt = torch.load(args.load, map_location=device, weights_only=False)
+            scale_dims = ckpt.get('scale_dims', args.scale_dims)
+            rp = ckpt.get('residue_periods', residue_periods)
+            rp = [int(p) for p in rp]
+            print(f"Loading checkpoint: {args.load}")
+            print(f"  scale_dims={scale_dims}, residue_periods={rp}")
+            print(f"  trained for {ckpt.get('num_steps', '?')} steps")
+            print()
+
+            system = NumberEmbeddingSystem(
+                embedding_dim=ckpt.get('embedding_dim', 128),
+                scale_dims=scale_dims, residue_periods=rp, device=device)
+            system.load_state_dict(ckpt['full_state_dict'])
+            system.eval()
+
+            run_standard_tests(system)
+            print()
+            run_probe_tests(system)
+
+        elif args.test_only:
             system = NumberEmbeddingSystem(
                 embedding_dim=128, scale_dims=args.scale_dims,
                 residue_periods=residue_periods, device=device)

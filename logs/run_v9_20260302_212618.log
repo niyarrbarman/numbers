@@ -1,0 +1,159 @@
+Log: logs/run_v9_20260302_212618.log
+Seed: 42  |  Max steps: 500000  |  Device: cuda
+Scale dims: 16  |  Residue periods: [10, 100, 1000, 10000, 100000]
+GPU: NVIDIA RTX 4000 Ada Generation Laptop GPU
+
+Loading checkpoint: checkpoints/np_emb_v9_500k_model.pt
+  scale_dims=16, residue_periods=[10, 100, 1000, 10000, 100000]
+  trained for 500000 steps
+
+----------------------------------------------------------------------
+TEST 1: UNIQUENESS — Distinct numbers → distinct embeddings
+----------------------------------------------------------------------
+  [PASS] Max cosine sim < 0.99
+         Max cosine sim: 0.9558
+  [PASS] All pairwise L2 distances > 0
+         Min L2 dist: 3.896263
+  [PASS] 1.0000 vs 1.0001 distinguishable
+         L2 dist: 2.72819138
+----------------------------------------------------------------------
+TEST 2: CONTINUITY — Small perturbations → small embedding changes
+----------------------------------------------------------------------
+  [PASS] ε=0.1: bounded relative change
+         Max Δ: 14.9681, Relative: 1.4099
+  [PASS] ε=0.01: bounded relative change
+         Max Δ: 12.9957, Relative: 1.2241
+  [PASS] ε=0.001: bounded relative change
+         Max Δ: 7.1289, Relative: 0.6715
+  [PASS] Smaller ε → smaller (or comparable) embedding Δ
+         Deltas: ['14.9681', '12.9957', '7.1289']
+  [PASS] Distance monotonicity
+         Dists: ['4.3905', '5.7507', '6.9817', '11.2329']
+----------------------------------------------------------------------
+TEST 3: REVERSIBILITY — Round-trip reconstruction accuracy
+----------------------------------------------------------------------
+  [PASS] Reconstruction [Small positive]
+         |err|_max: 0.0008, rel_max: 0.0149
+  [PASS] Reconstruction [Medium]
+         |err|_max: 0.0402, rel_max: 0.0161
+  [PASS] Reconstruction [Large]
+         |err|_max: 1.4589, rel_max: 0.0073
+  [PASS] Reconstruction [Negative]
+         |err|_max: 0.2640, rel_max: 0.0053
+  [PASS] Reconstruction [Near zero]
+         |err|_max: 0.0000, rel_max: 0.0790
+  [PASS] Reconstruction [Integers]
+         |err|_max: 0.3899, rel_max: 0.0053
+
+         Input  →         Decoded     Abs Err     Rel Err
+  ────────────     ──────────────  ──────────  ──────────
+       0.00000  →        -0.00000     0.00000    7.8924%
+       0.00000  →        -0.00000     0.00000  194.4747%
+       0.00010  →         0.00010     0.00000    0.7997%
+       0.00012  →         0.00012     0.00000    0.0244%
+       0.00100  →         0.00099     0.00001    0.5123%
+       0.01000  →         0.00997     0.00003    0.3412%
+       0.10000  →         0.10080     0.00080    0.7991%
+       0.50000  →         0.49642     0.00358    0.7168%
+       1.00000  →         0.99974     0.00026    0.0260%
+       2.71828  →         2.70379     0.01449    0.5329%
+       3.14159  →         3.12415     0.01744    0.5550%
+       7.00000  →         6.99334     0.00666    0.0952%
+      10.00000  →         9.98273     0.01727    0.1727%
+      42.00000  →        42.22071     0.22071    0.5255%
+      99.00000  →        98.61010     0.38990    0.3938%
+     500.00000  →       506.96802     6.96802    1.3936%
+    1000.00000  →      1005.71069     5.71069    0.5711%
+    9999.00000  →     10048.61328    49.61328    0.4962%
+  100000.00000  →    104290.28906  4290.28906    4.2903%
+  1000000.00000  →   1036817.43750  36817.43750    3.6817%
+      -0.00100  →        -0.00100     0.00000    0.2591%
+      -0.50000  →        -0.49734     0.00266    0.5319%
+      -1.00000  →        -1.00259     0.00259    0.2588%
+      -3.14159  →        -3.10291     0.03868    1.2311%
+     -10.00000  →       -10.02354     0.02354    0.2354%
+     -42.00000  →       -42.11555     0.11555    0.2751%
+   -1000.00000  →     -1008.47681     8.47681    0.8477%
+   -1234.50000  →     -1247.29163    12.79163    1.0362%
+       0.33333  →         0.32980     0.00353    1.0578%
+       0.99999  →         0.98595     0.01404    1.4041%
+       1.00001  →         1.02265     0.02264    2.2643%
+  123456.00000  →    120141.49219  3314.50781    2.6848%
+  -99999.00000  →   -100257.78906   258.78906    0.2588%
+
+----------------------------------------------------------------------
+TEST 4: EXPRESSIVENESS — Structural properties of embedding space
+----------------------------------------------------------------------
+  [FAIL] High effective dimensionality (>20)
+         Effective dims: 9/128
+  [PASS] PC1 correlates with ordering
+         Spearman ρ = 0.9836
+  [PASS] Similar numbers cluster tighter
+         Intra max: 11.1181, Inter min: 15.1295
+----------------------------------------------------------------------
+TEST 5: MODEL COMPATIBILITY — Standard ops & integration
+----------------------------------------------------------------------
+  [PASS] Batch (64,) → (64, d)
+  [PASS] Single number works
+  [PASS] Downstream linear layer
+  [PASS] Dot-product attention
+  [PASS] Deterministic
+----------------------------------------------------------------------
+TEST 6: LANE STRUCTURE — Scale lane is linear, residue lane is periodic
+----------------------------------------------------------------------
+  [PASS] Scale lane dims scale linearly with x
+         Max ratio std: 0.000000
+  [PASS] Residue period-10 dims repeat every 10
+         Max diff: 0.000014
+  Scale weight range: [-1.04e-03, 1.10e-03]
+======================================================================
+STANDARD TESTS: 23/24 PASSED, 1/24 FAILED
+======================================================================
+
+======================================================================
+PROBE TESTS — Can simple functions of embeddings recover math?
+======================================================================
+
+  Probe 1: LINEAR ADDITION — W @ [e(x); e(y)] → x+y
+  ------------------------------------------------------------
+    R² = 0.999994  |  MAE = 1.13
+    Subtraction:  R² = 1.000000  |  MAE = 0.15
+
+  Probe 2: LINEAR ORDER — w @ e(x) ranks numbers correctly
+  ------------------------------------------------------------
+    Spearman ρ = 1.000000
+
+  Probe 3: MAGNITUDE — predict exponent bucket from embedding
+  ------------------------------------------------------------
+    Accuracy = 0.7220 (13 classes)
+
+  Probe 4: PARITY — predict x mod 2 from embedding
+  ------------------------------------------------------------
+    Accuracy = 0.5150
+
+  Probe 5: LAST DIGIT — predict |x| mod 10 from embedding
+  ------------------------------------------------------------
+    Accuracy = 0.2460 (10 classes, chance=0.10)
+
+  Probe 6: ADDITIVITY — ||e(x+y) - (e(x)+e(y))|| / ||e(x+y)||
+  ------------------------------------------------------------
+             small+small:  full=1.3493  scale_lane=0.000000
+           medium+medium:  full=1.4990  scale_lane=0.000000
+             large+large:  full=0.2075  scale_lane=0.000000
+             small+large:  full=0.8312  scale_lane=0.000000
+                integers:  full=1.5351  scale_lane=0.000000
+
+    Overall:  full=1.0844  scale_lane=0.000000
+
+======================================================================
+PROBE SUMMARY
+======================================================================
+  Addition (linear):      R² = 1.0000, MAE = 1.1
+  Subtraction (linear):   R² = 1.0000, MAE = 0.2
+  Order (Spearman):       ρ  = 1.0000
+  Magnitude (13-class):   acc = 0.7220
+  Parity (binary):        acc = 0.5150
+  Last digit (10-class):  acc = 0.2460
+  Additivity (scale):     err = 0.000000
+  Additivity (full):      err = 1.0844
+======================================================================

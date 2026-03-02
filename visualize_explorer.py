@@ -6,10 +6,14 @@ Interactive 3D UMAP plot with click-to-measure 128d L2 distance.
 Click any two points to see the full-dimensional L2 distance,
 cosine similarity, and both numbers' details. Click again to reset.
 
+Supports both v8 and v9 (math-aware multi-lane) checkpoints.
+The variant is auto-detected from the checkpoint file.
+
 Usage:
   python3 visualize_explorer.py
   python3 visualize_explorer.py --range 5000 --n 3000
   python3 visualize_explorer.py --checkpoint checkpoints/np_emb_v8_500k_model.pt --dim 2
+  python3 visualize_explorer.py --checkpoint checkpoints/np_emb_v9_500k_model.pt
 """
 
 import os
@@ -26,7 +30,8 @@ from umap import UMAP
 from sklearn.decomposition import PCA
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from np_emb_torch import NumberEmbeddingSystem
+from np_emb_torch import NumberEmbeddingSystem as NumberEmbeddingSystemV8
+from np_emb_v9 import NumberEmbeddingSystem as NumberEmbeddingSystemV9
 
 CHECKPOINT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "checkpoints")
 
@@ -40,14 +45,37 @@ def find_latest_checkpoint():
     return files[-1]
 
 
+def detect_variant(ckpt):
+    """Detect checkpoint variant from saved keys."""
+    if ckpt.get('variant') == 'v9_math_aware':
+        return 'v9'
+    return 'v8'
+
+
 def load_model(checkpoint_path, device):
     ckpt = torch.load(checkpoint_path, map_location=device, weights_only=False)
+    variant = detect_variant(ckpt)
     embedding_dim = ckpt.get('embedding_dim', 128)
-    system = NumberEmbeddingSystem(embedding_dim=embedding_dim, device=device)
-    system.load_state_dict(ckpt['state_dict'])
-    system.eval()
-    print(f"Loaded: {checkpoint_path}")
-    return system
+
+    if variant == 'v9':
+        scale_dims = ckpt.get('scale_dims', 16)
+        residue_periods = ckpt.get('residue_periods', [10, 100, 1000, 10000, 100000])
+        # Convert to int list if needed
+        residue_periods = [int(p) for p in residue_periods]
+        system = NumberEmbeddingSystemV9(
+            embedding_dim=embedding_dim, scale_dims=scale_dims,
+            residue_periods=residue_periods, device=device)
+        system.load_state_dict(ckpt['full_state_dict'])
+        system.eval()
+        print(f"Loaded v9 (math-aware): {checkpoint_path}")
+        print(f"  Scale dims: {scale_dims}, Residue periods: {residue_periods}")
+    else:
+        system = NumberEmbeddingSystemV8(embedding_dim=embedding_dim, device=device)
+        system.load_state_dict(ckpt['state_dict'])
+        system.eval()
+        print(f"Loaded v8: {checkpoint_path}")
+
+    return system, variant
 
 
 def generate_numbers(range_max, n_samples, seed=42):
@@ -215,7 +243,8 @@ plotDiv.on('plotly_click', function(data) {
 """
 
 
-def build_explorer(numbers, embeddings, reconstructions, coords, dim, method, output_path):
+def build_explorer(numbers, embeddings, reconstructions, coords, dim, method, output_path,
+                   variant='v8'):
     """Build interactive HTML with click-to-measure."""
     signed_log = np.sign(numbers) * np.log1p(np.abs(numbers))
 
@@ -255,7 +284,7 @@ def build_explorer(numbers, embeddings, reconstructions, coords, dim, method, ou
         fig.update_yaxes(title=f'{method} 2')
 
     fig.update_layout(
-        title=f"Number Embedding Explorer — {dim}D {method} (click two points to measure 128d distance)",
+        title=f"Number Embedding Explorer ({variant}) — {dim}D {method} (click two points to measure 128d distance)",
         template='plotly_white',
         width=1000, height=750,
         margin=dict(r=350),  # room for info panel
@@ -297,7 +326,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     ckpt_path = args.checkpoint or find_latest_checkpoint()
-    system = load_model(ckpt_path, device)
+    system, variant = load_model(ckpt_path, device)
     print()
 
     numbers = generate_numbers(args.range_max, args.n, args.seed)
@@ -311,8 +340,9 @@ def main():
                    metric='cosine', random_state=42)
     coords = reducer.fit_transform(embeddings)
 
-    output_path = os.path.join(args.output_dir, f"explorer_umap_{args.dim}d.html")
-    build_explorer(numbers, embeddings, reconstructions, coords, args.dim, "UMAP", output_path)
+    output_path = os.path.join(args.output_dir, f"explorer_{variant}_umap_{args.dim}d.html")
+    build_explorer(numbers, embeddings, reconstructions, coords, args.dim, "UMAP", output_path,
+                   variant=variant)
     print()
     print(f"Open in browser:")
     print(f"  file://{os.path.abspath(output_path)}")
