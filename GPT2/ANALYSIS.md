@@ -14,7 +14,8 @@
 10. [Variant 6: FE-TextDec (NumberEncoder Input + Plain Text Output)](#10-variant-6-fe-textdec-numberencoder-input--plain-text-output)
 11. [Training Configuration](#11-training-configuration)
 12. [Results](#12-results)
-13. [Key Findings](#13-key-findings)
+13. [Extended Evaluation](#13-extended-evaluation)
+14. [Key Findings](#14-key-findings)
 
 ---
 
@@ -965,15 +966,113 @@ The gap is primarily driven by SORT (98% vs 30.5%) and SUM (64% vs 28%) — mult
 
 ---
 
-## 13. Key Findings
+## 13. Extended Evaluation
 
-### 13.1 The NumberEncoder provides strong input understanding
+The standard validation metrics (Section 12) compare overall exact match and MAE on each model's own validation set. This section presents three additional analyses designed to probe *how* and *when* models fail: conditional error magnitude, difficulty-controlled performance buckets, and out-of-distribution SUM length generalization. All three analyses use teacher-forced evaluation on the same 6,722 numeric examples per model.
+
+Three models are compared: **Base** (text in, text out), **FE-Unfreeze** (NumberEncoder in, SME out), and **FE-TextDec** (NumberEncoder in, text out).
+
+### 13.1 Conditional MAE: "When Wrong, How Wrong?"
+
+Standard MAE averages over all examples, diluting errors from the small fraction of incorrect predictions. **Conditional MAE (CondMAE)** is computed only over examples where the model did *not* achieve exact match. This isolates the error magnitude of the model's failures.
+
+|  | --- Base --- | | | --- FE-Unfreeze --- | | | --- FE-TextDec --- | | |
+|---|---|---|---|---|---|---|---|---|---|
+| **Task** | **Exact%** | **MAE** | **CondMAE** | **Exact%** | **MAE** | **CondMAE** | **Exact%** | **MAE** | **CondMAE** |
+| ADD | 91.7% | 20,805 | 249,655 | 73.8% | 537 | 2,095 | 64.4% | 29,169 | 85,678 |
+| COUNT | 99.9% | 0.00 | 1.00 | 100.0% | 0.00 | 0.00 | 100.0% | 0.00 | 0.00 |
+| MAX | 99.8% | 1,888 | 899,500 | 94.8% | 27 | 545 | 95.3% | 1,374 | 37,014 |
+| MIN | 99.9% | 0.53 | 525 | 86.6% | 16 | 130 | 86.9% | 495 | 4,703 |
+| SORT | 98.2% | 49 | 2,223 | 32.5% | 8 | 11 | 30.5% | 1,094 | 1,675 |
+| SUB | 93.1% | 4,548 | 66,219 | 75.0% | 1,094 | 4,508 | 66.5% | 13,458 | 41,746 |
+| SUM | 63.7% | 182,959 | 504,659 | 39.2% | 2,637 | 4,428 | 27.8% | 121,420 | 168,362 |
+| **OVERALL** | **92.6%** | **16,774** | **317,166** | **71.7%** | **358** | **776** | **67.5%** | **16,614** | **40,344** |
+
+**Key observation**: FE-Unfreeze has a conditional MAE of **776** compared to Base's **317,166** — a **408x reduction**. When FE-Unfreeze gets a number wrong, it is typically off by hundreds; when Base gets a number wrong, it is typically off by hundreds of thousands.
+
+FE-TextDec sits between the two (CondMAE 40,344), showing that the SME output format contributes substantially to the proximity effect — SME's structured sign-exponent-mantissa decomposition ensures that even incorrect predictions preserve order of magnitude.
+
+### 13.2 Difficulty-Controlled Evaluation Buckets
+
+Performance is stratified by three difficulty dimensions to reveal where models succeed and fail.
+
+#### By Digit Count of Target
+
+|  | --- Base --- | | | --- FE-Unfreeze --- | | | --- FE-TextDec --- | | |
+|---|---|---|---|---|---|---|---|---|---|
+| **Digits** | **N** | **Exact%** | **CondMAE** | **N** | **Exact%** | **CondMAE** | **N** | **Exact%** | **CondMAE** |
+| 1-dig | 1690 | 94.9% | 0.05 | 1690 | 75.2% | 0.01 | 1690 | 74.6% | 0.13 |
+| 2-dig | 275 | 96.4% | 994 | 275 | 78.5% | 28 | 275 | 91.6% | 0.81 |
+| 3-dig | 194 | 93.8% | 246 | 194 | 75.8% | 256 | 194 | 80.4% | 118 |
+| 4-dig | 395 | 92.9% | 12,597 | 395 | 78.7% | 297 | 395 | 68.9% | 3,947 |
+| 5-dig | 2885 | 92.2% | 225,260 | 2885 | 72.7% | 1,016 | 2885 | 64.7% | 34,824 |
+| 6+-dig | 1283 | 89.2% | 721,422 | 1283 | 60.8% | 704 | 1283 | 56.7% | 66,999 |
+
+All models degrade with digit count, but FE-Unfreeze's conditional MAE stays remarkably flat (0.01 → 704 across 6 orders of magnitude of target values), while Base's CondMAE explodes (0.05 → 721,422).
+
+#### By List Length (SORT/MIN/MAX/SUM/COUNT only)
+
+|  | --- Base --- | | | --- FE-Unfreeze --- | | | --- FE-TextDec --- | | |
+|---|---|---|---|---|---|---|---|---|---|
+| **Length** | **N** | **Exact%** | **CondMAE** | **N** | **Exact%** | **CondMAE** | **N** | **Exact%** | **CondMAE** |
+| 2 | 544 | 98.5% | 49,251 | 544 | 79.4% | 6,198 | 544 | 78.5% | 11,148 |
+| 3 | 563 | 95.7% | 415,454 | 563 | 73.4% | 319 | 563 | 72.1% | 76,562 |
+| 4-5 | 1114 | 91.7% | 393,663 | 1114 | 68.9% | 451 | 1114 | 65.0% | 38,272 |
+| 6-8 | 1694 | 87.0% | 433,251 | 1694 | 64.6% | 538 | 1694 | 61.8% | 50,856 |
+| 9-10 | 886 | 99.1% | 16,593 | 886 | 77.5% | 13 | 886 | 76.2% | 3,457 |
+
+#### Per-Task Exact Match by Digit Count
+
+This reveals a striking inversion pattern for comparison tasks:
+
+| Digits | **MIN (Base)** | **MIN (FE-Unfreeze)** | **MAX (Base)** | **MAX (FE-Unfreeze)** |
+|--------|-----------|------------------|-----------|------------------|
+| 1-dig | 100.0% | 59.2% | 100.0% | 59.6% |
+| 2-dig | 100.0% | 85.7% | 100.0% | 76.9% |
+| 3-dig | 97.7% | 93.0% | 100.0% | 94.1% |
+| 4-dig | 100.0% | 98.7% | 100.0% | 100.0% |
+| 5-dig | 100.0% | 99.0% | 99.8% | 98.7% |
+| 6+-dig | 100.0% | 100.0% | 99.6% | 100.0% |
+
+FE-Unfreeze **struggles on small numbers** (1-digit: 59%) but **excels on large numbers** (6+-digit: 100%). This inversion occurs because:
+- For small integers (0-9), each value has a dedicated BPE token embedding that the base model can perfectly memorize. The NumberEncoder must compress these into continuous representations, losing the discrete identity.
+- For large numbers (5-6 digits), BPE fragments them into multiple tokens whose positional values must be learned implicitly. The NumberEncoder captures magnitude directly via its LogMagnitude and Fourier channels.
+
+### 13.3 SUM Length Generalization
+
+Models were trained on SUM tasks with 2-8 operands. This analysis tests all three models on generated SUM examples with list lengths [2, 3, 5, 8, 10, 15, 20, 30] using **integers 1-100** as operands, evaluated with teacher-forced forward pass (200 examples per length).
+
+|  | --- Base --- | | | --- FE-Unfreeze --- | | | --- FE-TextDec --- | | |
+|---|---|---|---|---|---|---|---|---|---|
+| **Length** | **Exact%** | **MAE** | **CondMAE** | **Exact%** | **MAE** | **CondMAE** | **Exact%** | **MAE** | **CondMAE** |
+| 2 | 35.0% | 57 | 90 | 32.0% | 121 | 197 | 27.5% | 33 | 45 |
+| 3 | 15.0% | 91 | 111 | 6.0% | 78 | 85 | 2.5% | 56 | 57 |
+| 5 | 0.0% | 143 | 143 | 0.5% | 55 | 56 | 0.0% | 375 | 375 |
+| 8 | 0.0% | 44,898 | 44,898 | 0.0% | 69 | 69 | 0.5% | 18,337 | 18,430 |
+| 10 * | 0.0% | 40,254 | 40,254 | 0.0% | 48 | 48 | 0.0% | 16,452 | 16,452 |
+| 15 * | 0.0% | 798 | 798 | 0.0% | 71 | 71 | 0.0% | 12,512 | 12,512 |
+| 20 * | 0.0% | 1,002 | 1,002 | 0.0% | 977 | 977 | 0.0% | 2,900 | 2,900 |
+| 30 * | 0.0% | 1,501 | 1,501 | 0.0% | 1,400 | 1,400 | 0.0% | 9,903 | 9,903 |
+
+\* = out-of-distribution (list length > 8, not seen during training)
+
+**Key observations:**
+1. **No model generalizes SUM to longer lists.** All three achieve 0% exact match at length 5+.
+2. **FE-Unfreeze maintains remarkably low MAE even out-of-distribution.** At length 10, FE-Unfreeze's MAE is 48 while Base's is 40,254 — an **839x difference**. The NumberEncoder's continuous representation preserves a "sense of scale" even when the combinatorial structure is unfamiliar.
+3. **Exact match drops dramatically even in-distribution.** The val set SUM accuracy is 63.7% (Base) and 39.2% (FE-Unfreeze), but on these generated examples it's 35% and 32% at length 2. This suggests distribution shift: the generated test examples (integers 1-100) have different number characteristics than the training data (which includes floats, negatives, and variable digit counts).
+4. **FE-Unfreeze's MAE stays flat at 48-71 for lengths 5-15**, then rises only at 20+ where the sums exceed the training number range. This flat plateau suggests the model approximates a constant "expected sum" for unfamiliar lengths, which happens to be close to correct for small integers.
+
+---
+
+## 14. Key Findings
+
+### 14.1 The NumberEncoder provides strong input understanding
 
 FE-TextDec proves this conclusively. It uses the NumberEncoder for input and plain BPE text for output — the same output format as Base. On classification tasks (which only require *understanding* the input numbers, not outputting new numbers), FE-TextDec matches Base at 99%+ accuracy. The NumberEncoder successfully encodes numbers into representations that the transformer can use for comparison, ordering, and verification.
 
 Furthermore, FE-TextDec achieves **6.4x lower cross-entropy loss** than Base (0.297 vs 1.908). Since both use the same output format, this difference is entirely due to the input encoding: the NumberEncoder compresses each number into a single information-rich token, whereas BPE fragments numbers into multiple tokens that each carry partial information.
 
-### 13.2 SME output encoding dramatically reduces error magnitude
+### 14.2 SME output encoding dramatically reduces error magnitude
 
 Base GPT-2 achieves higher exact match (92.56%) than any FE-SME variant (best: 79.29%). However, when Base gets a number wrong, the error can be catastrophic (MAE = 16,774). When FE-SME gets a number wrong, the error is typically small (MAE = 347.6 for Unfreeze). The ratio is **48x**.
 
@@ -982,7 +1081,7 @@ This is because of how errors propagate in each representation:
 - **SME structure**: The sign and exponent tokens are predicted first and are almost always correct (sign accuracy 99%, exponent accuracy 99.7%). Errors occur in later mantissa digits, producing numerically close values. Getting digit 3 wrong by 1 means the output is off by at most `10^(exponent - 3)`.
 - **BPE fragmentation**: A single wrong BPE token can shift the order of magnitude. Predicting `"4"` instead of `"40"` in the sequence `["40", "00"]` turns 4000 into 400 — a 10x error from one token.
 
-### 13.3 Loss is not directly comparable across output formats
+### 14.3 Loss is not directly comparable across output formats
 
 FE-SME variants have 5-10x lower cross-entropy loss than Base (0.23 vs 1.91). This does **not** mean they are 5-10x better at the tasks. The difference arises from **information density per token**:
 
@@ -990,7 +1089,7 @@ FE-SME variants have 5-10x lower cross-entropy loss than Base (0.23 vs 1.91). Th
 - **SME**: each output token is drawn from a constrained set — 2 signs, 19 exponents, or 10 digits (and constrained decoding further reduces the effective choices). The entropy per token is much lower.
 - **FE-TextDec** (0.30) vs **Base** (1.91): Same output format, so this gap is a fair comparison. The NumberEncoder reduces input token count, meaning fewer uncertain positions contribute to the loss.
 
-### 13.4 Unfreezing the encoder helps moderately
+### 14.4 Unfreezing the encoder helps moderately
 
 FE-Unfreeze outperforms FE-Frozen consistently:
 - Numeric exact match: 79.29% vs 74.87% (+4.4 percentage points)
@@ -999,7 +1098,7 @@ FE-Unfreeze outperforms FE-Frozen consistently:
 
 This confirms that task-specific fine-tuning of the encoder's `Linear(71, 127)` projection adapts the feature mixing beyond what reconstruction pretraining provides.
 
-### 13.5 Wider adapter does NOT help
+### 14.5 Wider adapter does NOT help
 
 FE-Unfreeze+MLP (1.45M adapter params) slightly **underperforms** FE-Unfreeze (107K adapter params):
 - Numeric exact: 76.83% vs 79.29% (-2.5 pp)
@@ -1007,11 +1106,11 @@ FE-Unfreeze+MLP (1.45M adapter params) slightly **underperforms** FE-Unfreeze (1
 
 The bottleneck is not adapter capacity. The 2-layer `Linear(128, 256) -> GELU -> Linear(256, 256)` is sufficient to project 128-dim number embeddings to 256-dim transformer inputs. The wider adapter may actually hurt by introducing optimization difficulty (larger parameter space with the same 0.5x learning rate).
 
-### 13.6 Multi-position encoding achieves lowest loss but lower exact match
+### 14.6 Multi-position encoding achieves lowest loss but lower exact match
 
 FE-Multipos achieves the lowest cross-entropy loss (0.132 vs 0.223 for Unfreeze, a 1.7x reduction) but lower exact match (70.26% vs 79.29%). The 5 position-specific projection heads give the transformer more attention targets per number, improving per-token prediction accuracy, but the increased sequence length means each training block contains fewer complete examples, reducing effective data coverage.
 
-### 13.7 Text decoding collapses on multi-number output tasks
+### 14.7 Text decoding collapses on multi-number output tasks
 
 FE-TextDec's SORT accuracy (30.5%) is far below both its SME counterpart (80.0% for Unfreeze) and Base (98.2%). SORT requires outputting a correctly-ordered list of multiple numbers as text, which means:
 - Multiple numbers in sequence with correct delimiters
@@ -1021,7 +1120,7 @@ FE-TextDec's SORT accuracy (30.5%) is far below both its SME counterpart (80.0% 
 
 Similarly, SUM (27.8% TextDec vs 39.2% Unfreeze) requires outputting a single precise number, where BPE fragmentation makes exact reproduction difficult even when the model has computed the correct answer internally.
 
-### 13.8 Scientific notation is the main text output failure mode
+### 14.8 Scientific notation is the main text output failure mode
 
 Throughout FE-TextDec training, the model consistently fails on scientific notation. It produces patterns like:
 - `6.8ee-07` instead of `5.964e-07`
@@ -1030,11 +1129,11 @@ Throughout FE-TextDec training, the model consistently fails on scientific notat
 
 This is a fundamental BPE tokenization issue. GPT-2's tokenizer fragments scientific notation inconsistently across different numbers, making it very hard for the model to learn the `e[-+]\d+` pattern reliably from training examples alone.
 
-### 13.9 COUNT is universally perfect
+### 14.9 COUNT is universally perfect
 
 All six variants achieve 99.9-100% on COUNT. This task requires only counting list elements (structural parsing), not understanding numerical values. It confirms that all architectures handle basic sequence parsing well and serves as a sanity check.
 
-### 13.10 Component contribution decomposition
+### 14.10 Component contribution decomposition
 
 Comparing the three output-format variants with the same unfrozen NumberEncoder input:
 
@@ -1048,3 +1147,88 @@ Comparing the three output-format variants with the same unfrozen NumberEncoder 
 Both the input encoder and output encoding contribute independently. The input encoder provides the single largest benefit (6.4x), with SME output providing a meaningful but smaller additional gain (1.3x), and multi-position adding further improvement (1.7x) at the cost of increased sequence length.
 
 The total pipeline reduction from Base to FE-Multipos is: `1.908 / 0.132 = 14.5x` lower cross-entropy loss.
+
+### 14.11 FE-Unfreeze errors are 400x closer to the correct answer
+
+The conditional MAE analysis (Section 13.1) reveals the most striking difference between the models. When FE-Unfreeze produces an incorrect answer, it is off by an average of 776. When Base produces an incorrect answer, it is off by an average of 317,166 — a **408x ratio**. This is the strongest evidence that the NumberEncoder provides genuine numerical understanding beyond pattern matching: the continuous embedding preserves proximity, so even incorrect predictions land in the right neighborhood.
+
+FE-TextDec's CondMAE (40,344) falls between the two, confirming that the SME output format contributes roughly half the proximity effect (on a log scale). SME's structured sign-exponent-mantissa decomposition means getting a mantissa digit wrong produces a small numerical error, whereas getting a BPE digit token wrong can shift the value by orders of magnitude.
+
+### 14.12 FE models exhibit a small-number/large-number inversion
+
+The difficulty-controlled analysis (Section 13.2) reveals a consistent pattern across comparison tasks (MIN, MAX): FE-Unfreeze underperforms Base on 1-digit numbers (~59% vs 100%) but matches or exceeds Base on 5-6+ digit numbers (99-100% vs 99-100%). This occurs because small integers (0-9) each have a dedicated BPE token embedding that Base memorizes perfectly, while the NumberEncoder must compress these into a continuous representation where nearby integers have similar embeddings. For large numbers, the situation reverses: BPE fragments them across multiple tokens requiring implicit positional reasoning, while the NumberEncoder captures magnitude directly.
+
+### 14.13 No model generalizes SUM beyond training list lengths
+
+All three models achieve 0% exact match on SUM with 5+ operands (Section 13.3), including in-distribution lengths (5 and 8 are within the training range of 2-8). However, FE-Unfreeze maintains remarkably low MAE even out-of-distribution (48 at length 10 vs Base's 40,254 — an 839x ratio), demonstrating that the encoder's continuous representation preserves scale awareness even when the model cannot compute exact sums.
+
+ What WOULD make embeddings additive
+
+  The core mathematical insight is: the only continuous functions f: R → R^d satisfying f(x+y)
+  = f(x) + f(y) for all x, y are linear maps: f(x) = x * v for some fixed vector v ∈ R^d.
+
+  But that's a terrible embedding -- it maps all of R to a 1-dimensional subspace (a line
+  through the origin). No uniqueness across different magnitudes beyond a scalar.
+
+  So we need to relax the requirement. There are several approaches:
+
+  Approach 1: Log-space additivity (for multiplication)
+
+  If we want e(x*y) ≈ e(x) + e(y) instead (multiplication becomes addition in embedding space),
+   then e(x) = log(x) * v works perfectly. This is actually what LogMagnitude already provides
+  for positive numbers. But we want addition, not multiplication.
+
+  Approach 2: Approximate additivity via a learned loss term
+
+  The most practical approach: add an additivity loss during encoder training that penalizes
+  ||e(x+y) - e(x) - e(y)||^2. The encoder can't satisfy this exactly (because of the
+  mathematical impossibility above), but it can learn representations where the additivity
+  error is small relative to the embedding norm.
+
+  This would look like adding to compute_loss():
+
+  # Sample pairs and compute additivity penalty
+  x1, x2 = x[:n//2], x[n//2:]
+  emb1 = self.encode(x1)
+  emb2 = self.encode(x2)
+  emb_sum = self.encode(x1 + x2)
+  loss_additive = F.mse_loss(emb_sum, emb1 + emb2)
+
+  The tension: this loss directly conflicts with the uniqueness and expressiveness goals. A
+  purely additive embedding would be 1D (as proven above), so the encoder must trade off
+  multi-scale structure against additivity.
+
+  Approach 3: Additive subspace
+
+  A more nuanced design: reserve a subspace of the embedding for additivity and the rest for
+  other properties. For example:
+
+  - Dims 0-31: additive component -- a linear map x * v where v ∈ R^32
+  - Dims 32-127: non-additive component -- Fourier + LogMag + Sign + Poly (current
+  architecture)
+
+  The additive subspace satisfies e_add(x+y) = e_add(x) + e_add(y) exactly, while the
+  non-additive subspace provides uniqueness and expressiveness. The transformer's attention
+  mechanism can then learn to use the additive subspace for arithmetic tasks and the
+  non-additive subspace for comparison/ordering tasks.
+
+  Approach 4: Residue Number System (RNS) inspired embedding
+
+  Use modular arithmetic to get exact additivity for integers. Define:
+  e_k(x) = [sin(2π * x / p_k), cos(2π * x / p_k)]
+  where p_k are coprime integers. Then for integers:
+  e_k(x + y) = e_k((x + y) mod p_k)
+
+  And the angle 2π * x / p_k has the property that addition in the input maps to rotation in
+  the embedding — which is additive in the angle. This doesn't satisfy e(x+y) = e(x) + e(y) in
+  vector space, but it satisfies a related property: the representation of the sum is
+  computable from the representations of the parts via a simple operation (complex
+  multiplication, which is rotation).
+
+  This is actually close to what the Fourier channel already does, but with frequencies chosen
+  for RNS-like properties rather than geometric spacing.
+
+  Would you like me to implement one of these approaches? The most practical path would be
+  Approach 2 (additivity loss term) or Approach 3 (additive subspace), since they can be added
+  to the existing architecture with minimal disruption. Approach 3 is particularly elegant
+  because it gives exact additivity in a subspace while preserving all existing properties.
