@@ -23,7 +23,7 @@ IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest
 PROJECT_DIR="/work/m24047/m24047brmn/numbers/GPT2"
 V9_DIR="${PROJECT_DIR}/fe_v9"
 
-CKPT_PATH="${CKPT_PATH:-/tmpdir/m24047brmn/numbers/model_checkpoints/sme_5dig_v9/ckpt_best.pt}"
+CKPT_PATH="${CKPT_PATH:-/tmpdir/m24047brmn/numbers/model_checkpoints/sme_5dig_v9_78772/ckpt_best.pt}"
 DATA_DIR="${DATA_DIR:-/tmpdir/m24047brmn/numbers/data/numtasks_sme_5dig_5m}"
 
 BATCH_BLOCKS="${BATCH_BLOCKS:-64}"
