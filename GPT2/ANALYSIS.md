@@ -1452,3 +1452,154 @@ Integrating v9 into the GPT-2 model (fe_unfreeze, fe_textdec) would require:
   ├────────────────┼───────────┼────────────┤
   │ Order ρ        │ 0.9996    │ 1.000000   │
   └────────────────┴───────────┴────────────┘
+
+#### 15.6 FE-v9 Integration Stabilization Update (March 3, 2026)
+
+After integrating the v9 encoder into FE training, a key optimization issue was observed: gradients were often dominated by the `num_encoder`/`num_adapter` path while transformer gradients stayed very small. The architecture has now been updated to stabilize this interface.
+
+**Change 1: Blended `<NUM>` injection (instead of hard replacement)**
+
+The old FE-v9 path replaced the token embedding at `<NUM>` positions with adapter output directly:
+
+```
+tok_emb[num_mask] = num_proj
+```
+
+It now uses a training-time blend:
+
+```
+e_num = (1 - beta_t) * e_base + beta_t * delta
+```
+
+where:
+- `e_base` = original GPT `<NUM>` token embedding
+- `delta` = `num_adapter(num_encoder(value))`
+- `beta_t` is scheduled from 0 to 1 over training
+
+This keeps early training close to the native GPT embedding manifold and gradually hands control to numeric features.
+
+**Change 2: Norm matching for adapter output**
+
+Before blending, `delta` is norm-matched to `e_base` (per token):
+
+```
+delta <- delta * (||e_base|| / ||delta||)
+```
+
+This avoids magnitude mismatch between adapter output and token embeddings, reducing early instability.
+
+**Change 3: More conservative adapter learning rate**
+
+Default `adapter_lr_scale` was reduced from `0.5` to `0.2` for FE-v9 training to further reduce early adapter dominance and encourage transformer adaptation.
+
+**Change 4: Expanded diagnostics**
+
+Training diagnostics now report:
+- preclip and postclip grad norms by group (`transformer`, `adapter`)
+- preclip and postclip grad ratios
+- blend/norm stats (`beta`, base norm, raw/effective delta norm, blend norm, norm scale)
+
+Important interpretation note:
+- These grad ratios are `||group|| / ||total||` in L2 norm space, so transformer and adapter ratios do **not** sum to 1. Their squared ratios approximately sum to 1.
+
+**Expected behavior with current defaults**
+
+Current schedule defaults:
+- `num_blend_beta_start = 0.0`
+- `num_blend_warmup_iters = 2000`
+- `num_blend_ramp_iters = 18000`
+- `num_blend_beta_end = 1.0`
+
+So:
+- Iter `< 2000`: `beta = 0.0` (adapter path intentionally off; adapter grads near 0)
+- Iter `2000-20000`: smooth cosine ramp
+- Iter `>= 20000`: `beta = 1.0` (full numeric injection)
+
+This behavior was confirmed in logs:
+- At iter 800: `beta=0.0000`, adapter grad ≈ 0 by design
+- At iter 3200: `beta=0.0109`, adapter grads non-zero but transformer still dominant
+
+#### 15.7 FE-v9 Run Update: `78772` / `78816` (March 3, 2026)
+
+Logs reviewed:
+- `slurm_logs/gpt2_sme_v9_78772.log` (training)
+- `slurm_logs/validate_v9_78816.log` (standard + extended validation)
+- Comparison baseline: `slurm_logs/validate_v9_78769.log`
+
+##### 15.7.1 Training behavior (`gpt2_sme_v9_78772.log`)
+
+The run completed successfully to 35k iters with steadily improving eval loss:
+
+| Iter | Train loss | Val loss |
+|------|------------|----------|
+| 0 | 10.7343 | 10.7326 |
+| 5000 | 0.5599 | 0.5640 |
+| 10000 | 0.4927 | 0.4929 |
+| 15000 | 0.3987 | 0.3988 |
+| 20000 | 0.3638 | 0.3601 |
+| 25000 | 0.3391 | 0.3381 |
+| 30000 | 0.3254 | 0.3225 |
+| 35000 | 0.3024 | 0.3007 |
+
+Beta schedule behaved as expected:
+- At iter 2000: `beta=0.0000` (adapter inactive by design)
+- By iter 22000: `beta=1.0000` (full adapter path)
+
+However, after beta approached 1.0, adapter gradients dominated preclip norm again:
+- Iter 22000: preclip total `385.18`, transformer `0.51`, adapter `385.18`
+- Iter 35000: preclip total `504.38`, transformer `0.46`, adapter `504.38`
+
+This indicates the blend warmup stabilized early training, but full-handoff still re-enters the adapter-dominant regime.
+
+##### 15.7.2 Standard validation vs previous v9
+
+| Metric | v9 prev (`78769`) | v9 new (`78816`) | Delta |
+|--------|-------------------|------------------|-------|
+| CE loss | 0.241156 | 0.252861 | Worse |
+| Perplexity | 1.272719 | 1.287705 | Worse |
+| SME overall | 0.9072 | 0.8912 | Worse |
+| SME digit | 0.8226 | 0.7890 | Worse |
+| SME d4 | 0.7249 | 0.6199 | Worse |
+| Invalid rate | 0.0070 | 0.0081 | Worse |
+| Exact value rate | 0.7470 | 0.7076 | Worse |
+| MAE | 644.997 | 252.593 | Better |
+| RMSE | 20006.689 | 8700.013 | Better |
+
+Interpretation:
+- Exact/token quality dropped.
+- Error magnitude improved substantially (fewer huge misses on average).
+
+##### 15.7.3 Per-task comparison (ExactVal / MAE)
+
+| Task | Prev Exact | New Exact | Prev MAE | New MAE | Net |
+|------|------------|-----------|----------|---------|-----|
+| ADD | 0.7427 | 0.6125 | 175.65 | 337.95 | Worse |
+| COUNT | 0.9990 | 1.0000 | 0.001 | 0.000 | Slightly better |
+| MAX | 0.9255 | 0.9161 | 2.85 | 29.41 | Worse |
+| MIN | 0.8059 | 0.7937 | 10.36 | 29.05 | Worse |
+| SORT | 0.7015 | 0.7063 | 13.69 | 23.17 | Mixed (exact up, MAE worse) |
+| SUB | 0.7700 | 0.6296 | 113.82 | 149.84 | Worse |
+| SUM | 0.5033 | 0.2812 | 7891.82 | 2570.67 | Mixed (exact down, MAE better) |
+
+The largest change is SUM: exact correctness dropped heavily, but average numerical distance improved.
+
+##### 15.7.4 Extended evaluation comparison
+
+Overall extended metrics:
+- Previous v9: `Exact 70.3%`, `MAE 658.23`, `CondMAE 1239.11`
+- New v9: `Exact 63.2%`, `MAE 255.42`, `CondMAE 445.49`
+
+So the new run is less often exactly right, but substantially closer when wrong.
+
+SUM length generalization:
+- New run has lower in-range MAE at short lengths (e.g., len2/len3), but still near-zero exact beyond trivial cases.
+- OOD lengths (10/15/20/30) remain poor, with high MAE.
+- The old suspicious `len=30 MAE=0.00` artifact is gone; new values are non-zero and more plausible.
+
+##### 15.7.5 Practical conclusion for this run
+
+This configuration shifted the model toward "closer numeric answers" at the cost of exact symbolic correctness.
+
+If target objective is exact token/value accuracy, this run is a regression vs previous v9 and also behind FE-unfreeze runs.
+
+If target objective is reducing catastrophic numeric error magnitude, this run is an improvement over previous v9.
