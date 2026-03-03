@@ -73,9 +73,14 @@ num_emb_checkpoint = ''  # path to NumberEncoder .pt checkpoint
 num_emb_dim = 128
 num_emb_scale_dims = 16
 num_emb_residue_periods = '10,100,1000,10000,100000'
+num_norm_match = True
+num_blend_beta_start = 0.0
+num_blend_beta_end = 1.0
+num_blend_warmup_iters = 2000
+num_blend_ramp_iters = 18000
 # adamw optimizer
 learning_rate = 4e-4
-adapter_lr_scale = 0.5
+adapter_lr_scale = 0.2
 max_iters = 40000
 weight_decay = 1e-1
 beta1 = 0.9
@@ -201,6 +206,8 @@ model_args = dict(
     num_emb_dim=num_emb_dim, num_emb_checkpoint=num_emb_checkpoint,
     num_emb_scale_dims=num_emb_scale_dims,
     num_emb_residue_periods=num_emb_residue_periods,
+    num_norm_match=num_norm_match,
+    num_blend_beta_infer=num_blend_beta_end,
 )
 if init_from == 'scratch':
     print("Initializing a new model from scratch")
@@ -216,7 +223,8 @@ elif init_from == 'resume':
     checkpoint_model_args = checkpoint['model_args']
     for k in ['n_layer', 'n_head', 'n_embd', 'block_size', 'bias', 'vocab_size',
               'num_emb_dim', 'num_emb_checkpoint',
-              'num_emb_scale_dims', 'num_emb_residue_periods']:
+              'num_emb_scale_dims', 'num_emb_residue_periods',
+              'num_norm_match', 'num_blend_beta_infer']:
         if k in checkpoint_model_args:
             model_args[k] = checkpoint_model_args[k]
     gptconf = GPTConfig(**model_args)
@@ -234,7 +242,9 @@ elif init_from.startswith('gpt2'):
     override_args = dict(dropout=dropout, num_emb_checkpoint=num_emb_checkpoint,
                          num_emb_dim=num_emb_dim,
                          num_emb_scale_dims=num_emb_scale_dims,
-                         num_emb_residue_periods=num_emb_residue_periods)
+                         num_emb_residue_periods=num_emb_residue_periods,
+                         num_norm_match=num_norm_match,
+                         num_blend_beta_infer=num_blend_beta_end)
     model = GPT.from_pretrained(init_from, override_args)
     for k in ['n_layer', 'n_head', 'n_embd', 'block_size', 'bias', 'vocab_size']:
         model_args[k] = getattr(model.config, k)
@@ -276,7 +286,7 @@ if ddp:
 
 # helps estimate an arbitrarily accurate loss over either split using many batches
 @torch.no_grad()
-def estimate_loss(eval_model):
+def estimate_loss(eval_model, num_blend_beta):
     out = {}
     eval_model.eval()
     for split in ['train', 'val']:
@@ -284,7 +294,13 @@ def estimate_loss(eval_model):
         for k in range(eval_iters):
             X, Y, NV, NM = get_batch(split)
             with ctx:
-                logits, loss = eval_model(X, Y, num_values=NV, num_mask=NM)
+                logits, loss = eval_model(
+                    X, Y,
+                    num_values=NV,
+                    num_mask=NM,
+                    num_blend_beta=num_blend_beta,
+                    num_norm_match=num_norm_match,
+                )
             losses[k] = loss.item()
         out[split] = losses.mean()
     eval_model.train()
@@ -301,6 +317,23 @@ def get_lr(it):
     assert 0 <= decay_ratio <= 1
     coeff = 0.5 * (1.0 + math.cos(math.pi * decay_ratio))
     return min_lr + coeff * (learning_rate - min_lr)
+
+
+def get_num_blend_beta(it):
+    """Cosine ramp for blending base <NUM> embedding with FE adapter output."""
+    start = float(num_blend_beta_start)
+    end = float(num_blend_beta_end)
+    if num_blend_ramp_iters <= 0:
+        return max(0.0, min(1.0, end))
+    if it < num_blend_warmup_iters:
+        return max(0.0, min(1.0, start))
+    ramp_t = it - num_blend_warmup_iters
+    if ramp_t >= num_blend_ramp_iters:
+        return max(0.0, min(1.0, end))
+    frac = ramp_t / max(1, num_blend_ramp_iters)
+    frac = 0.5 * (1.0 - math.cos(math.pi * frac))
+    beta = start + (end - start) * frac
+    return max(0.0, min(1.0, beta))
 
 
 # SME diagnostic helper
@@ -437,7 +470,49 @@ def collect_group_grad_norms(named_parameters):
 
 
 @torch.no_grad()
-def eval_samples(eval_model, max_samples=5):
+def collect_num_injection_stats(eval_model, num_values, num_mask, num_blend_beta):
+    """Summarize scale behavior of base/delta/blended number embeddings."""
+    if num_mask is None or int(num_mask.sum().item()) == 0:
+        return None
+
+    flat_vals = num_values[num_mask].float()
+    num_emb = eval_model.num_encoder(flat_vals)
+    delta_raw = eval_model.num_adapter(num_emb)
+
+    n_num = delta_raw.size(0)
+    base_vec = eval_model.transformer.wte.weight[NUM_TOKEN_ID].unsqueeze(0).to(delta_raw.dtype)
+    base = base_vec.expand(n_num, -1)
+
+    base_norm = base.float().norm(dim=-1, keepdim=True).clamp_min(1e-6)
+    delta_raw_norm = delta_raw.float().norm(dim=-1, keepdim=True).clamp_min(1e-6)
+
+    if num_norm_match:
+        scale = base_norm / delta_raw_norm
+        delta_eff = delta_raw * scale.to(delta_raw.dtype)
+    else:
+        scale = torch.ones_like(base_norm)
+        delta_eff = delta_raw
+
+    beta = float(max(0.0, min(1.0, num_blend_beta)))
+    blended = (1.0 - beta) * base + beta * delta_eff
+    blended_norm = blended.float().norm(dim=-1)
+    delta_eff_norm = delta_eff.float().norm(dim=-1)
+
+    return {
+        'beta': beta,
+        'n_num': n_num,
+        'base_norm_mean': base_norm.mean().item(),
+        'delta_raw_norm_mean': delta_raw_norm.mean().item(),
+        'delta_eff_norm_mean': delta_eff_norm.mean().item(),
+        'blended_norm_mean': blended_norm.mean().item(),
+        'norm_scale_mean': scale.mean().item(),
+        'norm_scale_max': scale.max().item(),
+        'norm_scale_min': scale.min().item(),
+    }
+
+
+@torch.no_grad()
+def eval_samples(eval_model, num_blend_beta, max_samples=5):
     """Run model on val batch, show full task context with predicted vs target numbers."""
     # Lazy load tiktoken (needs TIKTOKEN_CACHE_DIR set)
     try:
@@ -449,7 +524,13 @@ def eval_samples(eval_model, max_samples=5):
     eval_model.eval()
     X, Y, NV, NM = get_batch('val')
     with ctx:
-        logits, loss = eval_model(X, Y, num_values=NV, num_mask=NM)
+        logits, loss = eval_model(
+            X, Y,
+            num_values=NV,
+            num_mask=NM,
+            num_blend_beta=num_blend_beta,
+            num_norm_match=num_norm_match,
+        )
     eval_model.train()
 
     B, T, _ = logits.shape
@@ -558,10 +639,12 @@ t0 = time.time()
 local_iter_num = 0
 raw_model = model.module if ddp else model
 running_mfu = -1.0
+current_num_blend_beta = get_num_blend_beta(iter_num)
 while True:
 
     # determine and set the learning rate for this iteration
     lr = get_lr(iter_num) if decay_lr else learning_rate
+    current_num_blend_beta = get_num_blend_beta(iter_num)
     for param_group in optimizer.param_groups:
         lr_scale = float(param_group.get('lr_scale', 1.0))
         param_group['lr'] = lr * lr_scale
@@ -573,7 +656,7 @@ while True:
         if ddp:
             barrier()
         if master_process:
-            losses = estimate_loss(raw_model)
+            losses = estimate_loss(raw_model, current_num_blend_beta)
             print(f"step {iter_num}: train loss {losses['train']:.4f}, "
                   f"val loss {losses['val']:.4f}")
             if wandb_log:
@@ -614,12 +697,20 @@ while True:
         if ddp:
             model.require_backward_grad_sync = (micro_step == gradient_accumulation_steps - 1)
         with ctx:
-            logits, loss = model(X, Y, num_values=NV, num_mask=NM)
+            logits, loss = model(
+                X, Y,
+                num_values=NV,
+                num_mask=NM,
+                num_blend_beta=current_num_blend_beta,
+                num_norm_match=num_norm_match,
+            )
             loss = loss / gradient_accumulation_steps
         # snapshot logits for diagnostics (last micro_step only)
         if micro_step == gradient_accumulation_steps - 1 and iter_num % diag_interval == 0 and master_process:
             _diag_logits = logits.detach()
             _diag_targets = Y.clone()
+            _diag_num_values = NV.clone()
+            _diag_num_mask = NM.clone()
         # async prefetch next batch
         X, Y, NV, NM = get_batch('train')
         # backward pass
@@ -628,6 +719,7 @@ while True:
     _diag_grad_norms = None
     _diag_clip_pre_total = None
     _diag_clip_coef = None
+    _diag_num_inj = None
 
     # clip the gradient
     if grad_clip != 0.0:
@@ -652,6 +744,9 @@ while True:
     # snapshot post-clip grad norms BEFORE zero_grad (for diagnostics)
     if iter_num % diag_interval == 0 and master_process:
         _diag_grad_norms = collect_group_grad_norms(raw_model.named_parameters())
+        _diag_num_inj = collect_num_injection_stats(
+            raw_model, _diag_num_values, _diag_num_mask, current_num_blend_beta
+        )
     # step the optimizer
     scaler.step(optimizer)
     scaler.update()
@@ -677,9 +772,21 @@ while True:
         grad_norm_total_pre = _diag_grad_norms_pre.get('total', 0.0) if _diag_grad_norms_pre else 0.0
         grad_norm_adapter_pre = _diag_grad_norms_pre.get('adapter', 0.0) if _diag_grad_norms_pre else 0.0
         grad_norm_transformer_pre = _diag_grad_norms_pre.get('transformer', 0.0) if _diag_grad_norms_pre else 0.0
+        grad_ratio_transformer_pre = (
+            grad_norm_transformer_pre / grad_norm_total_pre if grad_norm_total_pre > 0 else 0.0
+        )
+        grad_ratio_adapter_pre = (
+            grad_norm_adapter_pre / grad_norm_total_pre if grad_norm_total_pre > 0 else 0.0
+        )
+        grad_ratio_transformer = (
+            grad_norm_transformer / grad_norm_total if grad_norm_total > 0 else 0.0
+        )
+        grad_ratio_adapter = (
+            grad_norm_adapter / grad_norm_total if grad_norm_total > 0 else 0.0
+        )
 
         # Count NUM tokens in the batch
-        num_count = int(NM.sum().item()) if NM is not None else 0
+        num_count = int(_diag_num_mask.sum().item()) if _diag_num_mask is not None else 0
         total_tokens = batch_size * block_size
 
         print(f"  === DIAG iter {iter_num} ===")
@@ -687,15 +794,31 @@ while True:
         print(f"  grads (preclip): total {grad_norm_total_pre:.4f}, "
               f"transformer {grad_norm_transformer_pre:.4f}, "
               f"adapter {grad_norm_adapter_pre:.4f}")
+        print(f"  grad ratio (preclip): transformer {grad_ratio_transformer_pre:.4f}, "
+              f"adapter {grad_ratio_adapter_pre:.4f}")
         print(f"  grads: total {grad_norm_total:.4f}, "
               f"transformer {grad_norm_transformer:.4f}, "
               f"adapter {grad_norm_adapter:.4f}")
+        print(f"  grad ratio: transformer {grad_ratio_transformer:.4f}, "
+              f"adapter {grad_ratio_adapter:.4f}")
         if _diag_clip_pre_total is not None:
             print(f"  grad clip: max_norm {grad_clip:.4f}, "
                   f"pre_total {_diag_clip_pre_total:.4f}, "
                   f"coef {(_diag_clip_coef if _diag_clip_coef is not None else 1.0):.4f}")
         print(f"  <NUM> input tokens: {num_count}/{total_tokens} ({num_count / total_tokens * 100:.1f}%)")
         print(f"  lr: base {lr:.2e}, adapter {adapter_lr:.2e}")
+        if _diag_num_inj is not None:
+            print(f"  num inject: beta {_diag_num_inj['beta']:.4f}, "
+                  f"norm_match {str(bool(num_norm_match)).lower()}, "
+                  f"base_norm {_diag_num_inj['base_norm_mean']:.4f}, "
+                  f"delta_raw_norm {_diag_num_inj['delta_raw_norm_mean']:.4f}, "
+                  f"delta_eff_norm {_diag_num_inj['delta_eff_norm_mean']:.4f}, "
+                  f"blend_norm {_diag_num_inj['blended_norm_mean']:.4f}, "
+                  f"scale mean/max {_diag_num_inj['norm_scale_mean']:.3f}/"
+                  f"{_diag_num_inj['norm_scale_max']:.3f}")
+        else:
+            print(f"  num inject: beta {current_num_blend_beta:.4f}, "
+                  f"norm_match {str(bool(num_norm_match)).lower()}, no <NUM> tokens")
 
         # SME token accuracy
         sme_acc = compute_sme_accuracy(_diag_logits, _diag_targets)
@@ -720,15 +843,32 @@ while True:
                 "grad/total": grad_norm_total,
                 "grad/transformer": grad_norm_transformer,
                 "grad/adapter": grad_norm_adapter,
+                "grad_ratio/transformer": grad_ratio_transformer,
+                "grad_ratio/adapter": grad_ratio_adapter,
                 "grad_preclip/total": grad_norm_total_pre,
                 "grad_preclip/transformer": grad_norm_transformer_pre,
                 "grad_preclip/adapter": grad_norm_adapter_pre,
+                "grad_ratio_preclip/transformer": grad_ratio_transformer_pre,
+                "grad_ratio_preclip/adapter": grad_ratio_adapter_pre,
                 "grad/clip_pre_total": (_diag_clip_pre_total if _diag_clip_pre_total is not None else 0.0),
                 "grad/clip_coef": (_diag_clip_coef if _diag_clip_coef is not None else 1.0),
                 "lr": lr,
                 "lr/base": lr,
                 "lr/adapter": adapter_lr,
+                "num/beta": current_num_blend_beta,
+                "num/norm_match": 1.0 if num_norm_match else 0.0,
             }
+            if _diag_num_inj is not None:
+                log_dict.update({
+                    "num/n_count": float(_diag_num_inj["n_num"]),
+                    "num/base_norm_mean": _diag_num_inj["base_norm_mean"],
+                    "num/delta_raw_norm_mean": _diag_num_inj["delta_raw_norm_mean"],
+                    "num/delta_eff_norm_mean": _diag_num_inj["delta_eff_norm_mean"],
+                    "num/blended_norm_mean": _diag_num_inj["blended_norm_mean"],
+                    "num/norm_scale_mean": _diag_num_inj["norm_scale_mean"],
+                    "num/norm_scale_max": _diag_num_inj["norm_scale_max"],
+                    "num/norm_scale_min": _diag_num_inj["norm_scale_min"],
+                })
             if sme_acc is not None:
                 log_dict.update({
                     "sme/overall": sme_acc['overall'],
@@ -747,7 +887,7 @@ while True:
         if ddp:
             barrier()
         if master_process:
-            eval_samples(raw_model)
+            eval_samples(raw_model, current_num_blend_beta)
         if ddp:
             barrier()
 

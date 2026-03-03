@@ -5,10 +5,10 @@ Extends the nanoGPT architecture with:
   1. Trainable v9 NumberEncoder (3-lane: Scale + Residue + Semantic) — unfrozen
   2. Learned adapter — projects 128d number embeddings to n_embd
 
-At positions where the input contains <NUM> (token 50257), the standard
-token embedding is replaced with adapter(encoder(value)). Output numbers
-are encoded as SME (Sign-Mantissa-Exponent) text tokens and predicted
-through the standard lm_head — no separate number output head needed.
+At positions where the input contains <NUM> (token 50257), we form a blended
+embedding between the base <NUM> token embedding and adapter(encoder(value)).
+Output numbers are encoded as SME (Sign-Mantissa-Exponent) text tokens and
+predicted through the standard lm_head — no separate number output head needed.
 
 References:
   - nanoGPT: https://github.com/karpathy/nanoGPT
@@ -147,6 +147,9 @@ class GPTConfig:
     # v9 encoder config
     num_emb_scale_dims: int = 16
     num_emb_residue_periods: str = '10,100,1000,10000,100000'
+    # Number injection controls
+    num_norm_match: bool = False
+    num_blend_beta_infer: float = 1.0
 
 
 class GPT(nn.Module):
@@ -223,13 +226,18 @@ class GPT(nn.Module):
         elif isinstance(module, nn.Embedding):
             torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
 
-    def forward(self, idx, targets=None, num_values=None, num_mask=None):
+    def forward(self, idx, targets=None, num_values=None, num_mask=None,
+                num_blend_beta=None, num_norm_match=None):
         """
         Args:
             idx:        (B, T) int64 token IDs
             targets:    (B, T) int64 target token IDs, or None
             num_values: (B, T) float32 number values aligned with idx
             num_mask:   (B, T) bool, True where idx == NUM_TOKEN_ID
+            num_blend_beta: scalar in [0,1], blend between base <NUM> embedding
+                            and adapter output (0=base only, 1=adapter only)
+            num_norm_match: if True, scale adapter output to match base embedding
+                            norm before blending
 
         Returns:
             logits: (B, T, vocab_size) or (B, 1, vocab_size) at inference
@@ -251,7 +259,21 @@ class GPT(nn.Module):
             num_emb = self.num_encoder(num_vals_flat.float())  # (K, 128)
             num_proj = self.num_adapter(num_emb)   # (K, n_embd)
             tok_emb = tok_emb.clone()
-            tok_emb[num_mask] = num_proj.to(tok_emb.dtype)
+            base_num = tok_emb[num_mask]
+            delta_num = num_proj.to(tok_emb.dtype)
+
+            if num_norm_match is None:
+                num_norm_match = bool(getattr(self.config, 'num_norm_match', False))
+            if num_norm_match:
+                base_norm = base_num.float().norm(dim=-1, keepdim=True).clamp_min(1e-6)
+                delta_norm = delta_num.float().norm(dim=-1, keepdim=True).clamp_min(1e-6)
+                delta_num = delta_num * (base_norm / delta_norm).to(delta_num.dtype)
+
+            if num_blend_beta is None:
+                num_blend_beta = float(getattr(self.config, 'num_blend_beta_infer', 1.0))
+            beta = float(num_blend_beta)
+            beta = max(0.0, min(1.0, beta))
+            tok_emb[num_mask] = (1.0 - beta) * base_num + beta * delta_num
 
         x = self.transformer.drop(tok_emb + pos_emb)
 
@@ -306,7 +328,8 @@ class GPT(nn.Module):
             config_args['dropout'] = override_args['dropout']
         # Pass number embedding config through override_args
         for k in ['num_emb_dim', 'num_emb_checkpoint',
-                  'num_emb_scale_dims', 'num_emb_residue_periods']:
+                  'num_emb_scale_dims', 'num_emb_residue_periods',
+                  'num_norm_match', 'num_blend_beta_infer']:
             if k in override_args:
                 config_args[k] = override_args[k]
 

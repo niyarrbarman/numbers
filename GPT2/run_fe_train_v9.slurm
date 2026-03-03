@@ -27,7 +27,12 @@ DATA_DIR="${DATA_DIR:-/tmpdir/m24047brmn/numbers/data/numtasks_sme_5dig_5m}"
 
 MAX_ITERS="${MAX_ITERS:-35000}"
 LEARNING_RATE="${LEARNING_RATE:-4e-4}"
-ADAPTER_LR_SCALE="${ADAPTER_LR_SCALE:-0.5}"
+ADAPTER_LR_SCALE="${ADAPTER_LR_SCALE:-0.2}"
+NUM_NORM_MATCH="${NUM_NORM_MATCH:-True}"
+NUM_BLEND_BETA_START="${NUM_BLEND_BETA_START:-0.0}"
+NUM_BLEND_BETA_END="${NUM_BLEND_BETA_END:-1.0}"
+NUM_BLEND_WARMUP_ITERS="${NUM_BLEND_WARMUP_ITERS:-2000}"
+NUM_BLEND_RAMP_ITERS="${NUM_BLEND_RAMP_ITERS:-18000}"
 
 INIT_FROM="${INIT_FROM:-scratch}"
 BASE_OUT_DIR="${BASE_OUT_DIR:-/tmpdir/m24047brmn/numbers/model_checkpoints}"
@@ -52,6 +57,9 @@ echo "  Checkpoint:     ${NUM_EMB_CHECKPOINT}"
 echo "  Max iters:      ${MAX_ITERS}"
 echo "  Learning rate:  ${LEARNING_RATE}"
 echo "  Adapter lr x:   ${ADAPTER_LR_SCALE}"
+echo "  Num norm match: ${NUM_NORM_MATCH}"
+echo "  Num beta:       ${NUM_BLEND_BETA_START} -> ${NUM_BLEND_BETA_END}"
+echo "  Num beta ramp:  warmup=${NUM_BLEND_WARMUP_ITERS}, ramp=${NUM_BLEND_RAMP_ITERS}"
 echo "  Init from:      ${INIT_FROM}"
 echo "  Out dir:        ${OUT_DIR}"
 echo "  Master:         ${MASTER_ADDR}:${MASTER_PORT}"
@@ -81,6 +89,11 @@ srun apptainer exec \
       max_iters="${MAX_ITERS}" \
       lr_decay_iters="${MAX_ITERS}" \
       adapter_lr_scale="${ADAPTER_LR_SCALE}" \
+      num_norm_match="${NUM_NORM_MATCH}" \
+      num_blend_beta_start="${NUM_BLEND_BETA_START}" \
+      num_blend_beta_end="${NUM_BLEND_BETA_END}" \
+      num_blend_warmup_iters="${NUM_BLEND_WARMUP_ITERS}" \
+      num_blend_ramp_iters="${NUM_BLEND_RAMP_ITERS}" \
       init_from="${INIT_FROM}"
 
 status=$?
