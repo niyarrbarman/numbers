@@ -416,6 +416,26 @@ def decode_context(token_ids, num_values, enc):
     return ''.join(parts)
 
 
+def collect_group_grad_norms(named_parameters):
+    """L2 grad norms split into transformer vs adapter/encoder groups."""
+    group_sq = {}
+    total_sq = 0.0
+    for name, p in named_parameters:
+        if p.grad is None:
+            continue
+        sq = p.grad.data.norm(2).item() ** 2
+        total_sq += sq
+        if 'num_adapter' in name or 'num_encoder' in name:
+            key = 'adapter'
+        else:
+            key = 'transformer'
+        group_sq[key] = group_sq.get(key, 0.0) + sq
+
+    out = {k: v ** 0.5 for k, v in group_sq.items()}
+    out['total'] = total_sq ** 0.5
+    return out
+
+
 @torch.no_grad()
 def eval_samples(eval_model, max_samples=5):
     """Run model on val batch, show full task context with predicted vs target numbers."""
@@ -604,24 +624,34 @@ while True:
         X, Y, NV, NM = get_batch('train')
         # backward pass
         scaler.scale(loss).backward()
+    _diag_grad_norms_pre = None
+    _diag_grad_norms = None
+    _diag_clip_pre_total = None
+    _diag_clip_coef = None
+
     # clip the gradient
     if grad_clip != 0.0:
         scaler.unscale_(optimizer)
-        torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
-    # snapshot grad norms BEFORE zero_grad (for diagnostics)
+        if iter_num % diag_interval == 0 and master_process:
+            _diag_grad_norms_pre = collect_group_grad_norms(raw_model.named_parameters())
+
+        pre_total = torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
+
+        if iter_num % diag_interval == 0 and master_process:
+            _diag_clip_pre_total = float(pre_total.item() if hasattr(pre_total, "item") else pre_total)
+            if _diag_clip_pre_total > 0.0:
+                _diag_clip_coef = min(1.0, float(grad_clip) / _diag_clip_pre_total)
+            else:
+                _diag_clip_coef = 1.0
+    elif iter_num % diag_interval == 0 and master_process:
+        # No clipping case: pre/post norms are identical.
+        _diag_grad_norms_pre = collect_group_grad_norms(raw_model.named_parameters())
+        _diag_clip_pre_total = _diag_grad_norms_pre.get('total', 0.0)
+        _diag_clip_coef = 1.0
+
+    # snapshot post-clip grad norms BEFORE zero_grad (for diagnostics)
     if iter_num % diag_interval == 0 and master_process:
-        _diag_grad_norms = {}
-        _diag_grad_total = 0.0
-        for name, p in raw_model.named_parameters():
-            if p.grad is not None:
-                pnorm = p.grad.data.norm(2).item() ** 2
-                _diag_grad_total += pnorm
-                if 'num_adapter' in name or 'num_encoder' in name:
-                    _diag_grad_norms['adapter'] = _diag_grad_norms.get('adapter', 0.0) + pnorm
-                else:
-                    _diag_grad_norms['transformer'] = _diag_grad_norms.get('transformer', 0.0) + pnorm
-        _diag_grad_norms = {k: v ** 0.5 for k, v in _diag_grad_norms.items()}
-        _diag_grad_norms['total'] = _diag_grad_total ** 0.5
+        _diag_grad_norms = collect_group_grad_norms(raw_model.named_parameters())
     # step the optimizer
     scaler.step(optimizer)
     scaler.update()
@@ -644,6 +674,9 @@ while True:
         grad_norm_total = _diag_grad_norms.get('total', 0.0)
         grad_norm_adapter = _diag_grad_norms.get('adapter', 0.0)
         grad_norm_transformer = _diag_grad_norms.get('transformer', 0.0)
+        grad_norm_total_pre = _diag_grad_norms_pre.get('total', 0.0) if _diag_grad_norms_pre else 0.0
+        grad_norm_adapter_pre = _diag_grad_norms_pre.get('adapter', 0.0) if _diag_grad_norms_pre else 0.0
+        grad_norm_transformer_pre = _diag_grad_norms_pre.get('transformer', 0.0) if _diag_grad_norms_pre else 0.0
 
         # Count NUM tokens in the batch
         num_count = int(NM.sum().item()) if NM is not None else 0
@@ -651,9 +684,16 @@ while True:
 
         print(f"  === DIAG iter {iter_num} ===")
         print(f"  loss: {loss.item() * gradient_accumulation_steps:.4f}")
+        print(f"  grads (preclip): total {grad_norm_total_pre:.4f}, "
+              f"transformer {grad_norm_transformer_pre:.4f}, "
+              f"adapter {grad_norm_adapter_pre:.4f}")
         print(f"  grads: total {grad_norm_total:.4f}, "
               f"transformer {grad_norm_transformer:.4f}, "
               f"adapter {grad_norm_adapter:.4f}")
+        if _diag_clip_pre_total is not None:
+            print(f"  grad clip: max_norm {grad_clip:.4f}, "
+                  f"pre_total {_diag_clip_pre_total:.4f}, "
+                  f"coef {(_diag_clip_coef if _diag_clip_coef is not None else 1.0):.4f}")
         print(f"  <NUM> input tokens: {num_count}/{total_tokens} ({num_count / total_tokens * 100:.1f}%)")
         print(f"  lr: base {lr:.2e}, adapter {adapter_lr:.2e}")
 
@@ -680,6 +720,11 @@ while True:
                 "grad/total": grad_norm_total,
                 "grad/transformer": grad_norm_transformer,
                 "grad/adapter": grad_norm_adapter,
+                "grad_preclip/total": grad_norm_total_pre,
+                "grad_preclip/transformer": grad_norm_transformer_pre,
+                "grad_preclip/adapter": grad_norm_adapter_pre,
+                "grad/clip_pre_total": (_diag_clip_pre_total if _diag_clip_pre_total is not None else 0.0),
+                "grad/clip_coef": (_diag_clip_coef if _diag_clip_coef is not None else 1.0),
                 "lr": lr,
                 "lr/base": lr,
                 "lr/adapter": adapter_lr,

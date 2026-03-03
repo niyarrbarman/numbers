@@ -30,7 +30,9 @@ LEARNING_RATE="${LEARNING_RATE:-4e-4}"
 ADAPTER_LR_SCALE="${ADAPTER_LR_SCALE:-0.5}"
 
 INIT_FROM="${INIT_FROM:-scratch}"
-OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/model_checkpoints/sme_5dig_v9}"
+BASE_OUT_DIR="${BASE_OUT_DIR:-/tmpdir/m24047brmn/numbers/model_checkpoints}"
+RUN_TAG="${RUN_TAG:-${SLURM_JOB_ID}}"
+OUT_DIR="${OUT_DIR:-${BASE_OUT_DIR}/sme_5dig_v9_${RUN_TAG}}"
 
 GPUS_PER_NODE=2
 

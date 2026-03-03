@@ -12,9 +12,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import sys
 
+import numpy as np
 import torch
 import tiktoken
 
@@ -28,6 +30,27 @@ from evaluate_extended import (
     print_sum_generalization,
     process_model,
 )
+
+
+def _to_jsonable(obj):
+    """Recursively convert tensors/NumPy values to JSON-safe Python types."""
+    if isinstance(obj, dict):
+        return {str(k): _to_jsonable(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_to_jsonable(v) for v in obj]
+    if isinstance(obj, torch.Tensor):
+        if obj.ndim == 0:
+            return _to_jsonable(obj.item())
+        return _to_jsonable(obj.detach().cpu().tolist())
+    if isinstance(obj, np.ndarray):
+        return _to_jsonable(obj.tolist())
+    if isinstance(obj, np.generic):
+        return _to_jsonable(obj.item())
+    if isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return None
+        return obj
+    return obj
 
 
 def main() -> None:
@@ -150,7 +173,7 @@ def main() -> None:
         if out_dir:
             os.makedirs(out_dir, exist_ok=True)
         with open(args.output_json, "w", encoding="utf-8") as f:
-            json.dump(summary, f, indent=2)
+            json.dump(_to_jsonable(summary), f, indent=2)
         print(f"\nSaved extended JSON: {args.output_json}")
 
 
