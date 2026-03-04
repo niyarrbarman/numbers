@@ -1,0 +1,166 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+==========================================
+FE-v9 Detailed Error Breakdown
+  Checkpoint:     /tmpdir/m24047brmn/numbers/model_checkpoints/sme_v9_v9_4dig_r10k_fixlen_wdig_a05_20260304_191943/ckpt_best.pt
+  Data dir:       /tmpdir/m24047brmn/numbers/data/numtasks_sme_v9_4dig_r10k_fixlen_20260304_035452_id_d4
+  Output JSON:    /tmpdir/m24047brmn/numbers/model_checkpoints/sme_v9_v9_4dig_r10k_fixlen_wdig_a05_20260304_191943/error_breakdown_id_d4.json
+  Base exact:     0.9233
+  Device:         cuda
+  Batch blocks:   64
+  Max blocks:     0 (0 = full val set)
+  Show examples:  5
+==========================================
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+================================================================================
+FE-v9 Exactness Error Breakdown
+================================================================================
+Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/sme_v9_v9_4dig_r10k_fixlen_wdig_a05_20260304_191943/ckpt_best.pt
+Data dir:   /tmpdir/m24047brmn/numbers/data/numtasks_sme_v9_4dig_r10k_fixlen_20260304_035452_id_d4
+Device:     cuda
+Batch blk:  64
+Max blocks: ALL
+number of parameters: 22.43M
+--------------------------------------------------------------------------------
+Overall
+--------------------------------------------------------------------------------
+Number predictions total: 11,435
+Exact value predictions:  7,674 (67.11%)
+Misses total:             3,761 (32.89%)
+
+Miss breakdown (fraction of misses):
+  invalid SME decode:               11 (0.29%)
+  correct mantissa, wrong exponent: 4 (0.11%)
+  valid but wrong digit:            3,746 (99.60%)
+
+Valid-miss subtypes (diagnostic):
+  sign-only mismatch:               1 (0.03%)
+  exponent-only mismatch:           4 (0.11%)
+  digit-only mismatch:              3,551 (94.69%)
+  digit+exponent mismatch:          27 (0.72%)
+  sign+other mismatch:              167 (4.45%)
+
+Length relation within valid-but-wrong-digit misses:
+  pred shorter than target:         0 (0.00%)
+  pred same length as target:       3,746 (100.00%)
+  pred longer than target:          0 (0.00%)
+
+Length relation within digit-only mismatches (sign+exp match):
+  pred shorter than target:         0 (0.00%)
+  pred same length as target:       3,551 (100.00%)
+  pred longer than target:          0 (0.00%)
+--------------------------------------------------------------------------------
+Exactness gap decomposition (optional, vs Base)
+--------------------------------------------------------------------------------
+Base exact rate: 0.9233 (92.33 pts)
+FE exact rate:   0.6711 (67.11 pts)
+Gap (Base-FE):   0.2522 (25.22 pts)
+Miss points by bucket: invalid=0.10, cmwe=0.03, valid_wrong_digit=32.76
+Upper-bound gain if invalid decode fixed perfectly: +0.10 pts
+--------------------------------------------------------------------------------
+Per-task miss breakdown (fraction of task misses)
+--------------------------------------------------------------------------------
+Task                N   Exact%   Inv%miss  CMWE%miss  WrongDig%miss
+ADD               920    69.89       0.00       0.36          99.64
+COUNT             947   100.00       0.00       0.00           0.00
+MAX               941    88.42       0.00       0.00         100.00
+MIN               912    69.63       0.00       0.00         100.00
+SORT             5762    59.72       0.47       0.00          99.53
+SUB               958    66.28       0.00       0.00         100.00
+SUM               995    54.37       0.00       0.66          99.34
+--------------------------------------------------------------------------------
+Per-task wrong-digit length breakdown (fraction of wrong-digit misses)
+--------------------------------------------------------------------------------
+Task          WrongDigN   Short%    Same%    Long%
+ADD                 276     0.00   100.00     0.00
+COUNT                 0     0.00     0.00     0.00
+MAX                 109     0.00   100.00     0.00
+MIN                 277     0.00   100.00     0.00
+SORT               2310     0.00   100.00     0.00
+SUB                 323     0.00   100.00     0.00
+SUM                 451     0.00   100.00     0.00
+--------------------------------------------------------------------------------
+Sample miss examples (up to 5 per category)
+--------------------------------------------------------------------------------
+[miss_invalid_decode]
+  1. task=SORT
+     context: SORT: <-6572> <-9786> <-8028> <8821> <-1869> <-7533> <678> →
+     tgt_toks: [50259, 50272, 50288, 50286, 50287, 50285, 50289]
+     pred_toks:None
+  2. task=SORT
+     context: SORT: <4797> <5.713e-08> <-408> <988.1> <0> <0> <2035> →
+     tgt_toks: [50259, 50271, 50283, 50279, 50287, 50279, 50289]
+     pred_toks:None
+  3. task=SORT
+     context: SORT: <9999> <7169> <2.459e-09> <9882> <-9829> →
+     tgt_toks: [50259, 50272, 50288, 50287, 50281, 50288, 50289]
+     pred_toks:None
+  4. task=SORT
+     context: SORT: <8500> <0.8176> <-3313> <632> <6471> <88.65> <50> →
+     tgt_toks: [50259, 50272, 50282, 50282, 50280, 50282, 50289]
+     pred_toks:None
+  5. task=SORT
+     context: SORT: <6791> <9274> <-126> <8831> <1.492e-07> <0> <5787> <0.0009364> →
+     tgt_toks: [50259, 50271, 50280, 50281, 50285, 50279, 50289]
+     pred_toks:None
+[miss_correct_mantissa_wrong_exponent]
+  1. task=SUM
+     context: SUM: <9999> <-2112> <0> <0.3883> <1.327e-09> <1.273e-06> <-8920> →
+     tgt_toks: [50259, 50272, 50280, 50279, 50282, 50282, 50289]
+     pred_toks:[50259, 50271, 50280, 50279, 50282, 50282, 50289]
+     target: -1033.0
+     pred:   -103.3
+  2. task=SUM
+     context: SUM: <4918> <5073> <1.916e-08> <-0.0097> <8.43e-06> →
+     tgt_toks: [50258, 50272, 50288, 50288, 50288, 50280, 50289]
+     pred_toks:[50258, 50273, 50288, 50288, 50288, 50280, 50289]
+     target: 9991.0
+     pred:   99910.0
+  3. task=ADD
+     context: ADD: <6477> + <-7406> →
+     tgt_toks: [50259, 50271, 50288, 50281, 50288, 50279, 50289]
+     pred_toks:[50259, 50272, 50288, 50281, 50288, 50279, 50289]
+     target: -928.9999999999999
+     pred:   -9290.0
+  4. task=SUM
+     context: SUM: <-968.6> <0.001102> <-34.56> <2.977> →
+     tgt_toks: [50259, 50272, 50280, 50279, 50279, 50279, 50289]
+     pred_toks:[50259, 50271, 50280, 50279, 50279, 50279, 50289]
+     target: -1000.0
+     pred:   -100.0
+[miss_valid_but_wrong_digit]
+  1. task=SUM
+     context: SUM: <0.5533> <-142> <8995> <1637> →
+     tgt_toks: [50258, 50273, 50280, 50279, 50283, 50288, 50289]
+     pred_toks:[50258, 50273, 50280, 50279, 50284, 50288, 50289]
+     target: 10490.0
+     pred:   10590.0
+  2. task=MIN
+     context: MIN: <0.009156> <2261> <-3.479> <477.1> <6345> <4.993e-06> <4360> →
+     tgt_toks: [50259, 50269, 50282, 50283, 50286, 50288, 50289]
+     pred_toks:[50259, 50269, 50282, 50283, 50286, 50279, 50289]
+     target: -3.4789999999999996
+     pred:   -3.4699999999999998
+  3. task=MIN
+     context: MIN: <327.4> <8.129> →
+     tgt_toks: [50258, 50269, 50287, 50280, 50281, 50288, 50289]
+     pred_toks:[50258, 50269, 50287, 50280, 50283, 50281, 50289]
+     target: 8.129
+     pred:   8.142
+  4. task=MIN
+     context: MIN: <637.8> <4873> <9598> <-0.003183> <-0.003016> <9.664e-06> <-0.3187> →
+     tgt_toks: [50259, 50268, 50282, 50280, 50287, 50286, 50289]
+     pred_toks:[50259, 50268, 50282, 50281, 50287, 50281, 50289]
+     target: -0.31870000000000004
+     pred:   -0.32820000000000005
+  5. task=ADD
+     context: ADD: <-0.05654> + <0.03206> →
+     tgt_toks: [50259, 50267, 50281, 50283, 50283, 50287, 50289]
+     pred_toks:[50259, 50267, 50281, 50285, 50279, 50279, 50289]
+     target: -0.024480000000000002
+     pred:   -0.026000000000000002
+--------------------------------------------------------------------------------
+Saved JSON: /tmpdir/m24047brmn/numbers/model_checkpoints/sme_v9_v9_4dig_r10k_fixlen_wdig_a05_20260304_191943/error_breakdown_id_d4.json
+==========================================
+FE-v9 error breakdown finished with status 0
+==========================================
