@@ -85,11 +85,17 @@ def is_sme_token(tok):
     return SME_SIGN_POS <= tok <= SME_END
 
 
-def _zero_sme_tokens(sign_token=SME_SIGN_POS):
-    return [sign_token, SME_EXP_BASE + SME_EXP_OFFSET, SME_DIGIT_BASE + 0, SME_END]
+def _zero_sme_tokens(sign_token=SME_SIGN_POS, min_digits: int = SME_MIN_DIGITS):
+    """Return an SME token sequence representing 0 with optional digit padding."""
+    min_digits = max(1, int(min_digits))
+    return (
+        [sign_token, SME_EXP_BASE + SME_EXP_OFFSET]
+        + [SME_DIGIT_BASE + 0] * min_digits
+        + [SME_END]
+    )
 
 
-def number_to_sme_tokens(value, max_digits=SME_MAX_DIGITS):
+def number_to_sme_tokens(value, max_digits=SME_MAX_DIGITS, min_digits=SME_MIN_DIGITS):
     """Convert a scalar number to a list of SME token IDs.
 
     Returns variable-length tokens:
@@ -106,6 +112,8 @@ def number_to_sme_tokens(value, max_digits=SME_MAX_DIGITS):
     if max_digits < 1:
         raise ValueError("max_digits must be >= 1")
     max_digits = min(int(max_digits), SME_MAX_DIGITS)
+    min_digits = max(1, int(min_digits))
+    min_digits = min(min_digits, max_digits)
 
     # Parse and sanitize value.
     try:
@@ -119,22 +127,24 @@ def number_to_sme_tokens(value, max_digits=SME_MAX_DIGITS):
     abs_val = abs(val)
 
     if abs_val == 0 or abs_val < 10 ** (SME_EXP_MIN):
-        return _zero_sme_tokens(sign_token=sign_token)
+        return _zero_sme_tokens(sign_token=sign_token, min_digits=min_digits)
 
     # Stable float -> decimal conversion with capped significant digits.
     try:
         dec = Decimal(format(abs_val, f".{max_digits}g")).normalize()
     except (InvalidOperation, ValueError):
-        return _zero_sme_tokens(sign_token=sign_token)
+        return _zero_sme_tokens(sign_token=sign_token, min_digits=min_digits)
 
     if dec.is_zero():
-        return _zero_sme_tokens(sign_token=sign_token)
+        return _zero_sme_tokens(sign_token=sign_token, min_digits=min_digits)
 
     tup = dec.as_tuple()
     digits = list(tup.digits)
     if not digits:
-        return _zero_sme_tokens(sign_token=sign_token)
+        return _zero_sme_tokens(sign_token=sign_token, min_digits=min_digits)
 
+    # IMPORTANT: exp is computed from the *un-padded* significant-digit length.
+    # If we padded before computing exp, we'd shift the numeric value by 10^(pad).
     exp = int(tup.exponent + len(digits) - 1)
 
     # Saturate rare out-of-range values.
@@ -143,9 +153,11 @@ def number_to_sme_tokens(value, max_digits=SME_MAX_DIGITS):
         max_digit_tokens = [SME_DIGIT_BASE + 9] * max_digits
         return [sign_token, exp_token] + max_digit_tokens + [SME_END]
     if exp < SME_EXP_MIN:
-        return _zero_sme_tokens(sign_token=sign_token)
+        return _zero_sme_tokens(sign_token=sign_token, min_digits=min_digits)
 
     exp_token = SME_EXP_BASE + (exp + SME_EXP_OFFSET)
+    if len(digits) < min_digits:
+        digits = digits + [0] * (min_digits - len(digits))
     digit_tokens = [SME_DIGIT_BASE + int(d) for d in digits[:max_digits]]
     return [sign_token, exp_token] + digit_tokens + [SME_END]
 

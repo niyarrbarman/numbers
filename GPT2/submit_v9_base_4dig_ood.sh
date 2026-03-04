@@ -32,6 +32,7 @@ TRAIN_VAL_N="${TRAIN_VAL_N:-10000}"
 TRAIN_MAX_LEN="${TRAIN_MAX_LEN:-10}"
 TRAIN_SIG_MIN="${TRAIN_SIG_MIN:-4}"
 TRAIN_SIG_MAX="${TRAIN_SIG_MAX:-4}"
+TRAIN_SME_MIN_DIGITS="${TRAIN_SME_MIN_DIGITS:-${TRAIN_SIG_MAX}}"
 
 # OOD eval data config
 EVAL_N="${EVAL_N:-20000}"
@@ -70,6 +71,7 @@ echo "BASE vs FE-v9 (4-digit ID + OOD) pipeline"
 echo "  TAG:                  ${TAG}"
 echo "  ID range:             [-${TRAIN_RANGE}, ${TRAIN_RANGE}]"
 echo "  ID sig digits:        ${TRAIN_SIG_MIN}-${TRAIN_SIG_MAX}"
+echo "  ID SME min digits:    ${TRAIN_SME_MIN_DIGITS}"
 echo "  OOD low sig digits:   ${OOD_LOW_SIG_MIN}-${OOD_LOW_SIG_MAX}"
 echo "  OOD high sig digits:  ${OOD_HIGH_SIG_MIN}-${OOD_HIGH_SIG_MAX}"
 echo "  OOD mag range:        [-${OOD_MAG_RANGE}, ${OOD_MAG_RANGE}]"
@@ -89,7 +91,7 @@ GEN_SME_ID=$(sbatch --parsable \
   --job-name=gen-sme-id4 \
   --output=slurm_logs/gen_sme_${TAG}_id_%j.log \
   --error=slurm_logs/gen_sme_${TAG}_id_%j.log \
-  --export=ALL,N_TRAIN=${TRAIN_N},N_VAL=${TRAIN_VAL_N},MAX_LEN=${TRAIN_MAX_LEN},NUMBER_RANGE=${TRAIN_RANGE},REASONING_WEIGHT=1,NUMERIC_WEIGHT=2,SIG_DIGITS_MIN=${TRAIN_SIG_MIN},SIG_DIGITS_MAX=${TRAIN_SIG_MAX},OUT_DIR=${SME_TRAIN_DIR} \
+  --export=ALL,N_TRAIN=${TRAIN_N},N_VAL=${TRAIN_VAL_N},MAX_LEN=${TRAIN_MAX_LEN},NUMBER_RANGE=${TRAIN_RANGE},REASONING_WEIGHT=1,NUMERIC_WEIGHT=2,SIG_DIGITS_MIN=${TRAIN_SIG_MIN},SIG_DIGITS_MAX=${TRAIN_SIG_MAX},SME_MIN_DIGITS=${TRAIN_SME_MIN_DIGITS},OUT_DIR=${SME_TRAIN_DIR} \
   run_generate_data_sme_5dig.slurm)
 echo "GEN SME ID:      ${GEN_SME_ID}"
 
@@ -140,7 +142,7 @@ GEN_SME_OOD_MAG=$(sbatch --parsable \
   --job-name=gen-sme-o3 \
   --output=slurm_logs/gen_sme_${TAG}_oodmag_%j.log \
   --error=slurm_logs/gen_sme_${TAG}_oodmag_%j.log \
-  --export=ALL,N_TRAIN=${EVAL_N},N_VAL=${EVAL_VAL_N},MAX_LEN=${OOD_MAX_LEN},NUMBER_RANGE=${OOD_MAG_RANGE},REASONING_WEIGHT=1,NUMERIC_WEIGHT=2,SIG_DIGITS_MIN=${TRAIN_SIG_MIN},SIG_DIGITS_MAX=${TRAIN_SIG_MAX},OUT_DIR=${SME_OOD_MAG_DIR} \
+  --export=ALL,N_TRAIN=${EVAL_N},N_VAL=${EVAL_VAL_N},MAX_LEN=${OOD_MAX_LEN},NUMBER_RANGE=${OOD_MAG_RANGE},REASONING_WEIGHT=1,NUMERIC_WEIGHT=2,SIG_DIGITS_MIN=${TRAIN_SIG_MIN},SIG_DIGITS_MAX=${TRAIN_SIG_MAX},SME_MIN_DIGITS=${TRAIN_SME_MIN_DIGITS},OUT_DIR=${SME_OOD_MAG_DIR} \
   run_generate_data_sme_5dig.slurm)
 echo "GEN SME OOD MAG: ${GEN_SME_OOD_MAG}"
 

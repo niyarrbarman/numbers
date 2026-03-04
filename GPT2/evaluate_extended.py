@@ -24,6 +24,7 @@ import importlib.util
 import json
 import math
 import os
+import pickle
 import random
 import re
 import sys
@@ -1019,7 +1020,38 @@ def process_model(name, model, data_dir, device, enc, arrow_patterns,
     print("  Running SUM generalization...")
     if output_format == "sme":
         process_fn = sme_module.process_text_with_numbers
-        sme_fn = sme_module.number_to_sme_tokens
+        sme_fn_raw = sme_module.number_to_sme_tokens
+
+        # For SUM generalization, tokenize targets in the same SME digit regime as the
+        # dataset (if available). Older datasets may not have these fields.
+        sme_out_max = None
+        sme_out_min = None
+        meta_path = os.path.join(data_dir, "meta.pkl")
+        if os.path.exists(meta_path):
+            try:
+                with open(meta_path, "rb") as f:
+                    meta = pickle.load(f)
+                sme_out_max = meta.get("sme_output_max_digits") or meta.get("sig_digits_max")
+                sme_out_min = meta.get("sme_output_min_digits") or meta.get("sme_min_digits")
+            except Exception as e:
+                print(f"  WARNING: could not load meta.pkl for SME digits: {e}")
+
+        if sme_out_max is None:
+            sme_out_max = getattr(sme_module, "SME_MAX_DIGITS", 15)
+        if sme_out_min is None:
+            sme_out_min = getattr(sme_module, "SME_MIN_DIGITS", 1)
+
+        try:
+            sme_out_max = max(1, int(sme_out_max))
+            sme_out_min = max(1, int(sme_out_min))
+            sme_out_min = min(sme_out_min, sme_out_max)
+        except Exception:
+            sme_out_max = getattr(sme_module, "SME_MAX_DIGITS", 15)
+            sme_out_min = getattr(sme_module, "SME_MIN_DIGITS", 1)
+
+        print(f"  SUM gen SME digits: max={sme_out_max}, min={sme_out_min}")
+
+        sme_fn = lambda v: sme_fn_raw(v, max_digits=sme_out_max, min_digits=sme_out_min)
         tok_fn = lambda nums, result: tokenize_sum_for_fe_sme(
             nums, result, enc, process_fn, sme_fn)
         extract_kwargs = {"sme_module": sme_module}

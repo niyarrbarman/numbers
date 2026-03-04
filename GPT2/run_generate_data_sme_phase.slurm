@@ -39,6 +39,7 @@ BASE_OUT_DIR="${BASE_OUT_DIR:-/tmpdir/m24047brmn/numbers/data/numtasks_sme_vardi
 OUT_DIR="${OUT_DIR:-}"
 SIG_DIGITS_MIN="${SIG_DIGITS_MIN:-}"
 SIG_DIGITS_MAX="${SIG_DIGITS_MAX:-}"
+SME_MIN_DIGITS="${SME_MIN_DIGITS:-}"  # optional: pad SME outputs to at least this many digits
 
 case "${PHASE}" in
   1)
@@ -79,6 +80,7 @@ module load gnu/11.2.0
 echo "=========================================="
 echo "Generating SME curriculum phase ${PHASE} -> ${OUT_DIR}"
 echo "  SIG_DIGITS=${SIG_DIGITS_MIN}-${SIG_DIGITS_MAX}"
+echo "  SME_MIN_DIGITS=${SME_MIN_DIGITS:-<unset>}"
 echo "  NUMBER_RANGE=${NUMBER_RANGE}"
 echo "  MAX_LEN=${MAX_LEN}"
 echo "  REASONING_WEIGHT=${REASONING_WEIGHT}"
@@ -100,11 +102,16 @@ apptainer exec \
     NUMERIC_WEIGHT="${NUMERIC_WEIGHT}" \
     SIG_DIGITS_MIN="${SIG_DIGITS_MIN}" \
     SIG_DIGITS_MAX="${SIG_DIGITS_MAX}" \
+    SME_MIN_DIGITS="${SME_MIN_DIGITS}" \
     OUT_DIR="${OUT_DIR}" \
   bash -c '
     set -euo pipefail
     cd "${GPT2_DIR}"
     python3 -c "import tiktoken; print(\"tiktoken OK\")"
+    SME_MIN_DIGITS_FLAG=""
+    if [[ -n "${SME_MIN_DIGITS}" ]]; then
+      SME_MIN_DIGITS_FLAG="--sme-min-digits ${SME_MIN_DIGITS}"
+    fi
     python3 generate_data.py \
       --n-train "${N_TRAIN}" \
       --n-val "${N_VAL}" \
@@ -118,6 +125,6 @@ apptainer exec \
       --no-digit-curriculum \
       --sig-digits-min "${SIG_DIGITS_MIN}" \
       --sig-digits-max "${SIG_DIGITS_MAX}" \
+      ${SME_MIN_DIGITS_FLAG} \
       --out-dir "${OUT_DIR}"
   '
-

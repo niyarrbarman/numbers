@@ -46,7 +46,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fe'
 from fe.prepare import (
     process_text_with_numbers, NUM_TOKEN_ID,
     number_to_sme_tokens, sme_tokens_to_number,
-    SME_ALL_TOKENS, SME_EXP_MIN, SME_EXP_MAX, SME_MAX_DIGITS,
+    SME_ALL_TOKENS, SME_EXP_MIN, SME_EXP_MAX, SME_MAX_DIGITS, SME_MIN_DIGITS,
 )
 import tiktoken
 
@@ -233,13 +233,14 @@ def fmt(val):
 # Task tokenization (SME-aware)
 # =============================================================================
 
-def tokenize_task(input_text, output, max_digits=SME_MAX_DIGITS):
+def tokenize_task(input_text, output, max_digits=SME_MAX_DIGITS, min_digits=SME_MIN_DIGITS):
     """Tokenize a task with SME encoding for output numbers.
 
     Args:
         input_text: str — input part (numbers become <NUM> with embeddings)
         output: str | number | list[number] — output part
         max_digits: int — max mantissa digits for SME encoding of output numbers
+        min_digits: int — min mantissa digits for SME encoding of output numbers
 
     Returns:
         (ids, nums) — parallel lists ready for block packing
@@ -263,14 +264,14 @@ def tokenize_task(input_text, output, max_digits=SME_MAX_DIGITS):
             if i > 0:
                 ids.append(220)  # space between numbers
                 nums.append(0.0)
-            sme = number_to_sme_tokens(val, max_digits=max_digits)
+            sme = number_to_sme_tokens(val, max_digits=max_digits, min_digits=min_digits)
             ids.extend(sme)
             nums.extend([0.0] * len(sme))
     else:
         # Single number output → SME tokens
         ids.append(220)  # space token before number
         nums.append(0.0)
-        sme = number_to_sme_tokens(output, max_digits=max_digits)
+        sme = number_to_sme_tokens(output, max_digits=max_digits, min_digits=min_digits)
         ids.extend(sme)
         nums.extend([0.0] * len(sme))
 
@@ -592,6 +593,13 @@ def main():
                         help="Force minimum significant digits for sampled floats")
     parser.add_argument("--sig-digits-max", type=int, default=None,
                         help="Force maximum significant digits for sampled floats")
+    parser.add_argument(
+        "--sme-min-digits",
+        type=int,
+        default=None,
+        help="Minimum SME mantissa digits to emit for *output* numbers "
+             "(pads with trailing zeros). If unset, outputs remain variable-length.",
+    )
     parser.add_argument("--out-dir", type=str, default=None)
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
@@ -631,6 +639,18 @@ def main():
         max_output_digits = args.sig_digits_max
     else:
         max_output_digits = SME_MAX_DIGITS
+    if args.sme_min_digits is not None:
+        sme_min_digits = int(args.sme_min_digits)
+        if sme_min_digits < 1:
+            raise ValueError("--sme-min-digits must be >= 1")
+        if sme_min_digits > max_output_digits:
+            print(
+                f"WARNING: --sme-min-digits={sme_min_digits} > "
+                f"max_output_digits={max_output_digits}; clamping to {max_output_digits}"
+            )
+            sme_min_digits = max_output_digits
+    else:
+        sme_min_digits = SME_MIN_DIGITS
 
     cfg = {
         'range': args.number_range,
@@ -666,6 +686,8 @@ def main():
     else:
         print(f"  Digit curriculum:{'on' if args.digit_curriculum else 'off'} "
               f"(phase1 1-4, phase2 5-8, phase3 1-{SME_MAX_DIGITS})")
+    if args.sme_min_digits is not None:
+        print(f"  Output min digs: {sme_min_digits} (pad trailing zeros)")
     print(f"  Allow float:     {args.allow_float}")
     print(f"  Output dir:      {args.out_dir}")
     print(f"  Seed:            {args.seed}")
@@ -722,17 +744,29 @@ def main():
             for input_text, output in examples_raw:
                 if not isinstance(output, str):
                     val = output if not isinstance(output, list) else output[0]
-                    sme = number_to_sme_tokens(val)
+                    sme = number_to_sme_tokens(
+                        val,
+                        max_digits=max_output_digits,
+                        min_digits=sme_min_digits,
+                    )
                     decoded = sme_tokens_to_number(sme)
                     print(f"  Value: {val} → SME tokens: {sme} → decoded: {decoded}")
                     break
             print()
 
         # Tokenize with SME encoding
-        print(f"Tokenizing {split} (with SME for output numbers, max_digits={max_output_digits})...")
+        print(
+            f"Tokenizing {split} (with SME for output numbers, "
+            f"max_digits={max_output_digits}, min_digits={sme_min_digits})..."
+        )
         tokenized = []
         for input_text, output in tqdm(examples_raw, desc=f"tokenizing {split}"):
-            ids, nums = tokenize_task(input_text, output, max_digits=max_output_digits)
+            ids, nums = tokenize_task(
+                input_text,
+                output,
+                max_digits=max_output_digits,
+                min_digits=sme_min_digits,
+            )
             tokenized.append((ids, nums))
 
         # Report token lengths
@@ -773,6 +807,8 @@ def main():
         'sme_exp_min': SME_EXP_MIN,
         'sme_exp_max': SME_EXP_MAX,
         'sme_max_digits': SME_MAX_DIGITS,
+        'sme_output_max_digits': max_output_digits,
+        'sme_output_min_digits': sme_min_digits,
         'task_weights': {
             'reasoning': args.reasoning_weight,
             'numeric': args.numeric_weight,
@@ -788,7 +824,12 @@ def main():
     # Show tokenization of one example
     print("Tokenization example:")
     input_text, output = examples_raw[0]
-    ids, nums = tokenize_task(input_text, output)
+    ids, nums = tokenize_task(
+        input_text,
+        output,
+        max_digits=max_output_digits,
+        min_digits=sme_min_digits,
+    )
     print(f"  Input: {input_text}")
     print(f"  Output: {output}")
     print(f"  Tokens: {ids}")
