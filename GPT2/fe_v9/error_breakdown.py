@@ -48,6 +48,16 @@ class Counts:
     valid_digit_and_exponent_mismatch: int = 0
     valid_sign_and_other_mismatch: int = 0
 
+    # Length relation within valid-but-wrong-digit misses.
+    wrongdigit_pred_shorter: int = 0
+    wrongdigit_pred_same_len: int = 0
+    wrongdigit_pred_longer: int = 0
+
+    # Same, but restricted to the "digit-only mismatch" subset (sign+exp match).
+    digit_only_pred_shorter: int = 0
+    digit_only_pred_same_len: int = 0
+    digit_only_pred_longer: int = 0
+
     def add_exact(self) -> None:
         self.total += 1
         self.exact += 1
@@ -67,14 +77,28 @@ class Counts:
         sign_match: bool,
         exp_match: bool,
         digits_match: bool,
+        digit_len_rel: str,
     ) -> None:
         self.total += 1
         self.miss_valid_but_wrong_digit += 1
+
+        if digit_len_rel == "shorter":
+            self.wrongdigit_pred_shorter += 1
+        elif digit_len_rel == "same":
+            self.wrongdigit_pred_same_len += 1
+        elif digit_len_rel == "longer":
+            self.wrongdigit_pred_longer += 1
 
         if not sign_match and exp_match and digits_match:
             self.valid_sign_only_mismatch += 1
         elif sign_match and exp_match and not digits_match:
             self.valid_digit_only_mismatch += 1
+            if digit_len_rel == "shorter":
+                self.digit_only_pred_shorter += 1
+            elif digit_len_rel == "same":
+                self.digit_only_pred_same_len += 1
+            elif digit_len_rel == "longer":
+                self.digit_only_pred_longer += 1
         elif sign_match and not exp_match and not digits_match:
             self.valid_digit_and_exponent_mismatch += 1
         else:
@@ -86,6 +110,8 @@ class Counts:
 
     def as_dict(self) -> Dict[str, object]:
         misses = self.misses
+        wrongdig = self.miss_valid_but_wrong_digit
+        digit_only = self.valid_digit_only_mismatch
         out: Dict[str, object] = {
             "total": self.total,
             "exact": self.exact,
@@ -127,6 +153,22 @@ class Counts:
                 "digit_and_exponent_mismatch": self.valid_digit_and_exponent_mismatch,
                 "sign_and_other_mismatch": self.valid_sign_and_other_mismatch,
             },
+            "wrong_digit_length_rel": {
+                "shorter": self.wrongdigit_pred_shorter,
+                "same": self.wrongdigit_pred_same_len,
+                "longer": self.wrongdigit_pred_longer,
+                "shorter_rate_over_wrong_digit": (self.wrongdigit_pred_shorter / wrongdig) if wrongdig else 0.0,
+                "same_rate_over_wrong_digit": (self.wrongdigit_pred_same_len / wrongdig) if wrongdig else 0.0,
+                "longer_rate_over_wrong_digit": (self.wrongdigit_pred_longer / wrongdig) if wrongdig else 0.0,
+            },
+            "digit_only_length_rel": {
+                "shorter": self.digit_only_pred_shorter,
+                "same": self.digit_only_pred_same_len,
+                "longer": self.digit_only_pred_longer,
+                "shorter_rate_over_digit_only": (self.digit_only_pred_shorter / digit_only) if digit_only else 0.0,
+                "same_rate_over_digit_only": (self.digit_only_pred_same_len / digit_only) if digit_only else 0.0,
+                "longer_rate_over_digit_only": (self.digit_only_pred_longer / digit_only) if digit_only else 0.0,
+            },
         }
         return out
 
@@ -146,6 +188,17 @@ def classify_valid_miss(tgt_toks: List[int], pred_toks: List[int]) -> str:
     if sign_match and digits_match and not exp_match:
         return "cmwe"
     return "valid_wrong_digit"
+
+
+def digit_len_rel(tgt_toks: List[int], pred_toks: List[int]) -> str:
+    """Compare mantissa digit lengths: shorter/same/longer (prediction vs target)."""
+    tgt_n = len(tgt_toks) - 3  # drop sign, exp, END
+    pred_n = len(pred_toks) - 3
+    if pred_n < tgt_n:
+        return "shorter"
+    if pred_n > tgt_n:
+        return "longer"
+    return "same"
 
 
 def main() -> None:
@@ -330,15 +383,18 @@ def main() -> None:
                             }
                         )
                 else:
+                    dlr = digit_len_rel(tgt_toks, pred_toks)
                     g.add_valid_wrong(
                         sign_match=sign_match,
                         exp_match=exp_match,
                         digits_match=digits_match,
+                        digit_len_rel=dlr,
                     )
                     ts.add_valid_wrong(
                         sign_match=sign_match,
                         exp_match=exp_match,
                         digits_match=digits_match,
+                        digit_len_rel=dlr,
                     )
                     if len(category_examples["miss_valid_but_wrong_digit"]) < args.show_examples:
                         category_examples["miss_valid_but_wrong_digit"].append(
@@ -403,6 +459,38 @@ def main() -> None:
         f"({pct(g.valid_sign_and_other_mismatch, valid_misses):.2f}%)"
     )
 
+    print()
+    print("Length relation within valid-but-wrong-digit misses:")
+    wd = g.miss_valid_but_wrong_digit
+    print(
+        "  pred shorter than target:         "
+        f"{g.wrongdigit_pred_shorter:,} ({pct(g.wrongdigit_pred_shorter, wd):.2f}%)"
+    )
+    print(
+        "  pred same length as target:       "
+        f"{g.wrongdigit_pred_same_len:,} ({pct(g.wrongdigit_pred_same_len, wd):.2f}%)"
+    )
+    print(
+        "  pred longer than target:          "
+        f"{g.wrongdigit_pred_longer:,} ({pct(g.wrongdigit_pred_longer, wd):.2f}%)"
+    )
+
+    print()
+    print("Length relation within digit-only mismatches (sign+exp match):")
+    dom = g.valid_digit_only_mismatch
+    print(
+        "  pred shorter than target:         "
+        f"{g.digit_only_pred_shorter:,} ({pct(g.digit_only_pred_shorter, dom):.2f}%)"
+    )
+    print(
+        "  pred same length as target:       "
+        f"{g.digit_only_pred_same_len:,} ({pct(g.digit_only_pred_same_len, dom):.2f}%)"
+    )
+    print(
+        "  pred longer than target:          "
+        f"{g.digit_only_pred_longer:,} ({pct(g.digit_only_pred_longer, dom):.2f}%)"
+    )
+
     if args.base_exact_rate is not None:
         fe_exact_rate = (g.exact / g.total) if g.total else 0.0
         base_exact_rate = max(0.0, min(1.0, float(args.base_exact_rate)))
@@ -440,6 +528,23 @@ def main() -> None:
             f"{pct(c.miss_invalid_decode, misses):10.2f} "
             f"{pct(c.miss_correct_mantissa_wrong_exponent, misses):10.2f} "
             f"{pct(c.miss_valid_but_wrong_digit, misses):14.2f}"
+        )
+
+    print("-" * 80)
+    print("Per-task wrong-digit length breakdown (fraction of wrong-digit misses)")
+    print("-" * 80)
+    print(f"{'Task':<12} {'WrongDigN':>10} {'Short%':>8} {'Same%':>8} {'Long%':>8}")
+    for task in sorted(per_task.keys()):
+        c = per_task[task]
+        wd = c.miss_valid_but_wrong_digit
+        if wd == 0:
+            print(f"{task:<12} {wd:10d} {0.00:8.2f} {0.00:8.2f} {0.00:8.2f}")
+            continue
+        print(
+            f"{task:<12} {wd:10d} "
+            f"{pct(c.wrongdigit_pred_shorter, wd):8.2f} "
+            f"{pct(c.wrongdigit_pred_same_len, wd):8.2f} "
+            f"{pct(c.wrongdigit_pred_longer, wd):8.2f}"
         )
 
     if category_examples:
