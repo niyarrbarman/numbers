@@ -1,0 +1,286 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+==========================================
+Base GPT-2 5-Digit Checkpoint Validation
+  Checkpoint:   /tmpdir/m24047brmn/numbers/model_checkpoints/base_4dig_r10k_20260303_205237/ckpt.pt
+  Data dir:     /tmpdir/m24047brmn/numbers/data/numtasks_base_4dig_r10k_20260303_205237_ood_d1_3
+  Batch blocks: 64
+  Top-K errors: 25
+  Max blocks:   0 (0 = full val set)
+  JSON output:  /tmpdir/m24047brmn/numbers/model_checkpoints/base_4dig_r10k_20260303_205237/val_ood_d1_3.json
+==========================================
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+======================================================================
+Base GPT-2 Checkpoint Validation (Full Val Set)
+======================================================================
+Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/base_4dig_r10k_20260303_205237/ckpt.pt
+Data dir:   /tmpdir/m24047brmn/numbers/data/numtasks_base_4dig_r10k_20260303_205237_ood_d1_3
+Device:     cuda
+Batch blk:  64
+Top-K err:  25
+Max blocks: ALL
+number of parameters: 22.32M
+----------------------------------------------------------------------
+Model block_size: 256
+Model vocab_size: 50304
+Checkpoint iter:  35000
+Best val loss:    1.9262272119522095
+Meta dataset:     numtasks_base_vardig_e9
+Meta vocab_size:  50304
+----------------------------------------------------------------------
+Validation tokens: 221,440
+Validation blocks: 865
+EOT tokens:        21,816
+======================================================================
+Validation Report
+======================================================================
+Tokens evaluated:              221,439
+Cross-entropy loss (avg):      2.176833
+Perplexity:                    8.818337
+----------------------------------------------------------------------
+Examples parsed (EOT-bounded): 10,000
+Examples evaluated:            10,000
+Output token accuracy:         0.9357 (30147/32220)
+Output exact-match rate:       0.8391 (8391/10000)
+Output token-seq exact rate:   0.8391 (8391/10000)
+----------------------------------------------------------------------
+Numeric Task Metrics
+----------------------------------------------------------------------
+Numeric examples:              6,688
+Numeric valid parses:          6,664
+Numeric invalid parses:        24
+Numeric exact-example rate:    0.7744 (5179/6688)
+MAE (value-level):             3979.697218
+RMSE (value-level):            62907.878160
+Median abs err:                0.000000
+P90/P95/P99 abs err:           2.000000 / 1000.000000 / 124414.000000
+Max abs err:                   5995000.000000
+MAPE (|target|>0):             0.820480
+----------------------------------------------------------------------
+Per-Task Metrics
+----------------------------------------------------------------------
+Task                N   OutExact     TokAcc   TokExact   NumValid   NumInv     NumMAE     NumP95
+ADD               928     0.5991     0.7872     0.5991        920        8  6287.1027 20997.3000
+CHECKADD          449     0.8196     0.8196     0.8196          0        0     0.0000     0.0000
+CHECKSORT         480     0.9833     0.9833     0.9833          0        0     0.0000     0.0000
+CMP               493     1.0000     1.0000     1.0000          0        0     0.0000     0.0000
+COUNT             943     1.0000     1.0000     1.0000        943        0     0.0000     0.0000
+GT                461     0.9957     0.9957     0.9957          0        0     0.0000     0.0000
+IS_POS            440     1.0000     1.0000     1.0000          0        0     0.0000     0.0000
+IS_SORTED         498     0.9960     0.9960     0.9960          0        0     0.0000     0.0000
+MAX               940     0.9979     0.9987     0.9979        940        0     5.4255     0.0000
+MIN               954     0.9979     0.9993     0.9979        954        0     0.9434     0.0000
+SORT              988     0.9403     0.9961     0.9403        983        5  1356.3387     0.0000
+SUB               968     0.6364     0.8281     0.6364        959        9  5980.2735  8396.2000
+SUM               967     0.2523     0.5333     0.2523        965        2 27524.6204 150104.0000
+SUM_CMP           491     0.9878     0.9916     0.9878          0        0     0.0000     0.0000
+----------------------------------------------------------------------
+Top 25 Worst Numeric Examples
+----------------------------------------------------------------------
+[01] task=SUB valid_numeric=False
+  prompt:      SUB: -4e-05 - -3.2e-05
+  target_text: -8e-06
+  pred_text:   -8.-06
+  target_nums: [-8e-06]
+  pred_nums:   [-8.0, -6.0]
+  abs_err_max: None
+  abs_err_mean:None
+[02] task=SORT valid_numeric=False
+  prompt:      SORT: 4.3 -10000 -2299 4e-09 10000
+  target_text: -10000 -2299 4e-09 4.3 10000
+  pred_text:   -10000 -2299 4.-09 4.3 10000
+  target_nums: [-10000.0, -2299.0, 4e-09, 4.3, 10000.0]
+  pred_nums:   [-10000.0, -2299.0, 4.0, -9.0, 4.3, 10000.0]
+  abs_err_max: None
+  abs_err_mean:None
+[03] task=SORT valid_numeric=False
+  prompt:      SORT: 2.9e-05 6585 7000 0.65 0 2e-06 6600 4500
+  target_text: 0 2e-06 2.9e-05 0.65 4500 6585 6600 7000
+  pred_text:   0 2.-06 2.9e-05 0.65 4500 66585 6600 7000
+  target_nums: [0.0, 2e-06, 2.9e-05, 0.65, 4500.0, 6585.0, 6600.0, 7000.0]
+  pred_nums:   [0.0, 2.0, -6.0, 2.9e-05, 0.65, 4500.0, 66585.0, 6600.0, 7000.0]
+  abs_err_max: None
+  abs_err_mean:None
+[04] task=SUB valid_numeric=False
+  prompt:      SUB: 4.85e-05 - 9e-07
+  target_text: 4.76e-05
+  pred_text:   4.7591-05
+  target_nums: [4.76e-05]
+  pred_nums:   [4.7591, -5.0]
+  abs_err_max: None
+  abs_err_mean:None
+[05] task=ADD valid_numeric=False
+  prompt:      ADD: 9e-07 + 8.6e-08
+  target_text: 9.86e-07
+  pred_text:   9e73-07
+  target_nums: [9.86e-07]
+  pred_nums:   [9e+73, -7.0]
+  abs_err_max: None
+  abs_err_mean:None
+[06] task=ADD valid_numeric=False
+  prompt:      ADD: 6e-06 + -2.49e-08
+  target_text: 5.98e-06
+  pred_text:   5.94-06
+  target_nums: [5.98e-06]
+  pred_nums:   [5.94, -6.0]
+  abs_err_max: None
+  abs_err_mean:None
+[07] task=SUB valid_numeric=False
+  prompt:      SUB: 7.6e-09 - 7.15e-07
+  target_text: -7.07e-07
+  pred_text:   -7.074-07
+  target_nums: [-7.07e-07]
+  pred_nums:   [-7.074, -7.0]
+  abs_err_max: None
+  abs_err_mean:None
+[08] task=SUB valid_numeric=False
+  prompt:      SUB: -1e-05 - 9e-09
+  target_text: -1e-05
+  pred_text:   -1.-05
+  target_nums: [-1e-05]
+  pred_nums:   [-1.0, -5.0]
+  abs_err_max: None
+  abs_err_mean:None
+[09] task=ADD valid_numeric=False
+  prompt:      ADD: 5.1e-07 + 5e-08
+  target_text: 5.6e-07
+  pred_text:   5.55539-07
+  target_nums: [5.6e-07]
+  pred_nums:   [5.55539, -7.0]
+  abs_err_max: None
+  abs_err_mean:None
+[10] task=ADD valid_numeric=False
+  prompt:      ADD: 4.22e-09 + 2e-07
+  target_text: 2.04e-07
+  pred_text:   2e042-07
+  target_nums: [2.04e-07]
+  pred_nums:   [2e+42, -7.0]
+  abs_err_max: None
+  abs_err_mean:None
+[11] task=SUB valid_numeric=False
+  prompt:      SUB: 2.96e-08 - 4e-07
+  target_text: -3.7e-07
+  pred_text:   -3.734-07
+  target_nums: [-3.7e-07]
+  pred_nums:   [-3.734, -7.0]
+  abs_err_max: None
+  abs_err_mean:None
+[12] task=ADD valid_numeric=False
+  prompt:      ADD: -1.9e-06 + 4e-09
+  target_text: -1.9e-06
+  pred_text:   -1.888-06
+  target_nums: [-1.9e-06]
+  pred_nums:   [-1.888, -6.0]
+  abs_err_max: None
+  abs_err_mean:None
+[13] task=SUM valid_numeric=False
+  prompt:      SUM: 3e-06 0 9e-05 0
+  target_text: 9.3e-05
+  pred_text:   9e325e-05
+  target_nums: [9.3e-05]
+  pred_nums:   [inf, -5.0]
+  abs_err_max: None
+  abs_err_mean:None
+[14] task=SUM valid_numeric=False
+  prompt:      SUM: 7 0.0081 2587 0 9816 -10000 40
+  target_text: 2450
+  pred_text:   24 50
+  target_nums: [2450.0]
+  pred_nums:   [24.0, 50.0]
+  abs_err_max: None
+  abs_err_mean:None
+[15] task=ADD valid_numeric=False
+  prompt:      ADD: 2000 + -2000
+  target_text: 0
+  pred_text:   -
+  target_nums: [0.0]
+  pred_nums:   []
+  abs_err_max: None
+  abs_err_mean:None
+[16] task=SUB valid_numeric=False
+  prompt:      SUB: 8e-05 - 1.4e-06
+  target_text: 7.86e-05
+  pred_text:   7.862-05
+  target_nums: [7.86e-05]
+  pred_nums:   [7.862, -5.0]
+  abs_err_max: None
+  abs_err_mean:None
+[17] task=SUB valid_numeric=False
+  prompt:      SUB: -9e-05 - 7.57e-07
+  target_text: -9.08e-05
+  pred_text:   -9.085-05
+  target_nums: [-9.08e-05]
+  pred_nums:   [-9.085, -5.0]
+  abs_err_max: None
+  abs_err_mean:None
+[18] task=SORT valid_numeric=False
+  prompt:      SORT: 10000 -562 0.03 -9e-06 0.94 -40 0.04
+  target_text: -562 -40 -9e-06 0.03 0.04 0.94 10000
+  pred_text:   -562 -40 -9e-06 0 003 0.04 0.94 10000
+  target_nums: [-562.0, -40.0, -9e-06, 0.03, 0.04, 0.94, 10000.0]
+  pred_nums:   [-562.0, -40.0, -9e-06, 0.0, 3.0, 0.04, 0.94, 10000.0]
+  abs_err_max: None
+  abs_err_mean:None
+[19] task=SORT valid_numeric=False
+  prompt:      SORT: 9e-06 2000 20 9.7 -10000
+  target_text: -10000 9e-06 9.7 20 2000
+  pred_text:   -10000 9.-06 9.7 20 2000
+  target_nums: [-10000.0, 9e-06, 9.7, 20.0, 2000.0]
+  pred_nums:   [-10000.0, 9.0, -6.0, 9.7, 20.0, 2000.0]
+  abs_err_max: None
+  abs_err_mean:None
+[20] task=SUB valid_numeric=False
+  prompt:      SUB: 5 - 7e-05
+  target_text: 5
+  pred_text:   -
+  target_nums: [5.0]
+  pred_nums:   []
+  abs_err_max: None
+  abs_err_mean:None
+[21] task=SORT valid_numeric=False
+  prompt:      SORT: 0.0012 0.02 0 -6e-06 3e-09 -790 -6.1
+  target_text: -790 -6.1 -6e-06 0 3e-09 0.0012 0.02
+  pred_text:   -790 -6.1 -6.-06 0 3e-09 0.0012 0.02
+  target_nums: [-790.0, -6.1, -6e-06, 0.0, 3e-09, 0.0012, 0.02]
+  pred_nums:   [-790.0, -6.1, -6.0, -6.0, 0.0, 3e-09, 0.0012, 0.02]
+  abs_err_max: None
+  abs_err_mean:None
+[22] task=ADD valid_numeric=False
+  prompt:      ADD: 3.8e-09 + -3.3e-09
+  target_text: 5e-10
+  pred_text:   5.-10
+  target_nums: [5e-10]
+  pred_nums:   [5.0, -10.0]
+  abs_err_max: None
+  abs_err_mean:None
+[23] task=SUB valid_numeric=False
+  prompt:      SUB: 8e-06 - -7.27e-08
+  target_text: 8.07e-06
+  pred_text:   8.073-06
+  target_nums: [8.07e-06]
+  pred_nums:   [8.073, -6.0]
+  abs_err_max: None
+  abs_err_mean:None
+[24] task=ADD valid_numeric=False
+  prompt:      ADD: 6.16e-07 + 2e-05
+  target_text: 2.06e-05
+  pred_text:   2.01-05
+  target_nums: [2.06e-05]
+  pred_nums:   [2.01, -5.0]
+  abs_err_max: None
+  abs_err_mean:None
+[25] task=SORT valid_numeric=True
+  prompt:      SORT: -0.00062 0 4.17e-09 1271 -3700 -0.00283 6000 5881 -3800
+  target_text: -3800 -3700 -0.00283 -0.00062 0 4.17e-09 1271 5881 6000
+  pred_text:   -3800 -3700 -0.00283 -0.00062 0 4.17e-09 1271 6000881 6000
+  target_nums: [-3800.0, -3700.0, -0.00283, -0.00062, 0.0, 4.17e-09, 1271.0, 5881.0, 6000.0]
+  pred_nums:   [-3800.0, -3700.0, -0.00283, -0.00062, 0.0, 4.17e-09, 1271.0, 6000881.0, 6000.0]
+  abs_err_max: 5995000.0
+  abs_err_mean:666111.1111111111
+----------------------------------------------------------------------
+Saved JSON summary: /tmpdir/m24047brmn/numbers/model_checkpoints/base_4dig_r10k_20260303_205237/val_ood_d1_3.json
+======================================================================
+Validation finished.
+==========================================
+Validation finished with status 0
+==========================================

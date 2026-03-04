@@ -1,0 +1,81 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+==========================================
+Generating 5-digit BASE dataset -> /tmpdir/m24047brmn/numbers/data/numtasks_base_4dig_r10k_20260303_205237_ood_d5_8
+  NUMBER_RANGE=10000
+  SIG_DIGITS=5-8
+  N_TRAIN=20000
+  N_VAL=10000
+  MAX_LEN=10
+  REASONING_WEIGHT=1
+  NUMERIC_WEIGHT=2
+==========================================
+tiktoken OK
+============================================================
+NUMERICAL TASK DATA GENERATOR (BASE GPT-2, PLAIN TEXT)
+============================================================
+  Tasks:           CMP, GT, IS_POS, IS_SORTED, CHECKSORT, CHECKADD, SUM_CMP, SORT, ADD, SUB, MIN, MAX, SUM, COUNT
+  Reasoning (1x): CMP, GT, IS_POS, IS_SORTED, CHECKSORT, CHECKADD, SUM_CMP
+  Regression (2x): SORT, ADD, SUB, MIN, MAX, SUM, COUNT
+  Train examples:  20,000
+  Val examples:    10,000
+  Block size:      256
+  Sequence length: 2-10
+  Number range:    [-10000, 10000]
+  Exponent target: E-9..E9
+  Sig digits max:  15
+  Digit range:     fixed 5-8
+  Digit curriculum:off (fixed range overrides curriculum)
+  Allow float:     True
+  Output dir:      /tmpdir/m24047brmn/numbers/data/numtasks_base_4dig_r10k_20260303_205237_ood_d5_8
+  Seed:            42
+
+Generating train (20,000 examples)...
+generating train:   0%|          | 0/20000 [00:00<?, ?it/s]generating train:  19%|█▉        | 3800/20000 [00:00<00:00, 37989.53it/s]generating train:  38%|███▊      | 7617/20000 [00:00<00:00, 38094.74it/s]generating train:  57%|█████▋    | 11478/20000 [00:00<00:00, 38325.97it/s]generating train:  77%|███████▋  | 15311/20000 [00:00<00:00, 38194.28it/s]generating train:  96%|█████████▌| 19131/20000 [00:00<00:00, 37974.82it/s]generating train: 100%|██████████| 20000/20000 [00:00<00:00, 38058.71it/s]
+
+Sample examples:
+  MIN: 2448.92 -1424 → -1424
+  CHECKSORT: 0 64.9876 4029.4 8.2641545e-05 0.3638605 7.9576e-06 → 0 7.9576e-06 8.2641545e-05 0.3638605 64.9876 4029.4 CHECK → YES
+  ADD: -1627 + 1169 → -458
+  IS_SORTED: 71.9346 2290.5 9 10000 4.8559044 -0.018182 47.994 -9.7397e-05 → NO
+  MAX: 0.0024234 -0.78577 2.7902 5303.5 0 1.7708811e-08 -2.1555232e-07 → 5303.5
+  SUB: 9.36022e-06 - -3734 → 3734
+  SORT: 0 1160 942 1.8723773e-08 -887 0 0 10000 9690 0.00912199 → [-887 0 0 0 1.8723773e-08 0.00912199 942 1160 9690 10000]
+  CHECKADD: 4550.0837 + -6619 = -2068.9163 → YES
+  COUNT: -10 -0.000892778 7035.4 → 3
+  SUM: 7373 -5213 0 7064.2 2.8615095e-09 320 0.00036875139 → 9544.2004
+  SUM_CMP: 6.1821706e-05 + 848 vs 9837 + 0 → SECOND
+  CMP: 0.0194985 4354.871 → LESS
+  IS_POS: 0.007243063 → YES
+  GT: 0.0061605971 2815 → NO
+
+Tokenizing train (plain text numbers)...
+tokenizing train:   0%|          | 0/20000 [00:00<?, ?it/s]tokenizing train:  37%|███▋      | 7379/20000 [00:00<00:00, 73774.59it/s]tokenizing train:  74%|███████▍  | 14757/20000 [00:00<00:00, 73318.22it/s]tokenizing train: 100%|██████████| 20000/20000 [00:00<00:00, 73001.68it/s]
+  Token lengths: min=7, max=133, avg=28.7
+Packing into blocks of 256...
+  20,000 examples packed into 2,423 blocks
+  Examples per block: 8.3 avg
+  Task distribution: {'CMP': 994, 'GT': 982, 'IS_POS': 997, 'IS_SORTED': 945, 'CHECKSORT': 925, 'CHECKADD': 978, 'SUM_CMP': 962, 'SORT': 1899, 'ADD': 1828, 'SUB': 1956, 'MIN': 1905, 'MAX': 1971, 'SUM': 1792, 'COUNT': 1866}
+Saving train...
+  train: 620,288 tokens
+
+Generating val (10,000 examples)...
+generating val:   0%|          | 0/10000 [00:00<?, ?it/s]generating val:  36%|███▌      | 3596/10000 [00:00<00:00, 35952.75it/s]generating val:  72%|███████▎  | 7250/10000 [00:00<00:00, 36292.13it/s]generating val: 100%|██████████| 10000/10000 [00:00<00:00, 36764.76it/s]
+Tokenizing val (plain text numbers)...
+tokenizing val:   0%|          | 0/10000 [00:00<?, ?it/s]tokenizing val:  71%|███████   | 7117/10000 [00:00<00:00, 71167.69it/s]tokenizing val: 100%|██████████| 10000/10000 [00:00<00:00, 71678.39it/s]
+  Token lengths: min=7, max=135, avg=29.2
+Packing into blocks of 256...
+  10,000 examples packed into 1,229 blocks
+  Examples per block: 8.1 avg
+  Task distribution: {'CMP': 452, 'GT': 462, 'IS_POS': 467, 'IS_SORTED': 445, 'CHECKSORT': 500, 'CHECKADD': 441, 'SUM_CMP': 482, 'SORT': 989, 'ADD': 918, 'SUB': 886, 'MIN': 972, 'MAX': 992, 'SUM': 986, 'COUNT': 1008}
+Saving val...
+  val: 314,624 tokens
+
+Tokenization example:
+  Input:  MIN: 2448.92 -1424 →
+  Output: -1424
+  Tokens: [23678, 25, 1987, 2780, 13, 5892, 532, 1415, 1731, 15168, 532, 1415, 1731, 50256]
+  Length: 14 tokens
+
+Done. To train:
+  python base/train.py data_dir=/tmpdir/m24047brmn/numbers/data/numtasks_base_4dig_r10k_20260303_205237_ood_d5_8

@@ -1,0 +1,442 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+==========================================
+FE-v9 Validation + Extended Evaluation
+  Checkpoint:      /tmpdir/m24047brmn/numbers/model_checkpoints/sme_v9_4dig_r10k_20260303_205237/ckpt_best.pt
+  Data dir:        /tmpdir/m24047brmn/numbers/data/numtasks_sme_4dig_r10k_20260303_205237_id_d4
+  Batch blocks:    64
+  Top-K errors:    25
+  Max blocks:      0 (0 = full val set)
+  SUM gen count:   200 per length
+  Standard JSON:   /tmpdir/m24047brmn/numbers/model_checkpoints/sme_v9_4dig_r10k_20260303_205237/val_id_d4.json
+  Extended JSON:   /tmpdir/m24047brmn/numbers/model_checkpoints/sme_v9_4dig_r10k_20260303_205237/eval_id_d4.json
+==========================================
+[1/2] Running standard checkpoint validation...
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+======================================================================
+SME Checkpoint Validation (Full Val Set)
+======================================================================
+Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/sme_v9_4dig_r10k_20260303_205237/ckpt_best.pt
+Data dir:   /tmpdir/m24047brmn/numbers/data/numtasks_sme_4dig_r10k_20260303_205237_id_d4
+Device:     cuda
+Batch blk:  64
+Top-K err:  25
+Max blocks: ALL
+number of parameters: 22.43M
+----------------------------------------------------------------------
+Model block_size: 256
+Model vocab_size: 50304
+Checkpoint iter:  35000
+Best val loss:    0.2974785268306732
+Num emb ckpt:     /tmpdir/m24047brmn/numbers/checkpoints/np_emb_v9_500k_model.pt
+Meta vocab_size:  50304
+----------------------------------------------------------------------
+Validation tokens: 249,088
+Validation blocks: 973
+<NUM> tokens:      44,595
+SME token ids:     [50258, 50289]
+======================================================================
+Validation Report
+======================================================================
+Tokens evaluated:            249,087
+Cross-entropy loss (avg):    0.239713
+Perplexity:                  1.270884
+----------------------------------------------------------------------
+SME Token Accuracy
+----------------------------------------------------------------------
+ overall: 0.8979 (64808/72176)
+    sign: 0.9875 (11582/11729)
+     exp: 0.9974 (11698/11729)
+   digit: 0.8120 (30036/36989)
+     end: 0.9798 (11492/11729)
+      d0: 0.9853 (11557/11729)
+      d1: 0.8875 (7922/8926)
+      d2: 0.7083 (6158/8694)
+      d3: 0.5758 (4399/7640)
+----------------------------------------------------------------------
+Number Decode Metrics (from SME number starts)
+----------------------------------------------------------------------
+Number predictions total:    11,729
+Valid decoded predictions:   11,472
+Invalid decoded predictions: 257
+Invalid rate:                0.0219
+Exact token-seq rate:        0.6613
+Exact value rate:            0.6619
+MAE:                         8.087563
+RMSE:                        137.989015
+Median abs err:              0.000000
+P90/P95/P99 abs err:         0.019000 / 9.112000 / 100.290000
+Max abs err:                 9800.000000
+MAPE (|target|>0):           0.037097
+----------------------------------------------------------------------
+Per-Task Metrics
+----------------------------------------------------------------------
+Task                N    Valid  Invalid   ExactTok   ExactVal        MAE        P95
+ADD               960      947       13     0.6594     0.6594     4.0896    10.0000
+COUNT             893      893        0     1.0000     1.0000     0.0000     0.0000
+MAX               983      976        7     0.8850     0.8881     0.0166     0.0001
+MIN               985      963       22     0.7056     0.7066     1.8899     0.0130
+SORT             5988     5830      158     0.6227     0.6234     0.3246     0.0100
+SUB               964      949       15     0.6255     0.6255     8.8907    10.0000
+SUM               956      914       42     0.3483     0.3483    83.9629   270.0000
+----------------------------------------------------------------------
+Top 25 Worst Absolute-Error Examples
+----------------------------------------------------------------------
+[01] task=SUB valid=False
+  context: SUB: <-4933> - <2117> →
+  target:  -7050.0
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50272, 50286, 50279, 50284, 50289]
+  pred_toks:None
+[02] task=SORT valid=False
+  context: SORT: <0.00017> <-0.9522> <2.069e-08> <10000> <-8644> <765.2> <7405> <-1768> → S-E3D8D6D4D4END S-E3D1D7D6D8END S-E-1D9D5D2D2END S+E-8D2D0D6D9END
+  target:  0.00017000000000000004
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50258, 50265, 50280, 50286, 50289]
+  pred_toks:None
+[03] task=SORT valid=False
+  context: SORT: <3.36> <5540> <8.358e-07> → S+E-7D8D3D5D8END
+  target:  3.36
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50258, 50269, 50282, 50282, 50285, 50289]
+  pred_toks:None
+[04] task=SORT valid=False
+  context: SORT: <-9813> <0> <9793> <6.3e-07> <-0.001698> <-6> <4622> → S-E3D9D8D1D3END S-E0D6END S-E-3D1D6D9D8END S+E0D0END
+  target:  6.3e-07
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50258, 50262, 50285, 50282, 50289]
+  pred_toks:None
+[05] task=SORT valid=False
+  context: SORT: <4.76e-06> <-2.018e-06> <-0.0005727> → S-E-4D5D7D2D7END S-E-6D2D0D1D8END
+  target:  4.759999999999999e-06
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50258, 50263, 50283, 50286, 50285, 50289]
+  pred_toks:None
+[06] task=ADD valid=False
+  context: ADD: <8748> + <261.6> →
+  target:  9010.0
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50258, 50272, 50288, 50279, 50280, 50289]
+  pred_toks:None
+[07] task=SORT valid=False
+  context: SORT: <-9966> <3387> <-2536> <8720> <0.000221> <23.86> <-2.556> → S-E3D9D9D6D6END S-E3D2D5D3D6END S-E0D2D5D5D6END
+  target:  0.000221
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50258, 50265, 50281, 50281, 50280, 50289]
+  pred_toks:None
+[08] task=SORT valid=False
+  context: SORT: <10000> <3009> <2350> <1.491> <4022> <-0.0004871> <10000> →
+  target:  -0.0004871000000000001
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50265, 50283, 50287, 50286, 50280, 50289]
+  pred_toks:None
+[09] task=MIN valid=False
+  context: MIN: <-1.42e-06> <4.936e-08> →
+  target:  -1.42e-06
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50263, 50280, 50283, 50281, 50289]
+  pred_toks:None
+[10] task=SORT valid=False
+  context: SORT: <6.53> <-5626> <915.3> <0> <5734> <5999> <8694> <0> → S-E3D5D6D2D6END S+E0D0END S+E0D0END
+  target:  6.53
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50258, 50269, 50285, 50284, 50282, 50289]
+  pred_toks:None
+[11] task=SORT valid=False
+  context: SORT: <-0.0004831> <5.919e-05> <4178> <3.505e-05> <0.2626> <0.0256> → S-E-4D4D8D3D1END S+E-5D3D5D0D5END S+E-5D5D9D1D9END
+  target:  0.0256
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50258, 50267, 50281, 50284, 50285, 50289]
+  pred_toks:None
+[12] task=SUB valid=False
+  context: SUB: <-65> - <20> →
+  target:  -85.0
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50270, 50287, 50284, 50289]
+  pred_toks:None
+[13] task=SORT valid=False
+  context: SORT: <7.682e-05> <5.1e-05> <-6252> <0.0003058> <10000> → S-E3D6D2D5D2END
+  target:  5.1e-05
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50258, 50264, 50284, 50280, 50289]
+  pred_toks:None
+[14] task=SUB valid=False
+  context: SUB: <0.096> - <21.5> →
+  target:  -21.400000000000002
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50270, 50281, 50280, 50283, 50289]
+  pred_toks:None
+[15] task=MAX valid=False
+  context: MAX: <0.0001808> <0.972> <-144.4> →
+  target:  0.972
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50258, 50268, 50288, 50286, 50281, 50289]
+  pred_toks:None
+[16] task=SORT valid=False
+  context: SORT: <0> <9024> <6605> <5e-09> <42.75> <9> → S+E0D0END
+  target:  5e-09
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50258, 50260, 50284, 50289]
+  pred_toks:None
+[17] task=SUM valid=False
+  context: SUM: <-769> <8878> <0.0006041> <2.686e-05> <-6099> <6836> <166> <-9402> →
+  target:  -390.0
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50271, 50282, 50288, 50289]
+  pred_toks:None
+[18] task=SUM valid=False
+  context: SUM: <181.3> <0> <8.242e-05> <2628> <340.6> →
+  target:  3150.0
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50258, 50272, 50282, 50280, 50284, 50289]
+  pred_toks:None
+[19] task=SORT valid=False
+  context: SORT: <10000> <1.99e-07> <0.0006699> <7263> <0.9093> <3582> <756> <-4.964e-05> → S-E-5D4D9D6D4END
+  target:  1.99e-07
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50258, 50262, 50280, 50288, 50288, 50289]
+  pred_toks:None
+[20] task=SORT valid=False
+  context: SORT: <0> <6425> <0> <10000> <0> <0.177> <10> <0> <-10000> → S-E4D1END S+E0D0END S+E0D0END S+E0D0END S+E0D0END
+  target:  0.17700000000000005
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50258, 50268, 50280, 50286, 50286, 50289]
+  pred_toks:None
+[21] task=MIN valid=False
+  context: MIN: <-0.000564> <9547> <10000> <90.76> <3242> <4481> <-6.18e-09> <0> <0> →
+  target:  -0.000564
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50265, 50284, 50285, 50283, 50289]
+  pred_toks:None
+[22] task=SORT valid=False
+  context: SORT: <2095> <7.819e-07> <7.703e-06> <10000> <0.07387> →
+  target:  7.819e-07
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50258, 50262, 50286, 50287, 50280, 50288, 50289]
+  pred_toks:None
+[23] task=SORT valid=False
+  context: SORT: <2079> <5.85> <516> <7738> <2570> <-4.111e-06> <-7695> <0> → S-E3D7D6D9D5END S-E-6D4D1D1D1END S+E0D0END
+  target:  5.85
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50258, 50269, 50284, 50287, 50284, 50289]
+  pred_toks:None
+[24] task=ADD valid=False
+  context: ADD: <0.00568> + <0> →
+  target:  0.00568
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50258, 50266, 50284, 50285, 50287, 50289]
+  pred_toks:None
+[25] task=SUM valid=False
+  context: SUM: <8.109e-09> <8394> <-10000> <-0.09274> <0.005636> <8> <-0.6611> <-0.9681> →
+  target:  -1600.0
+  pred:    None
+  abs_err: None
+  rel_err: None
+  tgt_toks:[50259, 50272, 50280, 50285, 50289]
+  pred_toks:None
+----------------------------------------------------------------------
+Saved JSON summary: /tmpdir/m24047brmn/numbers/model_checkpoints/sme_v9_4dig_r10k_20260303_205237/val_id_d4.json
+======================================================================
+Validation finished.
+======================================================================
+[2/2] Running extended evaluation (v9 only)...
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+======================================================================
+Extended Evaluation: FE-v9
+======================================================================
+Checkpoint:   /tmpdir/m24047brmn/numbers/model_checkpoints/sme_v9_4dig_r10k_20260303_205237/ckpt_best.pt
+Data dir:     /tmpdir/m24047brmn/numbers/data/numtasks_sme_4dig_r10k_20260303_205237_id_d4
+Device:       cuda
+Batch blocks: 64
+Max blocks:   ALL
+Generated 1600 SUM examples for lengths [2, 3, 5, 8, 10, 15, 20, 30] (per length=200)
+number of parameters: 22.43M
+Checkpoint iter: 35000
+Best val loss:   0.2974785268306732
+  Val tokens: 249,088, blocks: 973
+  Extracted 6727 numeric examples
+  Running SUM generalization...
+
+================================================================================
+ANALYSIS 1: CONDITIONAL MAE
+  MAE over incorrect (non-exact-match) examples only
+================================================================================
+
+                        --- FE-v9 ---          
+Task           Exact%        MAE    CondMAE
+---------------------------------------------
+ADD             65.9%       4.09      12.33
+COUNT          100.0%       0.00       0.00
+MAX             88.8%       0.02       0.16
+MIN             70.7%       1.89       6.82
+SORT             8.8%       0.36       0.38
+SUB             62.6%       8.89      24.39
+SUM             34.8%      83.96     132.09
+---------------------------------------------
+OVERALL         61.2%       8.72      14.77
+
+================================================================================
+ANALYSIS 2: DIFFICULTY-CONTROLLED EVALUATION BUCKETS
+================================================================================
+
+--- BY DIGIT COUNT (of max |target|) ---
+                          --- FE-v9 ---            
+Bucket             N  Exact%        MAE    CondMAE
+-------------------------------------------------
+1-dig           1789   55.1%       0.05       0.10
+2-dig            286   49.0%       7.03      13.50
+3-dig            412   63.6%      24.61      53.65
+4-dig           2871   67.0%       8.01      13.93
+5-dig           1369   58.9%      12.39      17.36
+6+-dig             0     ---        ---        ---
+
+--- BY MAGNITUDE (of max |target|) ---
+                          --- FE-v9 ---            
+Bucket             N  Exact%        MAE    CondMAE
+-------------------------------------------------
+<1e-6            295   38.6%       0.00       0.00
+[1e-6,1)         518    3.7%       0.00       0.00
+[1,10)           976   87.3%       0.09       0.57
+[10,100)         286   49.0%       7.03      13.50
+[100,1K)         412   63.6%      24.61      53.65
+[1K,10K)        2871   67.0%       8.01      13.93
+[10K,100K)      1369   58.9%      12.39      17.36
+>=100K             0     ---        ---        ---
+
+--- BY LIST LENGTH (SORT/MIN/MAX/SUM/COUNT only) ---
+                          --- FE-v9 ---            
+Bucket             N  Exact%        MAE    CondMAE
+-------------------------------------------------
+2                549   62.5%       2.03       5.04
+3                566   61.5%       1.15       2.43
+4-5             1134   58.2%       7.85      13.42
+6-8             1735   56.7%      19.72      29.33
+9-10             819   66.8%       0.23       0.30
+
+--- PER-TASK EXACT MATCH % BY DIGIT COUNT ---
+
+  ADD:
+  Digits           FE-v9
+  1-dig             7.6%
+  2-dig            25.6%
+  3-dig            61.8%
+  4-dig            85.8%
+  5-dig            86.7%
+
+  COUNT:
+  Digits           FE-v9
+  1-dig           100.0%
+  2-dig           100.0%
+
+  MAX:
+  Digits           FE-v9
+  1-dig            24.3%
+  2-dig            33.3%
+  3-dig            93.5%
+  4-dig            99.6%
+  5-dig           100.0%
+
+  MIN:
+  Digits           FE-v9
+  1-dig            29.5%
+  2-dig            23.3%
+  3-dig            93.8%
+  4-dig            99.7%
+  5-dig           100.0%
+
+  SORT:
+  Digits           FE-v9
+  1-dig             2.0%
+  2-dig             0.0%
+  3-dig            20.0%
+  4-dig             8.7%
+  5-dig             9.3%
+
+  SUB:
+  Digits           FE-v9
+  1-dig            12.1%
+  2-dig            32.7%
+  3-dig            63.7%
+  4-dig            82.0%
+  5-dig            91.6%
+
+  SUM:
+  Digits           FE-v9
+  1-dig            12.5%
+  2-dig            17.4%
+  3-dig            40.0%
+  4-dig            32.7%
+  5-dig            41.6%
+
+================================================================================
+ANALYSIS 3: SUM LENGTH GENERALIZATION
+  Training range: 2-8 numbers per SUM
+  Test: integers 1-100, teacher-forced evaluation
+================================================================================
+
+                        --- FE-v9 ---            
+Length           N  Exact%        MAE    CondMAE
+-----------------------------------------------
+2              200   19.5%       7.66      11.30
+3              200    3.5%      22.03      23.09
+5              200    4.0%      30.24      31.81
+8              200    0.5%     123.99     125.48
+10 *           200    0.0%     215.67     215.67
+15 *           200    0.0%     855.70     855.70
+20 *           200    0.0%     823.19     823.19
+30 *           200    0.0%    1498.82    1498.82
+
+  * = out-of-distribution (list length > 8)
+
+Saved extended JSON: /tmpdir/m24047brmn/numbers/model_checkpoints/sme_v9_4dig_r10k_20260303_205237/eval_id_d4.json
+==========================================
+FE-v9 validation pipeline finished with status 0
+==========================================

@@ -1,0 +1,286 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+==========================================
+Base GPT-2 5-Digit Checkpoint Validation
+  Checkpoint:   /tmpdir/m24047brmn/numbers/model_checkpoints/base_4dig_r10k_20260303_205237/ckpt.pt
+  Data dir:     /tmpdir/m24047brmn/numbers/data/numtasks_base_4dig_r10k_20260303_205237_ood_mag
+  Batch blocks: 64
+  Top-K errors: 25
+  Max blocks:   0 (0 = full val set)
+  JSON output:  /tmpdir/m24047brmn/numbers/model_checkpoints/base_4dig_r10k_20260303_205237/val_ood_mag.json
+==========================================
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+======================================================================
+Base GPT-2 Checkpoint Validation (Full Val Set)
+======================================================================
+Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/base_4dig_r10k_20260303_205237/ckpt.pt
+Data dir:   /tmpdir/m24047brmn/numbers/data/numtasks_base_4dig_r10k_20260303_205237_ood_mag
+Device:     cuda
+Batch blk:  64
+Top-K err:  25
+Max blocks: ALL
+number of parameters: 22.32M
+----------------------------------------------------------------------
+Model block_size: 256
+Model vocab_size: 50304
+Checkpoint iter:  35000
+Best val loss:    1.9262272119522095
+Meta dataset:     numtasks_base_vardig_e9
+Meta vocab_size:  50304
+----------------------------------------------------------------------
+Validation tokens: 273,152
+Validation blocks: 1,067
+EOT tokens:        27,638
+======================================================================
+Validation Report
+======================================================================
+Tokens evaluated:              273,151
+Cross-entropy loss (avg):      4.570297
+Perplexity:                    96.572753
+----------------------------------------------------------------------
+Examples parsed (EOT-bounded): 10,000
+Examples evaluated:            10,000
+Output token accuracy:         0.6461 (26202/40556)
+Output exact-match rate:       0.4538 (4538/10000)
+Output token-seq exact rate:   0.4538 (4538/10000)
+----------------------------------------------------------------------
+Numeric Task Metrics
+----------------------------------------------------------------------
+Numeric examples:              6,628
+Numeric valid parses:          5,831
+Numeric invalid parses:        797
+Numeric exact-example rate:    0.2612 (1731/6628)
+MAE (value-level):             39170211.759942
+RMSE (value-level):            63175133.556881
+Median abs err:                13742055.000000
+P90/P95/P99 abs err:           99998002.000000 / 109292300.000000 / 199958048.100000
+Max abs err:                   613540000.000000
+MAPE (|target|>0):             4739.881348
+----------------------------------------------------------------------
+Per-Task Metrics
+----------------------------------------------------------------------
+Task                N   OutExact     TokAcc   TokExact   NumValid   NumInv     NumMAE     NumP95
+ADD               963     0.1952     0.4511     0.1952        945       18 43235650.5387 115707182.0000
+CHECKADD          482     0.6266     0.6266     0.6266          0        0     0.0000     0.0000
+CHECKSORT         476     0.7248     0.7248     0.7248          0        0     0.0000     0.0000
+CMP               496     0.9012     0.9506     0.9012          0        0     0.0000     0.0000
+COUNT             987     0.8430     0.8430     0.8430        987        0     0.1570     1.0000
+GT                502     0.9064     0.9064     0.9064          0        0     0.0000     0.0000
+IS_POS            468     0.9979     0.9979     0.9979          0        0     0.0000     0.0000
+IS_SORTED         468     0.8184     0.8184     0.8184          0        0     0.0000     0.0000
+MAX               939     0.1129     0.4584     0.1129        910       29 61411154.1516 99999991.0000
+MIN               911     0.3611     0.7324     0.3611        911        0 36788933.5320 99998002.0000
+SORT              921     0.0597     0.7414     0.0597        208      713 15039178.1524 95730426.0000
+SUB               947     0.1996     0.4644     0.1996        933       14 38566787.2038 99998996.0000
+SUM               960     0.0333     0.1488     0.0333        937       23 80695842.8005 214871418.0000
+SUM_CMP           480     0.8500     0.9014     0.8500          0        0     0.0000     0.0000
+----------------------------------------------------------------------
+Top 25 Worst Numeric Examples
+----------------------------------------------------------------------
+[01] task=SUB valid_numeric=False
+  prompt:      SUB: 100000000 - 2686000
+  target_text: 97310000
+  pred_text:   -<|endoftext|><|endoftext|>
+  target_nums: [97310000.0]
+  pred_nums:   []
+  abs_err_max: None
+  abs_err_mean:None
+[02] task=SORT valid_numeric=False
+  prompt:      SORT: -0.003059 0.009379 -54310000 0.001688 64230000 546200 0.738 80270000 153.3 77000604
+  target_text: -54310000 -0.003059 0.001688 0.009379 0.738 153.3 546200 64230000 77000604 80270000
+  pred_text:   -5431 - -0.003059 0.001688 0.009379 0.738 153.3 546 5 6423 77 77000 80 8027<|endoftext|>
+  target_nums: [-54310000.0, -0.003059, 0.001688, 0.009379, 0.738, 153.3, 546200.0, 64230000.0, 77000604.0, 80270000.0]
+  pred_nums:   [-5431.0, -0.003059, 0.001688, 0.009379, 0.738, 153.3, 546.0, 5.0, 6423.0, 77.0, 77000.0, 80.0, 8027.0]
+  abs_err_max: None
+  abs_err_mean:None
+[03] task=SORT valid_numeric=False
+  prompt:      SORT: 0.003317 32237863 -6237 -48173525 100000000 94200000
+  target_text: -48173525 -6237 0.003317 32237863 94200000 100000000
+  pred_text:   -626 - - -6237 0.003317 100. 1978 2002 2002 1994<|endoftext|><|endoftext|>
+  target_nums: [-48173525.0, -6237.0, 0.003317, 32237863.0, 94200000.0, 100000000.0]
+  pred_nums:   [-626.0, -6237.0, 0.003317, 100.0, 1978.0, 2002.0, 2002.0, 1994.0]
+  abs_err_max: None
+  abs_err_mean:None
+[04] task=SORT valid_numeric=False
+  prompt:      SORT: -50221636 0.06782 0.6064 3.612e-08 34759050 85460000
+  target_text: -50221636 3.612e-08 0.06782 0.6064 34759050 85460000
+  pred_text:   -5026 3 3 3.612e-08 0.06782 0.6064 3475 85 85 8546<|endoftext|>
+  target_nums: [-50221636.0, 3.612e-08, 0.06782, 0.6064, 34759050.0, 85460000.0]
+  pred_nums:   [-5026.0, 3.0, 3.0, 3.612e-08, 0.06782, 0.6064, 3475.0, 85.0, 85.0, 8546.0]
+  abs_err_max: None
+  abs_err_mean:None
+[05] task=SORT valid_numeric=False
+  prompt:      SORT: 37.53 53989145 63861077 3.682e-08 -71120000
+  target_text: -71120000 3.682e-08 37.53 53989145 63861077
+  pred_text:   -7112 3 3.682e-08 37.53 539 6 6 610<|endoftext|><|endoftext|>
+  target_nums: [-71120000.0, 3.682e-08, 37.53, 53989145.0, 63861077.0]
+  pred_nums:   [-7112.0, 3.0, 3.682e-08, 37.53, 539.0, 6.0, 6.0, 610.0]
+  abs_err_max: None
+  abs_err_mean:None
+[06] task=SUB valid_numeric=False
+  prompt:      SUB: 100000000 - 42630000
+  target_text: 57370000
+  pred_text:   -<|endoftext|><|endoftext|>
+  target_nums: [57370000.0]
+  pred_nums:   []
+  abs_err_max: None
+  abs_err_mean:None
+[07] task=SORT valid_numeric=False
+  prompt:      SORT: 104400 11130000 -668800 329300 7.764 278800 0.05128 26804867 66899834 623
+  target_text: -668800 0.05128 7.764 623 104400 278800 329300 11130000 26804867 66899834
+  pred_text:   -6688 0 0.05128 6.764 668 1044513 11188 111 11180 7203 26 2680 26 7 623<|endoftext|><|endoftext|>
+  target_nums: [-668800.0, 0.05128, 7.764, 623.0, 104400.0, 278800.0, 329300.0, 11130000.0, 26804867.0, 66899834.0]
+  pred_nums:   [-6688.0, 0.0, 0.05128, 6.764, 668.0, 1044513.0, 11188.0, 111.0, 11180.0, 7203.0, 26.0, 2680.0, 26.0, 7.0, 623.0]
+  abs_err_max: None
+  abs_err_mean:None
+[08] task=SORT valid_numeric=False
+  prompt:      SORT: 100000000 -4715824 7751000 0.0008738 3872696 -35460000 1.937e-07 0 41220000 75430000
+  target_text: -35460000 -4715824 0 1.937e-07 0.0008738 3872696 7751000 41220000 75430000 100000000
+  pred_text:   -4746 - -4724 1 0 1.937e-07 0.0008738 9026 100 10075 1999 2018 200 75 15043 CH<|endoftext|><|endoftext|>
+  target_nums: [-35460000.0, -4715824.0, 0.0, 1.937e-07, 0.0008738, 3872696.0, 7751000.0, 41220000.0, 75430000.0, 100000000.0]
+  pred_nums:   [-4746.0, -4724.0, 1.0, 0.0, 1.937e-07, 0.0008738, 9026.0, 100.0, 10075.0, 1999.0, 2018.0, 200.0, 75.0, 15043.0]
+  abs_err_max: None
+  abs_err_mean:None
+[09] task=SORT valid_numeric=False
+  prompt:      SORT: -2032 84360000 5.987e-07 0 -98487895 22868636 0.0007413
+  target_text: -98487895 -2032 0 5.987e-07 0.0007413 22868636 84360000
+  pred_text:   -9848 - - -2032 0 5.987e-07 0.0007413 228366 84 8436<|endoftext|>
+  target_nums: [-98487895.0, -2032.0, 0.0, 5.987e-07, 0.0007413, 22868636.0, 84360000.0]
+  pred_nums:   [-9848.0, -2032.0, 0.0, 5.987e-07, 0.0007413, 228366.0, 84.0, 8436.0]
+  abs_err_max: None
+  abs_err_mean:None
+[10] task=SORT valid_numeric=False
+  prompt:      SORT: 10 -100000000 -21900 13490 12906423 100000000 -83250000 60555871
+  target_text: -100000000 -83250000 -21900 10 13490 12906423 60555871 100000000
+  pred_text:   -831996 -199625 - -200800 -200490 10064 12 13 1080051<|endoftext|> 13 CH
+  target_nums: [-100000000.0, -83250000.0, -21900.0, 10.0, 13490.0, 12906423.0, 60555871.0, 100000000.0]
+  pred_nums:   [-831996.0, -199625.0, -200800.0, -200490.0, 10064.0, 12.0, 13.0, 1080051.0, 13.0]
+  abs_err_max: None
+  abs_err_mean:None
+[11] task=SORT valid_numeric=False
+  prompt:      SORT: 100000000 79470435
+  target_text: 79470435 100000000
+  pred_text:   794 100 100 100 1896
+  target_nums: [79470435.0, 100000000.0]
+  pred_nums:   [794.0, 100.0, 100.0, 100.0, 1896.0]
+  abs_err_max: None
+  abs_err_mean:None
+[12] task=SORT valid_numeric=False
+  prompt:      SORT: 7794022 31150000 0.0004827 0.05965 24480000 8622 79.59 2.721 7057
+  target_text: 0.0004827 0.05965 2.721 79.59 7057 8622 7794022 24480000 31150000
+  pred_text:   0.0004827 0.05965 2.721 79.59 740 97022 24022 24 2448 3<|endoftext|>115<|endoftext|>
+  target_nums: [0.0004827, 0.05965, 2.721, 79.59, 7057.0, 8622.0, 7794022.0, 24480000.0, 31150000.0]
+  pred_nums:   [0.0004827, 0.05965, 2.721, 79.59, 740.0, 97022.0, 24022.0, 24.0, 2448.0, 3.0, 115.0]
+  abs_err_max: None
+  abs_err_mean:None
+[13] task=SORT valid_numeric=False
+  prompt:      SORT: 0 352800 -30760000 0 4621
+  target_text: -30760000 0 0 4621 352800
+  pred_text:   -3076 0 0 0 3521 3500<|endoftext|>
+  target_nums: [-30760000.0, 0.0, 0.0, 4621.0, 352800.0]
+  pred_nums:   [-3076.0, 0.0, 0.0, 0.0, 3521.0, 3500.0]
+  abs_err_max: None
+  abs_err_mean:None
+[14] task=SORT valid_numeric=False
+  prompt:      SORT: -67910000 -5.749e-07 34520000 100000000 25040000 -47060000 0
+  target_text: -67910000 -47060000 -5.749e-07 0 25040000 34520000 100000000
+  pred_text:   -6791 - -4706 - -5.749e-07 0 1004 1994 25000 1978 1973 -
+  target_nums: [-67910000.0, -47060000.0, -5.749e-07, 0.0, 25040000.0, 34520000.0, 100000000.0]
+  pred_nums:   [-6791.0, -4706.0, -5.749e-07, 0.0, 1004.0, 1994.0, 25000.0, 1978.0, 1973.0]
+  abs_err_max: None
+  abs_err_mean:None
+[15] task=SORT valid_numeric=False
+  prompt:      SORT: 55040000 -0.003064 722000 0 -44160000
+  target_text: -44160000 -0.003064 0 722000 55040000
+  pred_text:   -4416 - -0.003064 0 722 550 5504<|endoftext|>
+  target_nums: [-44160000.0, -0.003064, 0.0, 722000.0, 55040000.0]
+  pred_nums:   [-4416.0, -0.003064, 0.0, 722.0, 550.0, 5504.0]
+  abs_err_max: None
+  abs_err_mean:None
+[16] task=SUM valid_numeric=False
+  prompt:      SUM: 100000000 62900000 100000000 -73030000 -7226 -9.518e-08 37030000
+  target_text: 226900000
+  pred_text:   -<|endoftext|><|endoftext|>
+  target_nums: [226900000.0]
+  pred_nums:   []
+  abs_err_max: None
+  abs_err_mean:None
+[17] task=SORT valid_numeric=False
+  prompt:      SORT: 54942611 -6.628e-08 88287759 60930000 5825 54690000
+  target_text: -6.628e-08 5825 54690000 54942611 60930000 88287759
+  pred_text:   -6.628e-08 525 569 5 5494 6 6 6093 8 88287<|endoftext|>
+  target_nums: [-6.628e-08, 5825.0, 54690000.0, 54942611.0, 60930000.0, 88287759.0]
+  pred_nums:   [-6.628e-08, 525.0, 569.0, 5.0, 5494.0, 6.0, 6.0, 6093.0, 8.0, 88287.0]
+  abs_err_max: None
+  abs_err_mean:None
+[18] task=SORT valid_numeric=False
+  prompt:      SORT: 877700 -0.03822 -7.541 44600000 6.052e-09 0 46448934 64198149 7.223e-07
+  target_text: -7.541 -0.03822 0 6.052e-09 7.223e-07 877700 44600000 46448934 64198149
+  pred_text:   -7.541 -0.03822 0 6.052e-09 7.223e-07 477 4 44634 439 64 64 64198<|endoftext|>
+  target_nums: [-7.541, -0.03822, 0.0, 6.052e-09, 7.223e-07, 877700.0, 44600000.0, 46448934.0, 64198149.0]
+  pred_nums:   [-7.541, -0.03822, 0.0, 6.052e-09, 7.223e-07, 477.0, 4.0, 44634.0, 439.0, 64.0, 64.0, 64198.0]
+  abs_err_max: None
+  abs_err_mean:None
+[19] task=SORT valid_numeric=False
+  prompt:      SORT: -8.499e-06 -100000000 -43.16 5.618e-09 26642405
+  target_text: -100000000 -43.16 -8.499e-06 5.618e-09 26642405
+  pred_text:   -2008417 -43.16 -8.499e-06 5.618e-09 2624 26<|endoftext|>
+  target_nums: [-100000000.0, -43.16, -8.499e-06, 5.618e-09, 26642405.0]
+  pred_nums:   [-2008417.0, -43.16, -8.499e-06, 5.618e-09, 2624.0, 26.0]
+  abs_err_max: None
+  abs_err_mean:None
+[20] task=SORT valid_numeric=False
+  prompt:      SORT: 100000000 64310000 3.899e-06 3.021 -0.06855
+  target_text: -0.06855 3.899e-06 3.021 64310000 100000000
+  pred_text:   -0.06855 3.899e-06 3.021 10031 100 100 3
+  target_nums: [-0.06855, 3.899e-06, 3.021, 64310000.0, 100000000.0]
+  pred_nums:   [-0.06855, 3.899e-06, 3.021, 10031.0, 100.0, 100.0, 3.0]
+  abs_err_max: None
+  abs_err_mean:None
+[21] task=MAX valid_numeric=False
+  prompt:      MAX: -36980000 26780 -5.914e-07 1.637e-09 -24830000
+  target_text: 26780
+  pred_text:   267 80
+  target_nums: [26780.0]
+  pred_nums:   [267.0, 80.0]
+  abs_err_max: None
+  abs_err_mean:None
+[22] task=SORT valid_numeric=False
+  prompt:      SORT: 214300 84989320 7.839e-09 -9402 0 0.8525 0 64 96961138 8.169e-07
+  target_text: -9402 0 0 7.839e-09 8.169e-07 0.8525 64 214300 84989320 96961138
+  pred_text:   -9402 0 0 7.839e-09 8.169e-07 0.8525 8 8 8 849 9 9 9696<|endoftext|><|endoftext|>
+  target_nums: [-9402.0, 0.0, 0.0, 7.839e-09, 8.169e-07, 0.8525, 64.0, 214300.0, 84989320.0, 96961138.0]
+  pred_nums:   [-9402.0, 0.0, 0.0, 7.839e-09, 8.169e-07, 0.8525, 8.0, 8.0, 8.0, 849.0, 9.0, 9.0, 9696.0]
+  abs_err_max: None
+  abs_err_mean:None
+[23] task=SORT valid_numeric=False
+  prompt:      SORT: 5.087e-09 2.401e-06 0.07486 -0.04449 7.502e-05 -13220000 16190000 39450000 -57130000 190.9
+  target_text: -57130000 -13220000 -0.04449 5.087e-09 2.401e-06 7.502e-05 0.07486 190.9 16190000 39450000
+  pred_text:   -5713 - -1322 - -0.04449 5.087e-09 2.401e-06 7.502e-05 0.07486 16.9 1619 39 3945<|endoftext|>
+  target_nums: [-57130000.0, -13220000.0, -0.04449, 5.087e-09, 2.401e-06, 7.502e-05, 0.07486, 190.9, 16190000.0, 39450000.0]
+  pred_nums:   [-5713.0, -1322.0, -0.04449, 5.087e-09, 2.401e-06, 7.502e-05, 0.07486, 16.9, 1619.0, 39.0, 3945.0]
+  abs_err_max: None
+  abs_err_mean:None
+[24] task=SORT valid_numeric=False
+  prompt:      SORT: -8.661e-09 0 33530000
+  target_text: -8.661e-09 0 33530000
+  pred_text:   -8.661e-09 0 3353 1999
+  target_nums: [-8.661e-09, 0.0, 33530000.0]
+  pred_nums:   [-8.661e-09, 0.0, 3353.0, 1999.0]
+  abs_err_max: None
+  abs_err_mean:None
+[25] task=SORT valid_numeric=False
+  prompt:      SORT: 37300 190900 26440000 0.0009797
+  target_text: 0.0009797 37300 190900 26440000
+  pred_text:   0.0009797 190900 1909 2 2644 2
+  target_nums: [0.0009797, 37300.0, 190900.0, 26440000.0]
+  pred_nums:   [0.0009797, 190900.0, 1909.0, 2.0, 2644.0, 2.0]
+  abs_err_max: None
+  abs_err_mean:None
+----------------------------------------------------------------------
+Saved JSON summary: /tmpdir/m24047brmn/numbers/model_checkpoints/base_4dig_r10k_20260303_205237/val_ood_mag.json
+======================================================================
+Validation finished.
+==========================================
+Validation finished with status 0
+==========================================
