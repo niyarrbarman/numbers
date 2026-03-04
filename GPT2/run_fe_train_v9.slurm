@@ -34,6 +34,13 @@ NUM_BLEND_BETA_END="${NUM_BLEND_BETA_END:-1.0}"
 NUM_BLEND_WARMUP_ITERS="${NUM_BLEND_WARMUP_ITERS:-2000}"
 NUM_BLEND_RAMP_ITERS="${NUM_BLEND_RAMP_ITERS:-18000}"
 
+# Optional: digit-position weighted loss for SME digit tokens (d0..dK).
+DIGIT_LOSS_ENABLE="${DIGIT_LOSS_ENABLE:-False}"
+# Use colon or space separators here to avoid sbatch --export comma parsing.
+# Example: "0.385:0.864:1.335:1.416" (mean normalized in train.py by default).
+DIGIT_LOSS_POS_WEIGHTS="${DIGIT_LOSS_POS_WEIGHTS:-}"
+DIGIT_LOSS_NORMALIZE_MEAN="${DIGIT_LOSS_NORMALIZE_MEAN:-True}"
+
 INIT_FROM="${INIT_FROM:-scratch}"
 BASE_OUT_DIR="${BASE_OUT_DIR:-/tmpdir/m24047brmn/numbers/model_checkpoints}"
 RUN_TAG="${RUN_TAG:-${SLURM_JOB_ID}}"
@@ -60,6 +67,7 @@ echo "  Adapter lr x:   ${ADAPTER_LR_SCALE}"
 echo "  Num norm match: ${NUM_NORM_MATCH}"
 echo "  Num beta:       ${NUM_BLEND_BETA_START} -> ${NUM_BLEND_BETA_END}"
 echo "  Num beta ramp:  warmup=${NUM_BLEND_WARMUP_ITERS}, ramp=${NUM_BLEND_RAMP_ITERS}"
+echo "  Digit loss:     enable=${DIGIT_LOSS_ENABLE} weights='${DIGIT_LOSS_POS_WEIGHTS}' norm_mean=${DIGIT_LOSS_NORMALIZE_MEAN}"
 echo "  Init from:      ${INIT_FROM}"
 echo "  Out dir:        ${OUT_DIR}"
 echo "  Master:         ${MASTER_ADDR}:${MASTER_PORT}"
@@ -94,6 +102,9 @@ srun apptainer exec \
       num_blend_beta_end="${NUM_BLEND_BETA_END}" \
       num_blend_warmup_iters="${NUM_BLEND_WARMUP_ITERS}" \
       num_blend_ramp_iters="${NUM_BLEND_RAMP_ITERS}" \
+      digit_loss_enable="${DIGIT_LOSS_ENABLE}" \
+      digit_loss_pos_weights="${DIGIT_LOSS_POS_WEIGHTS}" \
+      digit_loss_normalize_mean="${DIGIT_LOSS_NORMALIZE_MEAN}" \
       init_from="${INIT_FROM}"
 
 status=$?

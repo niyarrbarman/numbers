@@ -26,6 +26,7 @@ from contextlib import nullcontext
 
 import numpy as np
 import torch
+from torch.nn import functional as F
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import init_process_group, destroy_process_group, barrier
 
@@ -78,6 +79,10 @@ num_blend_beta_start = 0.0
 num_blend_beta_end = 1.0
 num_blend_warmup_iters = 2000
 num_blend_ramp_iters = 18000
+# digit-position weighted loss (SME digits only)
+digit_loss_enable = False
+digit_loss_pos_weights = ''  # e.g. "0.4,0.8,1.3,1.5" or "0.4:0.8:1.3:1.5"
+digit_loss_normalize_mean = True
 # adamw optimizer
 learning_rate = 4e-4
 adapter_lr_scale = 0.2
@@ -114,6 +119,37 @@ for arg in sys.argv[1:]:
             globals()[key] = val
 config = {k: globals()[k] for k in config_keys}
 # -----------------------------------------------------------------------------
+
+# Parse/normalize digit loss weights early; move to device later.
+def _parse_float_list(val):
+    """Parse a list/tuple or a string like '0.1,0.2' / '0.1 0.2' / '0.1:0.2'."""
+    if val is None:
+        return None
+    if isinstance(val, (list, tuple)):
+        out = [float(x) for x in val]
+        return out if out else None
+    if isinstance(val, str):
+        s = val.strip()
+        if not s:
+            return None
+        # Strip common wrappers and split on comma/colon/whitespace.
+        for ch in '[]()':
+            s = s.replace(ch, ' ')
+        parts = []
+        for chunk in s.replace(',', ' ').replace(':', ' ').split():
+            if chunk:
+                parts.append(float(chunk))
+        return parts if parts else None
+    return None
+
+
+_digit_loss_pos_weights_list = _parse_float_list(digit_loss_pos_weights)
+if digit_loss_enable and not _digit_loss_pos_weights_list:
+    raise ValueError("digit_loss_enable=True but digit_loss_pos_weights is empty/unparseable")
+if _digit_loss_pos_weights_list and digit_loss_normalize_mean:
+    mean_w = float(sum(_digit_loss_pos_weights_list) / max(1, len(_digit_loss_pos_weights_list)))
+    if mean_w > 0:
+        _digit_loss_pos_weights_list = [float(w) / mean_w for w in _digit_loss_pos_weights_list]
 
 # various inits, derived attributes, I/O setup
 ddp = int(os.environ.get('RANK', -1)) != -1
@@ -338,6 +374,47 @@ def get_num_blend_beta(it):
 
 # SME diagnostic helper
 _sme_token_set = torch.tensor(sorted(SME_ALL_TOKENS), dtype=torch.long)
+
+def weighted_sme_digit_loss(logits, targets, digit_pos_weights):
+    """Cross-entropy with digit-position weights inside SME numbers.
+
+    Weights apply only to digit tokens at positions d0..dK (relative to the SIGN token).
+    All other tokens (including SME sign/exp/END) remain weight 1.0.
+
+    Args:
+        logits: (B, T, V)
+        targets: (B, T) with ignore_index=-1 allowed
+        digit_pos_weights: (K,) float tensor (e.g. d0..d3)
+    """
+    B, T, V = logits.shape
+    per_tok = F.cross_entropy(
+        logits.view(-1, V),
+        targets.view(-1),
+        ignore_index=-1,
+        reduction='none',
+    ).view(B, T)
+
+    weights = torch.ones_like(per_tok)
+    valid = (targets != -1)
+
+    # Detect SME sign tokens; digits are at fixed offsets +2+i from sign.
+    sign_mask = (targets == SME_SIGN_POS) | (targets == SME_SIGN_NEG)
+    digit_mask = (targets >= SME_DIGIT_BASE) & (targets <= SME_DIGIT_BASE + 9)
+
+    K = int(digit_pos_weights.numel())
+    for i in range(K):
+        shift = 2 + i
+        if shift >= T:
+            break
+        shifted_sign = torch.zeros_like(sign_mask)
+        shifted_sign[:, shift:] = sign_mask[:, :-shift]
+        pos_mask = shifted_sign & digit_mask
+        if pos_mask.any():
+            weights[pos_mask] = digit_pos_weights[i].to(weights.dtype)
+
+    weights = weights * valid.to(weights.dtype)
+    denom = weights.sum().clamp_min(1.0)
+    return (per_tok * weights).sum() / denom
 
 
 @torch.no_grad()
@@ -640,6 +717,18 @@ local_iter_num = 0
 raw_model = model.module if ddp else model
 running_mfu = -1.0
 current_num_blend_beta = get_num_blend_beta(iter_num)
+
+digit_loss_pos_weights_t = None
+if digit_loss_enable and _digit_loss_pos_weights_list:
+    digit_loss_pos_weights_t = torch.tensor(
+        _digit_loss_pos_weights_list,
+        dtype=torch.float32,
+        device=device,
+    )
+    if master_process:
+        w_str = ','.join([f"{w:.3f}" for w in _digit_loss_pos_weights_list])
+        print(f"digit loss: enable=true, pos_weights=[{w_str}] (mean=1.0)")
+
 while True:
 
     # determine and set the learning rate for this iteration
@@ -704,6 +793,8 @@ while True:
                 num_blend_beta=current_num_blend_beta,
                 num_norm_match=num_norm_match,
             )
+            if digit_loss_pos_weights_t is not None:
+                loss = weighted_sme_digit_loss(logits, Y, digit_loss_pos_weights_t)
             loss = loss / gradient_accumulation_steps
         # snapshot logits for diagnostics (last micro_step only)
         if micro_step == gradient_accumulation_steps - 1 and iter_num % diag_interval == 0 and master_process:
