@@ -19,7 +19,7 @@ SME_OOD_LOW_DIR="${SME_OOD_LOW_DIR:-${DATA_ROOT}/numtasks_sme_${TAG}_ood_d1_3}"
 BASE_OOD_LOW_DIR="${BASE_OOD_LOW_DIR:-${DATA_ROOT}/numtasks_base_${TAG}_ood_d1_3}"
 
 SME_OOD_HIGH_DIR="${SME_OOD_HIGH_DIR:-${DATA_ROOT}/numtasks_sme_${TAG}_ood_d5_8}"
-BASE_OOD_HIGH_DIR="${BASE_OOD_DIR:-${DATA_ROOT}/numtasks_base_${TAG}_ood_d5_8}"
+BASE_OOD_HIGH_DIR="${BASE_OOD_HIGH_DIR:-${DATA_ROOT}/numtasks_base_${TAG}_ood_d5_8}"
 
 SME_OOD_MAG_DIR="${SME_OOD_MAG_DIR:-${DATA_ROOT}/numtasks_sme_${TAG}_ood_mag}"
 BASE_OOD_MAG_DIR="${BASE_OOD_MAG_DIR:-${DATA_ROOT}/numtasks_base_${TAG}_ood_mag}"
