@@ -594,6 +594,14 @@ def main():
     parser.add_argument("--sig-digits-max", type=int, default=None,
                         help="Force maximum significant digits for sampled floats")
     parser.add_argument(
+        "--output-sig-digits-max",
+        type=int,
+        default=None,
+        help="Override max significant digits used for computed *output* numbers "
+             "(and SME encoding precision). If unset, output precision follows "
+             "--sig-digits-max for backward compatibility.",
+    )
+    parser.add_argument(
         "--sme-min-digits",
         type=int,
         default=None,
@@ -620,6 +628,11 @@ def main():
     else:
         args.sig_digits_min = None
         args.sig_digits_max = None
+    if args.output_sig_digits_max is not None:
+        args.output_sig_digits_max = int(args.output_sig_digits_max)
+        if args.output_sig_digits_max < 1:
+            raise ValueError("--output-sig-digits-max must be >= 1")
+        args.output_sig_digits_max = min(args.output_sig_digits_max, SME_MAX_DIGITS)
     if args.out_dir is None:
         args.out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                     'fe', 'data', 'numtasks_sme_vardig_e9')
@@ -634,8 +647,11 @@ def main():
     generators = [g for g, _ in task_generators]
     weights = [w for _, w in task_generators]
 
-    # max_output_digits: cap result precision to match input constraint
-    if args.sig_digits_max is not None:
+    # max_output_digits: cap output precision. Historically this tracked input
+    # sig-digits; allow decoupling for OOD eval generation.
+    if args.output_sig_digits_max is not None:
+        max_output_digits = args.output_sig_digits_max
+    elif args.sig_digits_max is not None:
         max_output_digits = args.sig_digits_max
     else:
         max_output_digits = SME_MAX_DIGITS
@@ -681,11 +697,14 @@ def main():
     print(f"  Max digits:      {SME_MAX_DIGITS} (+ END)")
     if args.sig_digits_min is not None:
         print(f"  Digit range:     fixed {args.sig_digits_min}-{args.sig_digits_max}")
-        print(f"  Output digits:   capped at {max_output_digits}")
         print("  Digit curriculum:off (fixed range overrides curriculum)")
     else:
         print(f"  Digit curriculum:{'on' if args.digit_curriculum else 'off'} "
               f"(phase1 1-4, phase2 5-8, phase3 1-{SME_MAX_DIGITS})")
+    if args.output_sig_digits_max is not None:
+        print(f"  Output digits:   capped at {max_output_digits} (override)")
+    else:
+        print(f"  Output digits:   capped at {max_output_digits}")
     if args.sme_min_digits is not None:
         print(f"  Output min digs: {sme_min_digits} (pad trailing zeros)")
     print(f"  Allow float:     {args.allow_float}")
@@ -816,6 +835,7 @@ def main():
         'digit_curriculum': bool(args.digit_curriculum),
         'sig_digits_min': args.sig_digits_min,
         'sig_digits_max': args.sig_digits_max,
+        'output_sig_digits_max': args.output_sig_digits_max,
     }
     meta_path = os.path.join(args.out_dir, 'meta.pkl')
     with open(meta_path, 'wb') as f:

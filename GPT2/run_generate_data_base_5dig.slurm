@@ -31,6 +31,7 @@ REASONING_WEIGHT="${REASONING_WEIGHT:-1}"
 NUMERIC_WEIGHT="${NUMERIC_WEIGHT:-2}"
 SIG_DIGITS_MIN="${SIG_DIGITS_MIN:-1}"
 SIG_DIGITS_MAX="${SIG_DIGITS_MAX:-5}"
+OUTPUT_SIG_DIGITS_MAX="${OUTPUT_SIG_DIGITS_MAX:-}"  # optional: decouple output precision from input SIG_DIGITS_*
 OUT_DIR="${OUT_DIR:-/tmpdir/m24047brmn/numbers/data/numtasks_base_5dig}"
 
 mkdir -p "${OUT_DIR}"
@@ -41,6 +42,7 @@ echo "=========================================="
 echo "Generating 5-digit BASE dataset -> ${OUT_DIR}"
 echo "  NUMBER_RANGE=${NUMBER_RANGE}"
 echo "  SIG_DIGITS=${SIG_DIGITS_MIN}-${SIG_DIGITS_MAX}"
+echo "  OUTPUT_SIG_DIGITS_MAX=${OUTPUT_SIG_DIGITS_MAX:-<unset>}"
 echo "  N_TRAIN=${N_TRAIN}"
 echo "  N_VAL=${N_VAL}"
 echo "  MAX_LEN=${MAX_LEN}"
@@ -63,11 +65,16 @@ apptainer exec \
     NUMERIC_WEIGHT="${NUMERIC_WEIGHT}" \
     SIG_DIGITS_MIN="${SIG_DIGITS_MIN}" \
     SIG_DIGITS_MAX="${SIG_DIGITS_MAX}" \
+    OUTPUT_SIG_DIGITS_MAX="${OUTPUT_SIG_DIGITS_MAX}" \
     OUT_DIR="${OUT_DIR}" \
   bash -c '
     set -euo pipefail
     cd "${GPT2_DIR}"
     python3 -c "import tiktoken; print(\"tiktoken OK\")"
+    OUTPUT_SIG_DIGITS_MAX_FLAG=""
+    if [[ -n "${OUTPUT_SIG_DIGITS_MAX}" ]]; then
+      OUTPUT_SIG_DIGITS_MAX_FLAG="--output-sig-digits-max ${OUTPUT_SIG_DIGITS_MAX}"
+    fi
     python3 generate_data_base.py \
       --n-train "${N_TRAIN}" \
       --n-val "${N_VAL}" \
@@ -81,5 +88,6 @@ apptainer exec \
       --no-digit-curriculum \
       --sig-digits-min "${SIG_DIGITS_MIN}" \
       --sig-digits-max "${SIG_DIGITS_MAX}" \
+      ${OUTPUT_SIG_DIGITS_MAX_FLAG} \
       --out-dir "${OUT_DIR}"
   '
