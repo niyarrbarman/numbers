@@ -1,0 +1,89 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+==========================================
+Generating 5-digit SME dataset -> /tmpdir/m24047brmn/numbers/data/numtasks_sme_ood_fixlen_outd4_20260305_120000_ood_d1_3
+  NUMBER_RANGE=9999
+  SIG_DIGITS=1-3
+  OUTPUT_SIG_DIGITS_MAX=4
+  SME_MIN_DIGITS=4
+  N_TRAIN=20000
+  N_VAL=10000
+  MAX_LEN=10
+  REASONING_WEIGHT=1
+  NUMERIC_WEIGHT=2
+==========================================
+tiktoken OK
+============================================================
+NUMERICAL TASK DATA GENERATOR (SME OUTPUT)
+============================================================
+  Tasks:           CMP, GT, IS_POS, IS_SORTED, CHECKSORT, CHECKADD, SUM_CMP, SORT, ADD, SUB, MIN, MAX, SUM, COUNT
+  Reasoning (1x): CMP, GT, IS_POS, IS_SORTED, CHECKSORT, CHECKADD, SUM_CMP
+  SME output (2x): SORT, ADD, SUB, MIN, MAX, SUM, COUNT
+  Train examples:  20,000
+  Val examples:    10,000
+  Block size:      256
+  Sequence length: 2-10
+  Number range:    [-9999, 9999]
+  SME exponents:   E-9..E9
+  Max digits:      15 (+ END)
+  Digit range:     fixed 1-3
+  Digit curriculum:off (fixed range overrides curriculum)
+  Output digits:   capped at 4 (override)
+  Output min digs: 4 (pad trailing zeros)
+  Allow float:     True
+  Output dir:      /tmpdir/m24047brmn/numbers/data/numtasks_sme_ood_fixlen_outd4_20260305_120000_ood_d1_3
+  Seed:            42
+
+Generating train (20,000 examples)...
+generating train:   0%|          | 0/20000 [00:00<?, ?it/s]generating train:  19%|█▉        | 3792/20000 [00:00<00:00, 37915.25it/s]generating train:  38%|███▊      | 7607/20000 [00:00<00:00, 38052.39it/s]generating train:  57%|█████▋    | 11436/20000 [00:00<00:00, 38155.58it/s]generating train:  76%|███████▋  | 15281/20000 [00:00<00:00, 38269.37it/s]generating train:  96%|█████████▌| 19116/20000 [00:00<00:00, 38298.03it/s]generating train: 100%|██████████| 20000/20000 [00:00<00:00, 38249.55it/s]
+
+Sample examples:
+  MIN: 2000 -1424 → -1424  (SME)
+  CHECKSORT: -7.44e-06 9000 4000 -8.26e-05 1291 -9459 → -9459 -8.26e-05 -7.44e-06 1291 4000 9000 CHECK → YES
+  GT: 4.4e-08 7.03e-06 → NO
+  SUB: 320 - 0.3 → 319.7  (SME)
+  CHECKADD: 0.585 + -1e-05 = 0.585 → YES
+  IS_POS: 7120 → YES
+  COUNT: -0.9 -4371 9.58e-09 8.8e-08 0.000786 9813 9999 -0.0834 0.249 1 → 10  (SME)
+  ADD: 5e-05 + 6.87e-09 → 5.001e-05  (SME)
+  CMP: 10 -0.0009 → GREATER
+  SUM: 7000 -1697 0.24 86.8 -920 0 6000 → 10470  (SME)
+  SUM_CMP: 6000 + 9030 vs 3000 + 4600 → FIRST
+  MAX: 2840 7510 3.2e-09 61.8 → 7510  (SME)
+  IS_SORTED: -6620 -0.00505 0 → YES
+  SORT: 0.00615 50 490 3770 -78 -68 1.8e-07 5900 -2600 → [-2600 -78 -68 1.8e-07 0.00615 50 490 3770 5900]  (SME)
+
+SME encoding example:
+  Value: -1424 → SME tokens: [50259, 50272, 50280, 50283, 50281, 50283, 50289] → decoded: -1424.0
+
+Tokenizing train (with SME for output numbers, max_digits=4, min_digits=4)...
+tokenizing train:   0%|          | 0/20000 [00:00<?, ?it/s]tokenizing train:  20%|██        | 4014/20000 [00:00<00:00, 40133.82it/s]tokenizing train:  40%|████      | 8048/20000 [00:00<00:00, 40252.80it/s]tokenizing train:  60%|██████    | 12074/20000 [00:00<00:00, 39999.85it/s]tokenizing train:  80%|████████  | 16090/20000 [00:00<00:00, 40061.38it/s]tokenizing train: 100%|██████████| 20000/20000 [00:00<00:00, 40046.71it/s]
+  Token lengths: min=9, max=105, avg=24.0
+Packing into blocks of 256...
+  20,000 examples packed into 2,012 blocks
+  Examples per block: 9.9 avg
+  Task distribution: {'CMP': 970, 'GT': 977, 'IS_POS': 965, 'IS_SORTED': 985, 'CHECKSORT': 931, 'CHECKADD': 943, 'SUM_CMP': 957, 'SORT': 1861, 'ADD': 1878, 'SUB': 1934, 'MIN': 1939, 'MAX': 1940, 'SUM': 1826, 'COUNT': 1894}
+Saving train...
+  train: 515,072 tokens, 89,809 <NUM> embeddings, 157,913 SME tokens (30.7%)
+
+Generating val (10,000 examples)...
+generating val:   0%|          | 0/10000 [00:00<?, ?it/s]generating val:  36%|███▌      | 3613/10000 [00:00<00:00, 36127.79it/s]generating val:  74%|███████▍  | 7428/10000 [00:00<00:00, 37315.70it/s]generating val: 100%|██████████| 10000/10000 [00:00<00:00, 33839.82it/s]
+Tokenizing val (with SME for output numbers, max_digits=4, min_digits=4)...
+tokenizing val:   0%|          | 0/10000 [00:00<?, ?it/s]tokenizing val:  40%|███▉      | 3953/10000 [00:00<00:00, 39524.95it/s]tokenizing val:  80%|███████▉  | 7953/10000 [00:00<00:00, 39799.93it/s]tokenizing val: 100%|██████████| 10000/10000 [00:00<00:00, 39785.10it/s]
+  Token lengths: min=9, max=105, avg=24.2
+Packing into blocks of 256...
+  10,000 examples packed into 1,020 blocks
+  Examples per block: 9.8 avg
+  Task distribution: {'CMP': 513, 'GT': 467, 'IS_POS': 451, 'IS_SORTED': 469, 'CHECKSORT': 473, 'CHECKADD': 459, 'SUM_CMP': 526, 'SORT': 960, 'ADD': 953, 'SUB': 909, 'MIN': 901, 'MAX': 969, 'SUM': 983, 'COUNT': 967}
+Saving val...
+  val: 261,120 tokens, 44,954 <NUM> embeddings, 80,479 SME tokens (30.8%)
+
+Tokenization example:
+  Input: SUM: -9.4e-06 9999 869 -1e-05 →
+  Output: 10870.0
+  Tokens: [50, 5883, 25, 220, 50257, 220, 50257, 220, 50257, 220, 50257, 15168, 220, 50258, 50273, 50280, 50279, 50287, 50286, 50289, 50256]
+  Nums:   [0.0, 0.0, 0.0, 0.0, -9.4e-06, 0.0, 9999.0, 0.0, 869.0, 0.0, -1e-05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  Length:  21 tokens
+
+Done. To train:
+  python fe/train.py dataset=numtasks_sme_vardig_e9 data_dir=/tmpdir/m24047brmn/numbers/data/numtasks_sme_ood_fixlen_outd4_20260305_120000_ood_d1_3
