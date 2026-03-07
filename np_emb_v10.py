@@ -26,11 +26,13 @@ Major changes from v9:
      - L_digit: predict each digit from RESIDUE lane only (forces utilization)
      - L_decorr: decorrelation penalty (prevents dimension collapse)
      - L_subtraction: subtraction probe (complements addition)
+     - NO L_rel: relative MSE removed (diverges at 1e9 range due to near-zero samples)
 
   6. EXPANDED TRAINING:
      - 2M steps default (4x more than v9)
      - Digit-uniform sampling: equal probability for 1-9 digit numbers
      - Full [0, 1e9] range with carry-heavy/structured at all scales
+     - Phase checkpoints saved at end of each training phase
 
   7. COMPREHENSIVE TEST SUITE (18 tests):
      - Per-digit accuracy, parity, cross-scale generalization
@@ -541,7 +543,7 @@ class NumberEmbeddingSystem(nn.Module):
         return emb[:, k:k + self.residue_dims]
 
     def compute_loss(self, x: Tensor, emb: Tensor, recon: Tensor,
-                     sign_logit: Tensor, lam_rel: float,
+                     sign_logit: Tensor,
                      lam_compose: float, lam_order: float,
                      lam_magnitude: float, lam_digit: float,
                      lam_decorr: float, lam_sub: float) -> Tensor:
@@ -568,10 +570,7 @@ class NumberEmbeddingSystem(nn.Module):
         log_abs_recon = torch.log(torch.abs(recon) + eps_lm)
         loss_lm = F.mse_loss(log_abs_recon, log_abs_x)
 
-        # 4. Relative MSE (phase 2, ramped)
-        loss_rel = torch.mean((recon - x) ** 2 / (x * x + 1.0))
-
-        # 5. Spread loss
+        # 4. Spread loss
         n = emb.shape[0]
         idx_perm = torch.randperm(n, device=emb.device)
         emb_shuffled = emb[idx_perm]
@@ -660,7 +659,6 @@ class NumberEmbeddingSystem(nn.Module):
         return (loss_slog
                 + 0.1 * loss_bce
                 + 0.3 * loss_lm
-                + lam_rel * loss_rel
                 + 0.05 * loss_spread
                 + lam_compose * loss_compose
                 + lam_order * loss_order
@@ -671,36 +669,43 @@ class NumberEmbeddingSystem(nn.Module):
 
     def train_model(self, num_steps: int = 2000000, batch_size: int = 512,
                     lr: float = 5e-4, log_interval: int = 10000,
-                    warmup_steps: int = 5000, grad_clip: float = 1.0):
+                    warmup_steps: int = 5000, grad_clip: float = 1.0,
+                    checkpoint_dir: str = "/tmpdir/m24047brmn/numbers/checkpoints"):
+        # DataParallel: use all available GPUs, scale batch size
+        n_gpu = torch.cuda.device_count() if torch.cuda.is_available() else 1
+        if n_gpu > 1:
+            dp_module = nn.DataParallel(self)
+            batch_size = batch_size * n_gpu
+            print(f"  Using {n_gpu} GPUs via DataParallel "
+                  f"(effective batch={batch_size})")
+        else:
+            dp_module = None
+
         optimizer = torch.optim.AdamW(self.parameters(), lr=lr,
                                        betas=(0.9, 0.999), eps=1e-8,
                                        weight_decay=1e-5)
         losses = []
 
-        # Phase schedule
-        # Phase 1 (0-10%): core losses only
-        # Phase 2 (10-30%): ramp in multi-objective + decorrelation
-        # Phase 3 (30-50%): ramp in digit loss
-        # Phase 4 (50-60%): ramp in relative MSE
-        # Phase 5 (60-100%): all losses at full weight
+        # Phase schedule (3 phases, no L_rel)
+        # Phase 1 (0-10%):   core losses only (recon, sign, logmag, spread)
+        # Phase 2 (10-30%):  ramp in multi-objective + decorrelation
+        # Phase 3 (30-50%):  ramp in digit loss
+        # Phase 4 (50-100%): all losses at full weight
 
         obj_start = int(num_steps * 0.10)
         obj_end = int(num_steps * 0.30)
         digit_start = int(num_steps * 0.20)
         digit_end = int(num_steps * 0.40)
-        rel_start = int(num_steps * 0.50)
-        rel_end = int(num_steps * 0.60)
+
+        # Phase boundaries for checkpointing
+        phase_boundaries = {
+            obj_start: "P1_core",
+            obj_end: "P2_obj",
+            digit_end: "P3_digit",
+        }
 
         self.train()
         for step in range(1, num_steps + 1):
-            # Relative MSE ramp
-            if step < rel_start:
-                lam_rel = 0.0
-            elif step < rel_end:
-                lam_rel = 0.3 * (step - rel_start) / (rel_end - rel_start)
-            else:
-                lam_rel = 0.3
-
             # Multi-objective ramp (compose, order, magnitude, sub, decorr)
             if step < obj_start:
                 obj_frac = 0.0
@@ -727,9 +732,12 @@ class NumberEmbeddingSystem(nn.Module):
             x = sample_training_numbers(batch_size, self.device)
 
             optimizer.zero_grad()
-            emb, recon, sign_logit = self.forward(x)
+            if dp_module is not None:
+                emb, recon, sign_logit = dp_module(x)
+            else:
+                emb, recon, sign_logit = self.forward(x)
             loss = self.compute_loss(x, emb, recon, sign_logit,
-                                     lam_rel, lam_compose, lam_order,
+                                     lam_compose, lam_order,
                                      lam_magnitude, lam_digit,
                                      lam_decorr, lam_sub)
             loss.backward()
@@ -747,6 +755,30 @@ class NumberEmbeddingSystem(nn.Module):
             optimizer.step()
 
             losses.append(loss.item())
+
+            # Save checkpoint at phase boundaries
+            if step in phase_boundaries:
+                phase_name = phase_boundaries[step]
+                self.eval()
+                os.makedirs(checkpoint_dir, exist_ok=True)
+                ckpt_path = os.path.join(
+                    checkpoint_dir,
+                    f"np_emb_v10_{phase_name}_{step // 1000}k_model.pt")
+                torch.save({
+                    'encoder_state_dict': self.encoder.state_dict(),
+                    'full_state_dict': self.state_dict(),
+                    'embedding_dim': self.embedding_dim,
+                    'scale_dims': self.scale_dims,
+                    'residue_periods': self.encoder.residue_lane.periods.cpu().tolist(),
+                    'residue_dims': self.residue_dims,
+                    'num_frequencies': self.encoder.fourier.frequencies.shape[0],
+                    'num_steps': step,
+                    'phase': phase_name,
+                    'variant': 'v10_high_fidelity_1B',
+                }, ckpt_path)
+                print(f"  ** Phase checkpoint saved: {ckpt_path}")
+                self.train()
+
             if step % log_interval == 0:
                 avg = sum(losses[-log_interval:]) / log_interval
                 w = self.encoder.scale_lane.weight
@@ -757,12 +789,10 @@ class NumberEmbeddingSystem(nn.Module):
                     phase = "P1:core"
                 elif step < digit_start:
                     phase = "P2:obj"
-                elif step < rel_start:
+                elif step < digit_end:
                     phase = "P3:digit"
-                elif step < rel_end:
-                    phase = "P4:rel"
                 else:
-                    phase = "P5:full"
+                    phase = "P4:full"
 
                 # Lane norms for a sample
                 with torch.no_grad():
