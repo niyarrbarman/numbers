@@ -2,25 +2,131 @@
 
 ## Table of Contents
 
-1. [Overview](#1-overview)
-2. [Task Suite](#2-task-suite)
-3. [NumberEncoder: Analytic Number Embedding System](#3-numberencoder-analytic-number-embedding-system)
-4. [SME: Sign-Mantissa-Exponent Output Encoding](#4-sme-sign-mantissa-exponent-output-encoding)
-5. [Variant 1: Base GPT-2](#5-variant-1-base-gpt-2)
-6. [Variant 2: FE-Frozen (Frozen NumberEncoder + SME)](#6-variant-2-fe-frozen-frozen-numberencoder--sme)
-7. [Variant 3: FE-Unfreeze (Unfrozen NumberEncoder + SME)](#7-variant-3-fe-unfreeze-unfrozen-numberencoder--sme)
-8. [Variant 4: FE-Unfreeze+MLP (Unfrozen NumberEncoder + Wider Adapter + SME)](#8-variant-4-fe-unfreezemlp-unfrozen-numberencoder--wider-adapter--sme)
-9. [Variant 5: FE-Multipos (Multi-Position NumberEncoder + SME)](#9-variant-5-fe-multipos-multi-position-numberencoder--sme)
-10. [Variant 6: FE-TextDec (NumberEncoder Input + Plain Text Output)](#10-variant-6-fe-textdec-numberencoder-input--plain-text-output)
-11. [Training Configuration](#11-training-configuration)
-12. [Results](#12-results)
-13. [Extended Evaluation](#13-extended-evaluation)
-14. [Key Findings](#14-key-findings)
-15. [Additive Embeddings: Theory, Experiments, and v9 Redesign](#15-additive-embeddings-theory-experiments-and-v9-redesign)
+- [1. Overview](#1-overview)
+- [2. Task Suite](#2-task-suite)
+  - [Classification Tasks (text label output)](#classification-tasks-text-label-output)
+  - [Numeric Tasks (number output)](#numeric-tasks-number-output)
+- [3. NumberEncoder: Analytic Number Embedding System](#3-numberencoder-analytic-number-embedding-system)
+  - [3.1 Design Goals](#3-1-design-goals)
+  - [3.2 Encoder Architecture](#3-2-encoder-architecture)
+    - [Channel Details](#channel-details)
+    - [Projection and Normalization](#projection-and-normalization)
+  - [3.3 Pretraining](#3-3-pretraining)
+  - [3.4 Encoder Parameters](#3-4-encoder-parameters)
+  - [3.5 Number Range Considerations](#3-5-number-range-considerations)
+- [4. SME: Sign-Mantissa-Exponent Output Encoding](#4-sme-sign-mantissa-exponent-output-encoding)
+  - [4.1 Motivation](#4-1-motivation)
+  - [4.2 Token Layout](#4-2-token-layout)
+  - [4.3 Grammar](#4-3-grammar)
+  - [4.4 Constrained Decoding](#4-4-constrained-decoding)
+  - [4.5 Conversion Functions](#4-5-conversion-functions)
+  - [4.6 Advantages and Limitations](#4-6-advantages-and-limitations)
+- [5. Variant 1: Base GPT-2](#5-variant-1-base-gpt-2)
+  - [5.1 Architecture Overview](#5-1-architecture-overview)
+  - [5.2 Transformer Block (Pre-Norm, shared across ALL variants)](#5-2-transformer-block-pre-norm-shared-across-all-variants)
+    - [CausalSelfAttention](#causalselfattention)
+    - [MLP (Feed-Forward Network)](#mlp-feed-forward-network)
+  - [5.3 Weight Tying](#5-3-weight-tying)
+  - [5.4 How Numbers Are Processed (Base)](#5-4-how-numbers-are-processed-base)
+  - [5.5 Parameter Count](#5-5-parameter-count)
+- [6. Variant 2: FE-Frozen (Frozen NumberEncoder + SME)](#6-variant-2-fe-frozen-frozen-numberencoder--sme)
+  - [6.1 Architecture Overview](#6-1-architecture-overview)
+  - [6.2 Input Processing: `process_text_with_numbers()`](#6-2-input-processing-process-text-with-numbers)
+  - [6.3 Number Embedding Injection](#6-3-number-embedding-injection)
+  - [6.4 Adapter Architecture (2-Layer MLP)](#6-4-adapter-architecture-2-layer-mlp)
+  - [6.5 Frozen Encoder Behavior](#6-5-frozen-encoder-behavior)
+  - [6.6 Output: SME Token Prediction](#6-6-output-sme-token-prediction)
+  - [6.7 Parameter Count](#6-7-parameter-count)
+  - [6.8 Optimizer Groups](#6-8-optimizer-groups)
+- [7. Variant 3: FE-Unfreeze (Unfrozen NumberEncoder + SME)](#7-variant-3-fe-unfreeze-unfrozen-numberencoder--sme)
+  - [7.1 Architecture Overview](#7-1-architecture-overview)
+  - [7.2 Differences from FE-Frozen](#7-2-differences-from-fe-frozen)
+  - [7.3 Why Unfreeze?](#7-3-why-unfreeze)
+  - [7.4 Init Order Fix](#7-4-init-order-fix)
+  - [7.5 Parameter Count](#7-5-parameter-count)
+- [8. Variant 4: FE-Unfreeze+MLP (Unfrozen NumberEncoder + Wider Adapter + SME)](#8-variant-4-fe-unfreezemlp-unfrozen-numberencoder--wider-adapter--sme)
+  - [8.1 Architecture Overview](#8-1-architecture-overview)
+  - [8.2 Adapter Architecture (3-Layer Wider MLP)](#8-2-adapter-architecture-3-layer-wider-mlp)
+  - [8.3 Hypothesis](#8-3-hypothesis)
+  - [8.4 Parameter Count](#8-4-parameter-count)
+  - [8.5 Optimizer Groups](#8-5-optimizer-groups)
+- [9. Variant 5: FE-Multipos (Multi-Position NumberEncoder + SME)](#9-variant-5-fe-multipos-multi-position-numberencoder--sme)
+  - [9.1 Architecture Overview](#9-1-architecture-overview)
+  - [9.2 Motivation](#9-2-motivation)
+  - [9.3 Input Encoding](#9-3-input-encoding)
+  - [9.4 Multi-Position Projection Heads](#9-4-multi-position-projection-heads)
+  - [9.5 Forward Pass Detail](#9-5-forward-pass-detail)
+  - [9.6 Trade-off](#9-6-trade-off)
+  - [9.7 Parameter Count](#9-7-parameter-count)
+  - [9.8 Optimizer Groups](#9-8-optimizer-groups)
+- [10. Variant 6: FE-TextDec (NumberEncoder Input + Plain Text Output)](#10-variant-6-fe-textdec-numberencoder-input--plain-text-output)
+  - [10.1 Architecture Overview](#10-1-architecture-overview)
+  - [10.2 Architecture Comparison](#10-2-architecture-comparison)
+  - [10.3 What This Variant Tests](#10-3-what-this-variant-tests)
+  - [10.4 Data Format](#10-4-data-format)
+  - [10.5 Generation](#10-5-generation)
+  - [10.6 Parameter Count](#10-6-parameter-count)
+- [11. Training Configuration](#11-training-configuration)
+  - [11.1 Shared Configuration](#11-1-shared-configuration)
+  - [11.2 Variant-Specific Configuration](#11-2-variant-specific-configuration)
+  - [11.3 Data Generation](#11-3-data-generation)
+- [12. Results](#12-results)
+  - [12.1 Overall Validation Metrics](#12-1-overall-validation-metrics)
+  - [12.2 Per-Task Exact Match: Numeric Tasks](#12-2-per-task-exact-match-numeric-tasks)
+  - [12.3 Per-Task Exact Match: Classification Tasks (Base & TextDec only)](#12-3-per-task-exact-match-classification-tasks-base-textdec-only)
+  - [12.4 Overall Output Exact Match (All Tasks)](#12-4-overall-output-exact-match-all-tasks)
+- [13. Extended Evaluation](#13-extended-evaluation)
+  - [13.1 Conditional MAE: "When Wrong, How Wrong?"](#13-1-conditional-mae-when-wrong-how-wrong)
+  - [13.2 Difficulty-Controlled Evaluation Buckets](#13-2-difficulty-controlled-evaluation-buckets)
+    - [By Digit Count of Target](#by-digit-count-of-target)
+    - [By List Length (SORT/MIN/MAX/SUM/COUNT only)](#by-list-length-sort-min-max-sum-count-only)
+    - [Per-Task Exact Match by Digit Count](#per-task-exact-match-by-digit-count)
+  - [13.3 SUM Length Generalization](#13-3-sum-length-generalization)
+- [14. Key Findings](#14-key-findings)
+  - [14.1 The NumberEncoder provides strong input understanding](#14-1-the-numberencoder-provides-strong-input-understanding)
+  - [14.2 SME output encoding dramatically reduces error magnitude](#14-2-sme-output-encoding-dramatically-reduces-error-magnitude)
+  - [14.3 Loss is not directly comparable across output formats](#14-3-loss-is-not-directly-comparable-across-output-formats)
+  - [14.4 Unfreezing the encoder helps moderately](#14-4-unfreezing-the-encoder-helps-moderately)
+  - [14.5 Wider adapter does NOT help](#14-5-wider-adapter-does-not-help)
+  - [14.6 Multi-position encoding achieves lowest loss but lower exact match](#14-6-multi-position-encoding-achieves-lowest-loss-but-lower-exact-match)
+  - [14.7 Text decoding collapses on multi-number output tasks](#14-7-text-decoding-collapses-on-multi-number-output-tasks)
+  - [14.8 Scientific notation is the main text output failure mode](#14-8-scientific-notation-is-the-main-text-output-failure-mode)
+  - [14.9 COUNT is universally perfect](#14-9-count-is-universally-perfect)
+  - [14.10 Component contribution decomposition](#14-10-component-contribution-decomposition)
+  - [14.11 FE-Unfreeze errors are 400x closer to the correct answer](#14-11-fe-unfreeze-errors-are-400x-closer-to-the-correct-answer)
+  - [14.12 FE models exhibit a small-number/large-number inversion](#14-12-fe-models-exhibit-a-small-number-large-number-inversion)
+  - [14.13 No model generalizes SUM beyond training list lengths](#14-13-no-model-generalizes-sum-beyond-training-list-lengths)
+- [15. Additive Embeddings: Theory, Experiments, and v9 Redesign](#15-additive-embeddings-theory-experiments-and-v9-redesign)
+  - [15.1 Theoretical Foundation](#15-1-theoretical-foundation)
+  - [15.2 Approach 2: Additivity Loss (`np_emb_additive.py`)](#15-2-approach-2-additivity-loss-np-emb-additive-py)
+  - [15.3 Approach 3: Additive Subspace (`np_emb_additive_subspace.py`)](#15-3-approach-3-additive-subspace-np-emb-additive-subspace-py)
+  - [15.4 Summary of Failures](#15-4-summary-of-failures)
+  - [15.5 NumberEncoder v9: Math-Aware Multi-Lane Architecture (`np_emb_v9.py`)](#15-5-numberencoder-v9-math-aware-multi-lane-architecture-np-emb-v9-py)
+    - [15.5.1 Three-Lane Architecture](#15-5-1-three-lane-architecture)
+    - [15.5.2 Multi-Objective Pretraining](#15-5-2-multi-objective-pretraining)
+    - [15.5.3 Operation-Aware Sampling](#15-5-3-operation-aware-sampling)
+    - [15.5.4 Probe-Based Evaluation](#15-5-4-probe-based-evaluation)
+    - [15.5.5 Encoder Parameters](#15-5-5-encoder-parameters)
+    - [15.5.6 How v9 Addresses Each Failure](#15-5-6-how-v9-addresses-each-failure)
+    - [15.5.7 Compatibility with GPT-2 Model](#15-5-7-compatibility-with-gpt-2-model)
+    - [15.6 Early FE-SME vs Base Benchmark (3-digit SME, 1k range)](#15-6-early-fe-sme-vs-base-benchmark-3-digit-sme-1k-range)
+    - [15.7 FE-v9 Integration Stabilization Update (March 3, 2026)](#15-7-fe-v9-integration-stabilization-update-march-3-2026)
+    - [15.8 FE-v9 Run Update: `78772` / `78816` (March 3, 2026)](#15-8-fe-v9-run-update-78772-78816-march-3-2026)
+      - [15.8.1 Training behavior (`gpt2_sme_v9_78772.log`)](#15-8-1-training-behavior-gpt2-sme-v9-78772-log)
+      - [15.8.2 Standard validation vs previous v9](#15-8-2-standard-validation-vs-previous-v9)
+      - [15.8.3 Per-task comparison (ExactVal / MAE)](#15-8-3-per-task-comparison-exactval-mae)
+      - [15.8.4 Extended evaluation comparison](#15-8-4-extended-evaluation-comparison)
+      - [15.8.5 Practical conclusion for this run](#15-8-5-practical-conclusion-for-this-run)
+    - [15.9 Fixed-Length SME Mantissa + Digit-Position Weighted Loss (4-digit / r10k) (March 4-5, 2026)](#15-9-fixed-length-sme-mantissa-digit-position-weighted-loss-4-digit-r10k-march-4-5-2026)
+      - [15.9.1 Fixlen: force a fixed SME mantissa length](#15-9-1-fixlen-force-a-fixed-sme-mantissa-length)
+      - [15.9.2 Digit-position weighted loss: how weights were derived](#15-9-2-digit-position-weighted-loss-how-weights-were-derived)
+      - [15.9.3 ID results (4-digit / r10k)](#15-9-3-id-results-4-digit-r10k)
+      - [15.9.4 OOD results (exclude magnitude OOD)](#15-9-4-ood-results-exclude-magnitude-ood)
+      - [15.9.5 Base vs FE-v9 (fixlen+wdig): ID + OOD comparison (exclude magnitude OOD)](#15-9-5-base-vs-fe-v9-fixlen-wdig-id-ood-comparison-exclude-magnitude-ood)
 
 ---
 
-## 1. Overview
+## 1. Overview {#1-overview}
 
 This document describes six GPT-2 variants trained on structured numerical reasoning tasks (arithmetic, comparison, sorting, counting). Each variant uses a different strategy for encoding input numbers and decoding output numbers. All share the same GPT-2 transformer backbone (12 layers, 8 heads, 256-dim embeddings) trained from scratch.
 
@@ -39,11 +145,11 @@ The six variants form an ablation study:
 
 ---
 
-## 2. Task Suite
+## 2. Task Suite {#2-task-suite}
 
 All models are trained and evaluated on 14 structured numerical tasks generated synthetically. Each task is a text prompt with an arrow separator (`->`) between input and expected output. Numbers range up to 5 digits (0-99999), including negative numbers and floats with 1-5 significant digits.
 
-### Classification Tasks (text label output)
+### Classification Tasks (text label output) {#classification-tasks-text-label-output}
 
 | Task | Description | Example |
 |------|-------------|---------|
@@ -55,7 +161,7 @@ All models are trained and evaluated on 14 structured numerical tasks generated 
 | **CHECKADD** | Verify an addition result (output: `correct` or `wrong`) | `check 3 + 5 = 8 ->  correct` |
 | **SUM_CMP** | Compare a sum to a value (output: `<`, `>`, or `=`) | `compare sum(3,5) and 10 ->  <` |
 
-### Numeric Tasks (number output)
+### Numeric Tasks (number output) {#numeric-tasks-number-output}
 
 | Task | Description | Example |
 |------|-------------|---------|
@@ -71,11 +177,11 @@ Data generation uses weighted sampling: numeric tasks get 2x weight, reasoning/c
 
 ---
 
-## 3. NumberEncoder: Analytic Number Embedding System
+## 3. NumberEncoder: Analytic Number Embedding System {#3-numberencoder-analytic-number-embedding-system}
 
 The NumberEncoder is a pretrained module that maps a scalar number `x` to a 128-dimensional embedding vector `e(x)`. It is the core input component shared across all FE (Feature-Enhanced) variants.
 
-### 3.1 Design Goals
+### 3.1 Design Goals {#3-1-design-goals}
 
 The encoder satisfies five properties:
 
@@ -85,7 +191,7 @@ The encoder satisfies five properties:
 4. **Expressiveness**: the embedding space captures multi-scale numerical structure
 5. **Compatibility**: outputs are standard tensors, differentiable, and compatible with downstream layers
 
-### 3.2 Encoder Architecture
+### 3.2 Encoder Architecture {#3-2-encoder-architecture}
 
 The encoder uses four **analytic channels** (no learnable parameters) followed by a learned linear projection and normalization:
 
@@ -107,7 +213,7 @@ x (scalar)
   concat [log(||projected||)] ---> 128 dims (final embedding)
 ```
 
-#### Channel Details
+#### Channel Details {#channel-details}
 
 **FourierChannel** (64 dims): Applies 32 geometrically-spaced frequencies to the raw input value. For each frequency `w_k = 0.1 * 1.5^k` (k=0..31), outputs `sin(w_k * x) * a_k` and `cos(w_k * x) * a_k`, where amplitude `a_k = 1/sqrt(1+k)` provides stability damping. This creates a multi-scale sinusoidal representation that captures both fine-grained (low frequency) and coarse (high frequency) numerical structure.
 
@@ -117,11 +223,11 @@ x (scalar)
 
 **PolynomialChannel** (5 dims): Computes `[x, x^2, x^3, x^4, x^5]` with input clamped to [-50, 50], then applies per-sample normalization (zero mean, unit variance across the 5 dimensions). This captures nonlinear relationships and provides a Taylor-series-like basis.
 
-#### Projection and Normalization
+#### Projection and Normalization {#projection-and-normalization}
 
 The 71-dimensional raw channel output passes through a learned linear layer (`Linear(71, 127)` with Kaiming init) to produce 127 dimensions. Before applying LayerNorm, the L2 norm of the projected vector is computed and stored as `log_norm = log(||projected|| + 1e-8)`. The projected vector is then manually normalized (subtract mean, divide by std). Finally, `log_norm` is appended as the 128th dimension. This reserved dimension preserves magnitude information that would otherwise be lost by normalization.
 
-### 3.3 Pretraining
+### 3.3 Pretraining {#3-3-pretraining}
 
 The NumberEncoder is pretrained as part of an encoder-decoder system (`NumberEmbeddingSystem`) for 500,000 steps on log-uniformly sampled numbers:
 
@@ -164,21 +270,21 @@ L = signed_log_MSE(x, x_hat)
 - **relative_MSE**: `(x - x_hat)^2 / (x^2 + 1)`, focusing on relative rather than absolute error
 - **spread_loss**: Mean squared cosine similarity between shuffled embedding pairs, preventing collapse to a low-dimensional subspace
 
-### 3.4 Encoder Parameters
+### 3.4 Encoder Parameters {#3-4-encoder-parameters}
 
 The NumberEncoder has approximately **9,200 learnable parameters** (the `Linear(71, 127)` projection weight and bias). The four analytic channels have zero learnable parameters; their behavior is fully determined by hyperparameters (frequencies, scales, polynomial degree). The decoder is discarded after pretraining and is not part of the GPT-2 model.
 
-### 3.5 Number Range Considerations
+### 3.5 Number Range Considerations {#3-5-number-range-considerations}
 
 The encoder was trained on log-uniform samples spanning approximately `[8.3e-7, 1.2e6]` for positive values. The Fourier channel uses maximum frequency `w_31 = 0.1 * 1.5^31 ≈ 19,000`. For the task training data (numbers up to 100,000), the phase `w * x` for large values reaches billions of radians — effectively random noise in the Fourier channels. For large numbers, the encoder relies primarily on the LogMagnitude and Polynomial channels, with the Fourier channels providing useful structure only for `|x| < ~1000`.
 
 ---
 
-## 4. SME: Sign-Mantissa-Exponent Output Encoding
+## 4. SME: Sign-Mantissa-Exponent Output Encoding {#4-sme-sign-mantissa-exponent-output-encoding}
 
 SME is a structured token grammar for representing numbers as sequences of special tokens. It replaces the standard BPE text representation of numbers in the model's output vocabulary.
 
-### 4.1 Motivation
+### 4.1 Motivation {#4-1-motivation}
 
 Standard BPE tokenization fragments numbers unpredictably. For example, GPT-2's tokenizer might encode:
 - `42000` as `["42", "000"]` (2 tokens)
@@ -187,7 +293,7 @@ Standard BPE tokenization fragments numbers unpredictably. For example, GPT-2's 
 
 This means the model must implicitly learn positional notation, decimal points, and scientific notation from text patterns. SME provides a structured alternative where every number has a consistent, grammar-constrained representation.
 
-### 4.2 Token Layout
+### 4.2 Token Layout {#4-2-token-layout}
 
 SME uses 32 special tokens in the padded GPT-2 vocabulary range (50258-50289):
 
@@ -198,7 +304,7 @@ SME uses 32 special tokens in the padded GPT-2 vocabulary range (50258-50289):
 | 50279-50288 | 10 | Mantissa digits: `D0` through `D9` |
 | 50289 | 1 | `END` (terminates the mantissa) |
 
-### 4.3 Grammar
+### 4.3 Grammar {#4-3-grammar}
 
 Every number is encoded as a variable-length token sequence:
 
@@ -225,7 +331,7 @@ The leading digit `d0` is always non-zero for non-zero numbers (normalized scien
 | `0` | `[S+, E0, D0, END]` | +0.0 * 10^0 = 0 |
 | `99999` | `[S+, E4, D9, D9, D9, D9, D9, END]` | +9.9999 * 10^4 = 99999 |
 
-### 4.4 Constrained Decoding
+### 4.4 Constrained Decoding {#4-4-constrained-decoding}
 
 During generation (inference), a finite-state grammar machine enforces valid SME sequences. The machine has three states:
 
@@ -247,13 +353,13 @@ State 2 (in mantissa):
 
 This is implemented by masking the logits to `-inf` for invalid tokens at each generation step. The grammar machine tracks state per batch element, initialized by scanning the input prompt. This guarantees every generated number is a valid, parseable SME sequence.
 
-### 4.5 Conversion Functions
+### 4.5 Conversion Functions {#4-5-conversion-functions}
 
 **Encoding** (`number_to_sme_tokens`): Uses Python's `Decimal` library for stable float-to-digit conversion. Extracts sign, computes exponent via `as_tuple()`, and emits digit tokens for up to `max_digits` significant digits. Values outside the exponent range [-9, 9] are saturated.
 
 **Decoding** (`sme_tokens_to_number`): Parses a token stream looking for `[SIGN, EXP, DIGITS..., END]`. The sign determines polarity, the exponent sets scale, and digits are summed as `d_i * 10^(-i)` to form the mantissa. Returns `None` if the sequence is malformed.
 
-### 4.6 Advantages and Limitations
+### 4.6 Advantages and Limitations {#4-6-advantages-and-limitations}
 
 **Advantages:**
 - Consistent, predictable token count per number (3-17 tokens regardless of magnitude)
@@ -270,9 +376,9 @@ This is implemented by masking the logits to `-inf` for invalid tokens at each g
 
 ---
 
-## 5. Variant 1: Base GPT-2
+## 5. Variant 1: Base GPT-2 {#5-variant-1-base-gpt-2}
 
-### 5.1 Architecture Overview
+### 5.1 Architecture Overview {#5-1-architecture-overview}
 
 Standard GPT-2 trained from scratch with no modifications. This is the control model.
 
@@ -305,7 +411,7 @@ Input text: "3 + 5 ->  8"
   logits -> cross-entropy loss (teacher forcing, ignore_index=-1 for padding)
 ```
 
-### 5.2 Transformer Block (Pre-Norm, shared across ALL variants)
+### 5.2 Transformer Block (Pre-Norm, shared across ALL variants) {#5-2-transformer-block-pre-norm-shared-across-all-variants}
 
 Every variant uses identical transformer blocks. Each block has two sub-layers with **pre-norm residual connections**:
 
@@ -331,7 +437,7 @@ x = x + self.mlp(self.ln_2(x))    # pre-norm MLP with residual
 
 This is the **Pre-LN** (pre-normalization) variant of the transformer, where LayerNorm is applied *before* each sub-layer rather than after. The residual connection adds the sub-layer output to the *unnormalized* input, which improves gradient flow and training stability. The gradient from the loss can flow directly through the residual path to early layers without passing through any nonlinearity or normalization.
 
-#### CausalSelfAttention
+#### CausalSelfAttention {#causalselfattention}
 
 ```
 x (B, T, 256)
@@ -362,7 +468,7 @@ The `c_proj` weight is initialized with **scaled init**: `Normal(0, 0.02 / sqrt(
 
 Flash Attention (PyTorch >= 2.0) is used when available, providing O(T) memory instead of O(T^2) and fused CUDA kernels for the Q@K^T, softmax, and attention@V operations.
 
-#### MLP (Feed-Forward Network)
+#### MLP (Feed-Forward Network) {#mlp-feed-forward-network}
 
 ```
 x (B, T, 256)
@@ -380,7 +486,7 @@ x (B, T, 256)
 
 The expansion ratio is 4x (`4 * n_embd = 1024`), following the standard GPT-2 design. GELU is a smooth approximation of ReLU: `GELU(x) = x * Phi(x)` where `Phi` is the Gaussian CDF. It provides non-zero gradients for slightly negative inputs, which helps with optimization.
 
-### 5.3 Weight Tying
+### 5.3 Weight Tying {#5-3-weight-tying}
 
 The token embedding matrix (`wte`, shape `[50304, 256]`) is **tied** (shared) with the output projection (`lm_head`). This means:
 
@@ -390,7 +496,7 @@ self.transformer.wte.weight = self.lm_head.weight  # same tensor
 
 The same matrix is used both to look up input embeddings (rows selected by token ID) and to project hidden states to logits (matrix multiplication). This reduces parameter count by 50304 * 256 = ~12.9M and creates a consistent embedding space where the model's input and output representations are aligned. A token that is easy to predict (high logit) will have a hidden state close to that token's embedding vector.
 
-### 5.4 How Numbers Are Processed (Base)
+### 5.4 How Numbers Are Processed (Base) {#5-4-how-numbers-are-processed-base}
 
 **Input**: Numbers are tokenized as BPE text fragments. GPT-2's tokenizer splits numbers inconsistently:
 - `42` -> `["42"]` (1 token)
@@ -403,7 +509,7 @@ Each token becomes a 256-dim embedding via table lookup. The model must learn po
 
 **Output**: The model predicts numbers as BPE text tokens through the standard softmax over the full 50304-token vocabulary. At each position, it produces a probability distribution over all possible tokens and is trained with cross-entropy loss against the target token.
 
-### 5.5 Parameter Count
+### 5.5 Parameter Count {#5-5-parameter-count}
 
 | Component | Parameters |
 |-----------|-----------|
@@ -421,9 +527,9 @@ Note: `bias=False` throughout all linear layers and LayerNorm, so there are no b
 
 ---
 
-## 6. Variant 2: FE-Frozen (Frozen NumberEncoder + SME)
+## 6. Variant 2: FE-Frozen (Frozen NumberEncoder + SME) {#6-variant-2-fe-frozen-frozen-numberencoder--sme}
 
-### 6.1 Architecture Overview
+### 6.1 Architecture Overview {#6-1-architecture-overview}
 
 This variant replaces BPE number tokenization with the pretrained NumberEncoder for input and SME grammar for output. The encoder weights are **frozen** (not updated during training).
 
@@ -464,7 +570,7 @@ Input: "3 + 5 ->  [S+, E0, D8, END]"
   logits -> cross-entropy loss
 ```
 
-### 6.2 Input Processing: `process_text_with_numbers()`
+### 6.2 Input Processing: `process_text_with_numbers()` {#6-2-input-processing-process-text-with-numbers}
 
 A regex-based preprocessor scans input text for numbers matching:
 ```regex
@@ -484,7 +590,7 @@ Num Values:[0.0, 42000.0, 0.0, -3.14, 0.0, 0.0]
 
 Key benefit: each number is now **one token** regardless of magnitude. Base GPT-2 would use 2-6 tokens for the same numbers.
 
-### 6.3 Number Embedding Injection
+### 6.3 Number Embedding Injection {#6-3-number-embedding-injection}
 
 During the forward pass, after the standard embedding lookup:
 
@@ -500,7 +606,7 @@ The clone is necessary to avoid in-place modification issues with autograd. The 
 
 Position embeddings (`wpe`) are added *after* injection, so each number token still receives its absolute position information normally.
 
-### 6.4 Adapter Architecture (2-Layer MLP)
+### 6.4 Adapter Architecture (2-Layer MLP) {#6-4-adapter-architecture-2-layer-mlp}
 
 ```
 128-dim NumberEncoder output
@@ -516,7 +622,7 @@ Position embeddings (`wpe`) are added *after* injection, so each number token st
 
 The adapter has `128*256 + 256 + 256*256 + 256 = 98,816` parameters (weights + biases). It is the only component that bridges the pretrained encoder to the transformer. The adapter uses `nn.Sequential` so there is no residual skip connection — the projection is purely feed-forward.
 
-### 6.5 Frozen Encoder Behavior
+### 6.5 Frozen Encoder Behavior {#6-5-frozen-encoder-behavior}
 
 The NumberEncoder's weights are loaded from a pretrained checkpoint and **all gradients are disabled**:
 
@@ -532,13 +638,13 @@ This means:
 - The encoder is permanently in `eval()` mode (relevant for any BatchNorm/Dropout, though this encoder has neither)
 - The encoder provides a stable, pretrained numerical representation as a fixed feature extractor
 
-### 6.6 Output: SME Token Prediction
+### 6.6 Output: SME Token Prediction {#6-6-output-sme-token-prediction}
 
 Output numbers in the training data are encoded as SME token sequences. The model predicts these through the standard `lm_head` softmax over the full 50304-token vocabulary, which includes the 32 SME tokens (50258-50289). The cross-entropy loss treats SME tokens identically to regular BPE tokens — no special weighting.
 
 During generation, constrained decoding (Section 4.4) ensures valid SME grammar by masking logits at each step.
 
-### 6.7 Parameter Count
+### 6.7 Parameter Count {#6-7-parameter-count}
 
 | Component | Parameters | Trainable |
 |-----------|-----------|-----------|
@@ -547,7 +653,7 @@ During generation, constrained decoding (Section 4.4) ensures valid SME grammar 
 | num_adapter (2-layer MLP) | ~107K | Yes |
 | **Total trainable (non-embedding)** | **~22.42M** | |
 
-### 6.8 Optimizer Groups
+### 6.8 Optimizer Groups {#6-8-optimizer-groups}
 
 Parameters are split into four groups with different learning rates and weight decay:
 
@@ -564,15 +670,15 @@ Parameters are split into four groups with different learning rates and weight d
 
 ---
 
-## 7. Variant 3: FE-Unfreeze (Unfrozen NumberEncoder + SME)
+## 7. Variant 3: FE-Unfreeze (Unfrozen NumberEncoder + SME) {#7-variant-3-fe-unfreeze-unfrozen-numberencoder--sme}
 
-### 7.1 Architecture Overview
+### 7.1 Architecture Overview {#7-1-architecture-overview}
 
 Identical to FE-Frozen except the NumberEncoder's weights are **unfrozen** and fine-tuned end-to-end with the rest of the model. The encoder is initialized from the same pretrained checkpoint but its parameters receive gradients during training.
 
 The forward pass, adapter, transformer blocks, and SME output are all identical. The only difference is in how the encoder is initialized and whether it receives gradients.
 
-### 7.2 Differences from FE-Frozen
+### 7.2 Differences from FE-Frozen {#7-2-differences-from-fe-frozen}
 
 | Aspect | FE-Frozen | FE-Unfreeze |
 |--------|-----------|-------------|
@@ -582,13 +688,13 @@ The forward pass, adapter, transformer blocks, and SME output are all identical.
 | Encoder LR | N/A | 0.5x base LR (same group as adapter) |
 | Checkpoint loading | In `__init__`, before `apply()` | After `apply()` (to avoid overwriting) |
 
-### 7.3 Why Unfreeze?
+### 7.3 Why Unfreeze? {#7-3-why-unfreeze}
 
 The pretrained encoder was trained on reconstruction loss (encode-then-decode). The features it learns are optimized for *reversibility* (preserving enough info to reconstruct the number). But downstream tasks may benefit from features optimized for *comparison*, *ordering*, or *arithmetic relationships between numbers*. Unfreezing allows the encoder's `Linear(71, 127)` projection to specialize for the downstream task.
 
 Note that only the linear projection layer is learnable. The analytic channels (Fourier, LogMag, Sign, Polynomial) have no parameters and cannot change. So unfreezing adjusts *how* the analytic features are mixed, not the features themselves.
 
-### 7.4 Init Order Fix
+### 7.4 Init Order Fix {#7-4-init-order-fix}
 
 In the original FE-Frozen code, the encoder checkpoint was loaded *before* `self.apply(self._init_weights)`, which resets all `nn.Linear` weights to `Normal(0, 0.02)`. This destroyed the pretrained `encoder.proj` weights. FE-Unfreeze fixes this by loading the checkpoint *after* `apply()`:
 
@@ -600,7 +706,7 @@ if config.num_emb_checkpoint:       # 2. Load pretrained encoder (overwrites ran
     self.num_encoder.load_state_dict(enc_state)
 ```
 
-### 7.5 Parameter Count
+### 7.5 Parameter Count {#7-5-parameter-count}
 
 | Component | Parameters | Trainable |
 |-----------|-----------|-----------|
@@ -613,13 +719,13 @@ The parameter count is nearly identical to FE-Frozen (~10K more from the unfroze
 
 ---
 
-## 8. Variant 4: FE-Unfreeze+MLP (Unfrozen NumberEncoder + Wider Adapter + SME)
+## 8. Variant 4: FE-Unfreeze+MLP (Unfrozen NumberEncoder + Wider Adapter + SME) {#8-variant-4-fe-unfreezemlp-unfrozen-numberencoder--wider-adapter--sme}
 
-### 8.1 Architecture Overview
+### 8.1 Architecture Overview {#8-1-architecture-overview}
 
 Same as FE-Unfreeze but with a **significantly larger adapter MLP** (3 layers, 4x wider hidden dimension). Tests whether the adapter's capacity is a bottleneck.
 
-### 8.2 Adapter Architecture (3-Layer Wider MLP)
+### 8.2 Adapter Architecture (3-Layer Wider MLP) {#8-2-adapter-architecture-3-layer-wider-mlp}
 
 ```
 128-dim NumberEncoder output
@@ -645,13 +751,13 @@ Wider:     128 -> [GELU] -> 1024 -> [GELU] -> 256 (~1.45M params, 3 layers)
 
 The wider adapter has **~14x more parameters** than the standard adapter. The hidden dimension (1024) matches the MLP expansion ratio used inside the transformer blocks (4 * n_embd).
 
-### 8.3 Hypothesis
+### 8.3 Hypothesis {#8-3-hypothesis}
 
 If the standard 2-layer adapter is a bottleneck (unable to project the 128-dim number embedding into a sufficiently rich 256-dim representation), a wider adapter should improve performance. The wider MLP can learn more complex nonlinear transformations of the number embedding before injecting it into the transformer.
 
 If performance doesn't improve, the bottleneck is elsewhere: the transformer's capacity, the encoder's representation quality, or the difficulty of the tasks themselves.
 
-### 8.4 Parameter Count
+### 8.4 Parameter Count {#8-4-parameter-count}
 
 | Component | Parameters | Trainable |
 |-----------|-----------|-----------|
@@ -660,7 +766,7 @@ If performance doesn't improve, the bottleneck is elsewhere: the transformer's c
 | num_adapter (3-layer wider MLP) | ~1.45M | Yes |
 | **Total trainable (non-embedding)** | **~23.77M** |
 
-### 8.5 Optimizer Groups
+### 8.5 Optimizer Groups {#8-5-optimizer-groups}
 
 | Group | Tensors | Params | Weight Decay | LR Scale |
 |-------|---------|--------|-------------|----------|
@@ -673,19 +779,19 @@ Note the adapter_decay group has 4 tensors (3 weight matrices + 1 encoder projec
 
 ---
 
-## 9. Variant 5: FE-Multipos (Multi-Position NumberEncoder + SME)
+## 9. Variant 5: FE-Multipos (Multi-Position NumberEncoder + SME) {#9-variant-5-fe-multipos-multi-position-numberencoder--sme}
 
-### 9.1 Architecture Overview
+### 9.1 Architecture Overview {#9-1-architecture-overview}
 
 In all previous FE variants, each input number occupies exactly **one** token position (`<NUM>`). In base GPT-2, numbers occupy multiple positions (one per BPE fragment). This variant gives each input number **k=5 consecutive token positions**, each with a different learned projection of the same number embedding.
 
-### 9.2 Motivation
+### 9.2 Motivation {#9-2-motivation}
 
 When base GPT-2 sees `42000`, it gets two tokens (`["42", "000"]`) — two separate attention targets that the transformer's self-attention can attend to independently. Different heads can focus on different parts of the number. When FE variants see `42000`, they get one `<NUM>` token — a single attention target carrying all 256 dimensions of information.
 
 The hypothesis: having multiple attention targets per number helps the transformer's self-attention mechanism route numerical information more effectively, especially for tasks requiring relationships between numbers (e.g., comparing two numbers, computing their sum). With k=5 positions, each position can specialize in representing different aspects of the number (magnitude, sign, low-order digits, etc.).
 
-### 9.3 Input Encoding
+### 9.3 Input Encoding {#9-3-input-encoding}
 
 Each number in the input text is replaced with **k=5 consecutive `<NUM>` tokens**, all carrying the same float value but with different position indices (0, 1, 2, 3, 4):
 
@@ -699,7 +805,7 @@ Pos Index: [-1,  0,      1,      2,      3,      4,     -1,  0,     1,     2,   
 
 This produces a **third data stream** (`pos_indices`, stored as `{split}_pos.bin`, dtype int8) alongside tokens and values. The value -1 indicates non-number positions.
 
-### 9.4 Multi-Position Projection Heads
+### 9.4 Multi-Position Projection Heads {#9-4-multi-position-projection-heads}
 
 Instead of one shared adapter MLP, there are **k=5 independent 2-layer MLP projection heads** stored in an `nn.ModuleList`:
 
@@ -717,7 +823,7 @@ Each projection head is an independent `nn.Sequential(Linear, GELU, Linear)` wit
 
 The transformer then sees 5 different 256-dim vectors for the same number at 5 consecutive sequence positions, each also receiving a different absolute position embedding from `wpe`. This lets different attention heads attend to different "views" of the same number.
 
-### 9.5 Forward Pass Detail
+### 9.5 Forward Pass Detail {#9-5-forward-pass-detail}
 
 During the forward pass:
 
@@ -733,11 +839,11 @@ During the forward pass:
 
 The encoder is called once for all M number tokens, but the projection heads are applied per-position-index, routing each token's embedding through the correct head.
 
-### 9.6 Trade-off
+### 9.6 Trade-off {#9-6-trade-off}
 
 The multi-position approach increases sequence length: each number takes 5 tokens instead of 1. For a 256-token block with, say, 4 numbers, this costs an extra `4 * 4 = 16` tokens of context. With many numbers in a sequence, this can significantly reduce how many examples fit per block, decreasing data efficiency.
 
-### 9.7 Parameter Count
+### 9.7 Parameter Count {#9-7-parameter-count}
 
 | Component | Parameters | Trainable |
 |-----------|-----------|-----------|
@@ -746,7 +852,7 @@ The multi-position approach increases sequence length: each number takes 5 token
 | 5x projection heads (each ~98K) | ~500K | Yes |
 | **Total trainable (non-embedding)** | **~22.82M** |
 
-### 9.8 Optimizer Groups
+### 9.8 Optimizer Groups {#9-8-optimizer-groups}
 
 | Group | Tensors | Params | Weight Decay | LR Scale |
 |-------|---------|--------|-------------|----------|
@@ -759,9 +865,9 @@ The adapter groups contain 11 tensors each (5 projection heads * 2 weight matric
 
 ---
 
-## 10. Variant 6: FE-TextDec (NumberEncoder Input + Plain Text Output)
+## 10. Variant 6: FE-TextDec (NumberEncoder Input + Plain Text Output) {#10-variant-6-fe-textdec-numberencoder-input--plain-text-output}
 
-### 10.1 Architecture Overview
+### 10.1 Architecture Overview {#10-1-architecture-overview}
 
 This is an ablation variant that isolates the **input encoding** contribution. It uses the NumberEncoder for input (identical to FE-Unfreeze) but outputs numbers as **plain BPE text tokens** (identical to Base GPT-2). There is no SME encoding, no constrained decoding, and no special output tokens beyond the `<NUM>` input token.
 
@@ -770,7 +876,7 @@ Input:  "<NUM> + <NUM> -> "     (NumberEncoder input, same as FE-Unfreeze)
 Output: "8"                      (plain BPE text, same as Base GPT-2)
 ```
 
-### 10.2 Architecture Comparison
+### 10.2 Architecture Comparison {#10-2-architecture-comparison}
 
 | Component | FE-Unfreeze (SME) | FE-TextDec |
 |-----------|-------------------|------------|
@@ -785,7 +891,7 @@ Output: "8"                      (plain BPE text, same as Base GPT-2)
 | Transformer blocks | Identical | Identical |
 | Model code | `fe_unfreeze/model.py` | `fe_textdec/model.py` (SME code removed) |
 
-### 10.3 What This Variant Tests
+### 10.3 What This Variant Tests {#10-3-what-this-variant-tests}
 
 By keeping the input identical to FE-Unfreeze but changing only the output format, this variant answers: **How much of the FE improvement comes from the NumberEncoder input vs. the SME output?**
 
@@ -795,7 +901,7 @@ By keeping the input identical to FE-Unfreeze but changing only the output forma
 
 Since classification tasks have identical text-label outputs in both Base and TextDec, comparing them on classification tasks (CMP, GT, IS_POS, etc.) isolates the pure input encoding benefit — any improvement on these tasks is due entirely to the NumberEncoder.
 
-### 10.4 Data Format
+### 10.4 Data Format {#10-4-data-format}
 
 Training data uses the same dual-stream format as FE-Unfreeze (`{split}.bin` + `{split}_nums.bin`), but output numbers in the `.bin` file are encoded as BPE text tokens rather than SME tokens:
 
@@ -807,7 +913,7 @@ FE-TextDec data:   ... ->   8 ...
 
 The `generate_data.py` script uses a text formatting function `fmt(value)` to convert numbers to strings, then `enc.encode_ordinary(text)` to tokenize them as standard BPE. Scientific notation, negative signs, decimal points are all encoded as their natural BPE fragments.
 
-### 10.5 Generation
+### 10.5 Generation {#10-5-generation}
 
 The `generate()` method is simplified to vanilla autoregressive sampling with no grammar constraints:
 
@@ -832,7 +938,7 @@ for step in range(max_new_tokens):
 
 No grammar state machine, no logit masking. The model must learn to produce valid number text purely from the training signal. Generated tokens are always text (never `<NUM>`), so the num_values and num_mask extensions are always zero/false.
 
-### 10.6 Parameter Count
+### 10.6 Parameter Count {#10-6-parameter-count}
 
 Identical to FE-Unfreeze:
 
@@ -845,9 +951,9 @@ Identical to FE-Unfreeze:
 
 ---
 
-## 11. Training Configuration
+## 11. Training Configuration {#11-training-configuration}
 
-### 11.1 Shared Configuration
+### 11.1 Shared Configuration {#11-1-shared-configuration}
 
 All six variants use identical training hyperparameters:
 
@@ -884,7 +990,7 @@ All six variants use identical training hyperparameters:
 | Negative numbers | Enabled |
 | Floating point numbers | Enabled |
 
-### 11.2 Variant-Specific Configuration
+### 11.2 Variant-Specific Configuration {#11-2-variant-specific-configuration}
 
 | Variant | Total Params | Adapter LR Scale | Encoder State | Adapter Architecture | Data Streams |
 |---------|-------------|-------------------|---------------|---------------------|-------------|
@@ -895,7 +1001,7 @@ All six variants use identical training hyperparameters:
 | FE-Multipos | 22.82M | 0.5x | Unfrozen | 5x [128->256->(GELU)->256] | tokens + nums + pos |
 | FE-TextDec | 22.43M | 0.5x | Unfrozen | 128->256->(GELU)->256 | tokens + nums |
 
-### 11.3 Data Generation
+### 11.3 Data Generation {#11-3-data-generation}
 
 All variants use the same 14-task suite (Section 2) with the same random seeds. Data is packed into fixed-size blocks of 256 tokens, separated by `<|endoftext|>` (token 50256). Multiple examples are packed into each block to maximize GPU utilization. Padding with -1 target values ensures the loss ignores inter-example boundaries.
 
@@ -910,9 +1016,9 @@ FE variants produce shorter sequences because each number is 1 token (`<NUM>`) i
 
 ---
 
-## 12. Results
+## 12. Results {#12-results}
 
-### 12.1 Overall Validation Metrics
+### 12.1 Overall Validation Metrics {#12-1-overall-validation-metrics}
 
 | Variant | Best Val Loss | CE Loss | Perplexity | Numeric Exact Match | MAE |
 |---------|-------------|---------|------------|-------------------|-----|
@@ -925,7 +1031,7 @@ FE variants produce shorter sequences because each number is 1 token (`<NUM>`) i
 
 **Note on comparability**: SME variants (Frozen, Unfreeze, Unfreeze+MLP, Multipos) only validate on the 7 numeric tasks (ADD, SUB, SUM, MIN, MAX, SORT, COUNT) because their output format is SME, which only applies to numbers. Classification task outputs are text labels. Base and TextDec validate on all 14 tasks. "Numeric Exact Match" is computed over the numeric task subset for all variants to enable fair comparison.
 
-### 12.2 Per-Task Exact Match: Numeric Tasks
+### 12.2 Per-Task Exact Match: Numeric Tasks {#12-2-per-task-exact-match-numeric-tasks}
 
 | Task | Base | FE-Frozen | FE-Unfreeze | FE-Unfr+MLP | FE-Multipos | FE-TextDec |
 |------|------|-----------|-------------|-------------|-------------|------------|
@@ -937,7 +1043,7 @@ FE variants produce shorter sequences because each number is 1 token (`<NUM>`) i
 | **SORT** | **98.18%** | 75.69% | 80.05% | 78.57% | 71.18% | 30.54% |
 | **COUNT** | 99.90% | **100.00%** | **100.00%** | **100.00%** | **100.00%** | **100.00%** |
 
-### 12.3 Per-Task Exact Match: Classification Tasks (Base & TextDec only)
+### 12.3 Per-Task Exact Match: Classification Tasks (Base & TextDec only) {#12-3-per-task-exact-match-classification-tasks-base-textdec-only}
 
 SME variants do not include classification tasks in their validation because classification outputs are text labels (not numbers), so SME encoding doesn't apply. These tasks are only evaluated for Base and TextDec.
 
@@ -954,7 +1060,7 @@ SME variants do not include classification tasks in their validation because cla
 
 Both achieve near-perfect classification, confirming that both input representations provide sufficient numerical understanding for comparison and verification tasks.
 
-### 12.4 Overall Output Exact Match (All Tasks)
+### 12.4 Overall Output Exact Match (All Tasks) {#12-4-overall-output-exact-match-all-tasks}
 
 For Base and TextDec which evaluate all 14 tasks:
 
@@ -967,13 +1073,13 @@ The gap is primarily driven by SORT (98% vs 30.5%) and SUM (64% vs 28%) — mult
 
 ---
 
-## 13. Extended Evaluation
+## 13. Extended Evaluation {#13-extended-evaluation}
 
 The standard validation metrics (Section 12) compare overall exact match and MAE on each model's own validation set. This section presents three additional analyses designed to probe *how* and *when* models fail: conditional error magnitude, difficulty-controlled performance buckets, and out-of-distribution SUM length generalization. All three analyses use teacher-forced evaluation on the same 6,722 numeric examples per model.
 
 Three models are compared: **Base** (text in, text out), **FE-Unfreeze** (NumberEncoder in, SME out), and **FE-TextDec** (NumberEncoder in, text out).
 
-### 13.1 Conditional MAE: "When Wrong, How Wrong?"
+### 13.1 Conditional MAE: "When Wrong, How Wrong?" {#13-1-conditional-mae-when-wrong-how-wrong}
 
 Standard MAE averages over all examples, diluting errors from the small fraction of incorrect predictions. **Conditional MAE (CondMAE)** is computed only over examples where the model did *not* achieve exact match. This isolates the error magnitude of the model's failures.
 
@@ -993,11 +1099,11 @@ Standard MAE averages over all examples, diluting errors from the small fraction
 
 FE-TextDec sits between the two (CondMAE 40,344), showing that the SME output format contributes substantially to the proximity effect — SME's structured sign-exponent-mantissa decomposition ensures that even incorrect predictions preserve order of magnitude.
 
-### 13.2 Difficulty-Controlled Evaluation Buckets
+### 13.2 Difficulty-Controlled Evaluation Buckets {#13-2-difficulty-controlled-evaluation-buckets}
 
 Performance is stratified by three difficulty dimensions to reveal where models succeed and fail.
 
-#### By Digit Count of Target
+#### By Digit Count of Target {#by-digit-count-of-target}
 
 |  | --- Base --- | | | --- FE-Unfreeze --- | | | --- FE-TextDec --- | | |
 |---|---|---|---|---|---|---|---|---|---|
@@ -1011,7 +1117,7 @@ Performance is stratified by three difficulty dimensions to reveal where models 
 
 All models degrade with digit count, but FE-Unfreeze's conditional MAE stays remarkably flat (0.01 → 704 across 6 orders of magnitude of target values), while Base's CondMAE explodes (0.05 → 721,422).
 
-#### By List Length (SORT/MIN/MAX/SUM/COUNT only)
+#### By List Length (SORT/MIN/MAX/SUM/COUNT only) {#by-list-length-sort-min-max-sum-count-only}
 
 |  | --- Base --- | | | --- FE-Unfreeze --- | | | --- FE-TextDec --- | | |
 |---|---|---|---|---|---|---|---|---|---|
@@ -1022,7 +1128,7 @@ All models degrade with digit count, but FE-Unfreeze's conditional MAE stays rem
 | 6-8 | 1694 | 87.0% | 433,251 | 1694 | 64.6% | 538 | 1694 | 61.8% | 50,856 |
 | 9-10 | 886 | 99.1% | 16,593 | 886 | 77.5% | 13 | 886 | 76.2% | 3,457 |
 
-#### Per-Task Exact Match by Digit Count
+#### Per-Task Exact Match by Digit Count {#per-task-exact-match-by-digit-count}
 
 This reveals a striking inversion pattern for comparison tasks:
 
@@ -1039,7 +1145,7 @@ FE-Unfreeze **struggles on small numbers** (1-digit: 59%) but **excels on large 
 - For small integers (0-9), each value has a dedicated BPE token embedding that the base model can perfectly memorize. The NumberEncoder must compress these into continuous representations, losing the discrete identity.
 - For large numbers (5-6 digits), BPE fragments them into multiple tokens whose positional values must be learned implicitly. The NumberEncoder captures magnitude directly via its LogMagnitude and Fourier channels.
 
-### 13.3 SUM Length Generalization
+### 13.3 SUM Length Generalization {#13-3-sum-length-generalization}
 
 Models were trained on SUM tasks with 2-8 operands. This analysis tests all three models on generated SUM examples with list lengths [2, 3, 5, 8, 10, 15, 20, 30] using **integers 1-100** as operands, evaluated with teacher-forced forward pass (200 examples per length).
 
@@ -1065,15 +1171,15 @@ Models were trained on SUM tasks with 2-8 operands. This analysis tests all thre
 
 ---
 
-## 14. Key Findings
+## 14. Key Findings {#14-key-findings}
 
-### 14.1 The NumberEncoder provides strong input understanding
+### 14.1 The NumberEncoder provides strong input understanding {#14-1-the-numberencoder-provides-strong-input-understanding}
 
 FE-TextDec proves this conclusively. It uses the NumberEncoder for input and plain BPE text for output — the same output format as Base. On classification tasks (which only require *understanding* the input numbers, not outputting new numbers), FE-TextDec matches Base at 99%+ accuracy. The NumberEncoder successfully encodes numbers into representations that the transformer can use for comparison, ordering, and verification.
 
 Furthermore, FE-TextDec achieves **6.4x lower cross-entropy loss** than Base (0.297 vs 1.908). Since both use the same output format, this difference is entirely due to the input encoding: the NumberEncoder compresses each number into a single information-rich token, whereas BPE fragments numbers into multiple tokens that each carry partial information.
 
-### 14.2 SME output encoding dramatically reduces error magnitude
+### 14.2 SME output encoding dramatically reduces error magnitude {#14-2-sme-output-encoding-dramatically-reduces-error-magnitude}
 
 Base GPT-2 achieves higher exact match (92.56%) than any FE-SME variant (best: 79.29%). However, when Base gets a number wrong, the error can be catastrophic (MAE = 16,774). When FE-SME gets a number wrong, the error is typically small (MAE = 347.6 for Unfreeze). The ratio is **48x**.
 
@@ -1082,7 +1188,7 @@ This is because of how errors propagate in each representation:
 - **SME structure**: The sign and exponent tokens are predicted first and are almost always correct (sign accuracy 99%, exponent accuracy 99.7%). Errors occur in later mantissa digits, producing numerically close values. Getting digit 3 wrong by 1 means the output is off by at most `10^(exponent - 3)`.
 - **BPE fragmentation**: A single wrong BPE token can shift the order of magnitude. Predicting `"4"` instead of `"40"` in the sequence `["40", "00"]` turns 4000 into 400 — a 10x error from one token.
 
-### 14.3 Loss is not directly comparable across output formats
+### 14.3 Loss is not directly comparable across output formats {#14-3-loss-is-not-directly-comparable-across-output-formats}
 
 FE-SME variants have 5-10x lower cross-entropy loss than Base (0.23 vs 1.91). This does **not** mean they are 5-10x better at the tasks. The difference arises from **information density per token**:
 
@@ -1090,7 +1196,7 @@ FE-SME variants have 5-10x lower cross-entropy loss than Base (0.23 vs 1.91). Th
 - **SME**: each output token is drawn from a constrained set — 2 signs, 19 exponents, or 10 digits (and constrained decoding further reduces the effective choices). The entropy per token is much lower.
 - **FE-TextDec** (0.30) vs **Base** (1.91): Same output format, so this gap is a fair comparison. The NumberEncoder reduces input token count, meaning fewer uncertain positions contribute to the loss.
 
-### 14.4 Unfreezing the encoder helps moderately
+### 14.4 Unfreezing the encoder helps moderately {#14-4-unfreezing-the-encoder-helps-moderately}
 
 FE-Unfreeze outperforms FE-Frozen consistently:
 - Numeric exact match: 79.29% vs 74.87% (+4.4 percentage points)
@@ -1099,7 +1205,7 @@ FE-Unfreeze outperforms FE-Frozen consistently:
 
 This confirms that task-specific fine-tuning of the encoder's `Linear(71, 127)` projection adapts the feature mixing beyond what reconstruction pretraining provides.
 
-### 14.5 Wider adapter does NOT help
+### 14.5 Wider adapter does NOT help {#14-5-wider-adapter-does-not-help}
 
 FE-Unfreeze+MLP (1.45M adapter params) slightly **underperforms** FE-Unfreeze (107K adapter params):
 - Numeric exact: 76.83% vs 79.29% (-2.5 pp)
@@ -1107,11 +1213,11 @@ FE-Unfreeze+MLP (1.45M adapter params) slightly **underperforms** FE-Unfreeze (1
 
 The bottleneck is not adapter capacity. The 2-layer `Linear(128, 256) -> GELU -> Linear(256, 256)` is sufficient to project 128-dim number embeddings to 256-dim transformer inputs. The wider adapter may actually hurt by introducing optimization difficulty (larger parameter space with the same 0.5x learning rate).
 
-### 14.6 Multi-position encoding achieves lowest loss but lower exact match
+### 14.6 Multi-position encoding achieves lowest loss but lower exact match {#14-6-multi-position-encoding-achieves-lowest-loss-but-lower-exact-match}
 
 FE-Multipos achieves the lowest cross-entropy loss (0.132 vs 0.223 for Unfreeze, a 1.7x reduction) but lower exact match (70.26% vs 79.29%). The 5 position-specific projection heads give the transformer more attention targets per number, improving per-token prediction accuracy, but the increased sequence length means each training block contains fewer complete examples, reducing effective data coverage.
 
-### 14.7 Text decoding collapses on multi-number output tasks
+### 14.7 Text decoding collapses on multi-number output tasks {#14-7-text-decoding-collapses-on-multi-number-output-tasks}
 
 FE-TextDec's SORT accuracy (30.5%) is far below both its SME counterpart (80.0% for Unfreeze) and Base (98.2%). SORT requires outputting a correctly-ordered list of multiple numbers as text, which means:
 - Multiple numbers in sequence with correct delimiters
@@ -1121,7 +1227,7 @@ FE-TextDec's SORT accuracy (30.5%) is far below both its SME counterpart (80.0% 
 
 Similarly, SUM (27.8% TextDec vs 39.2% Unfreeze) requires outputting a single precise number, where BPE fragmentation makes exact reproduction difficult even when the model has computed the correct answer internally.
 
-### 14.8 Scientific notation is the main text output failure mode
+### 14.8 Scientific notation is the main text output failure mode {#14-8-scientific-notation-is-the-main-text-output-failure-mode}
 
 Throughout FE-TextDec training, the model consistently fails on scientific notation. It produces patterns like:
 - `6.8ee-07` instead of `5.964e-07`
@@ -1130,11 +1236,11 @@ Throughout FE-TextDec training, the model consistently fails on scientific notat
 
 This is a fundamental BPE tokenization issue. GPT-2's tokenizer fragments scientific notation inconsistently across different numbers, making it very hard for the model to learn the `e[-+]\d+` pattern reliably from training examples alone.
 
-### 14.9 COUNT is universally perfect
+### 14.9 COUNT is universally perfect {#14-9-count-is-universally-perfect}
 
 All six variants achieve 99.9-100% on COUNT. This task requires only counting list elements (structural parsing), not understanding numerical values. It confirms that all architectures handle basic sequence parsing well and serves as a sanity check.
 
-### 14.10 Component contribution decomposition
+### 14.10 Component contribution decomposition {#14-10-component-contribution-decomposition}
 
 Comparing the three output-format variants with the same unfrozen NumberEncoder input:
 
@@ -1149,27 +1255,27 @@ Both the input encoder and output encoding contribute independently. The input e
 
 The total pipeline reduction from Base to FE-Multipos is: `1.908 / 0.132 = 14.5x` lower cross-entropy loss.
 
-### 14.11 FE-Unfreeze errors are 400x closer to the correct answer
+### 14.11 FE-Unfreeze errors are 400x closer to the correct answer {#14-11-fe-unfreeze-errors-are-400x-closer-to-the-correct-answer}
 
 The conditional MAE analysis (Section 13.1) reveals the most striking difference between the models. When FE-Unfreeze produces an incorrect answer, it is off by an average of 776. When Base produces an incorrect answer, it is off by an average of 317,166 — a **408x ratio**. This is the strongest evidence that the NumberEncoder provides genuine numerical understanding beyond pattern matching: the continuous embedding preserves proximity, so even incorrect predictions land in the right neighborhood.
 
 FE-TextDec's CondMAE (40,344) falls between the two, confirming that the SME output format contributes roughly half the proximity effect (on a log scale). SME's structured sign-exponent-mantissa decomposition means getting a mantissa digit wrong produces a small numerical error, whereas getting a BPE digit token wrong can shift the value by orders of magnitude.
 
-### 14.12 FE models exhibit a small-number/large-number inversion
+### 14.12 FE models exhibit a small-number/large-number inversion {#14-12-fe-models-exhibit-a-small-number-large-number-inversion}
 
 The difficulty-controlled analysis (Section 13.2) reveals a consistent pattern across comparison tasks (MIN, MAX): FE-Unfreeze underperforms Base on 1-digit numbers (~59% vs 100%) but matches or exceeds Base on 5-6+ digit numbers (99-100% vs 99-100%). This occurs because small integers (0-9) each have a dedicated BPE token embedding that Base memorizes perfectly, while the NumberEncoder must compress these into a continuous representation where nearby integers have similar embeddings. For large numbers, the situation reverses: BPE fragments them across multiple tokens requiring implicit positional reasoning, while the NumberEncoder captures magnitude directly.
 
-### 14.13 No model generalizes SUM beyond training list lengths
+### 14.13 No model generalizes SUM beyond training list lengths {#14-13-no-model-generalizes-sum-beyond-training-list-lengths}
 
 All three models achieve 0% exact match on SUM with 5+ operands (Section 13.3), including in-distribution lengths (5 and 8 are within the training range of 2-8). However, FE-Unfreeze maintains remarkably low MAE even out-of-distribution (48 at length 10 vs Base's 40,254 — an 839x ratio), demonstrating that the encoder's continuous representation preserves scale awareness even when the model cannot compute exact sums.
 
 ---
 
-## 15. Additive Embeddings: Theory, Experiments, and v9 Redesign
+## 15. Additive Embeddings: Theory, Experiments, and v9 Redesign {#15-additive-embeddings-theory-experiments-and-v9-redesign}
 
 The extended evaluation (Section 13) showed that FE-Unfreeze's errors are numerically close to correct answers (CondMAE 776 vs Base's 317,166). This raised a natural question: **Can we make the embedding space directly support arithmetic?** Specifically, can we design an encoder where `e(x) + e(y) ≈ e(x + y)`, so that a downstream transformer could perform addition by simply summing embeddings?
 
-### 15.1 Theoretical Foundation
+### 15.1 Theoretical Foundation {#15-1-theoretical-foundation}
 
 **The impossibility result**: The only continuous functions `f: R → R^d` satisfying `f(x+y) = f(x) + f(y)` for all `x, y` are linear maps: `f(x) = x * v` for some fixed vector `v ∈ R^d`. But `f(x) = x * v` maps all of R to a 1-dimensional subspace (a line through the origin) — useless as an embedding since it collapses all structural information into a scalar multiple.
 
@@ -1184,7 +1290,7 @@ This means exact additivity across all 128 dimensions is fundamentally incompati
 
 Approaches 2 and 3 were implemented as `np_emb_additive.py` and `np_emb_additive_subspace.py` and trained for 500K steps on GPU.
 
-### 15.2 Approach 2: Additivity Loss (`np_emb_additive.py`)
+### 15.2 Approach 2: Additivity Loss (`np_emb_additive.py`) {#15-2-approach-2-additivity-loss-np-emb-additive-py}
 
 **Architecture**: Identical to v8 (Section 3) — same NumberEncoder, same decoder, same channels. The only change is an additional loss term during training.
 
@@ -1224,7 +1330,7 @@ LayerNorm makes additivity structurally impossible.
 
 The 24x higher training loss (0.118 vs 0.005) confirms the two objectives fought each other throughout training, with neither converging well.
 
-### 15.3 Approach 3: Additive Subspace (`np_emb_additive_subspace.py`)
+### 15.3 Approach 3: Additive Subspace (`np_emb_additive_subspace.py`) {#15-3-approach-3-additive-subspace-np-emb-additive-subspace-py}
 
 **Architecture**: Modified NumberEncoder with two explicit lanes:
 
@@ -1257,7 +1363,7 @@ The additive subspace satisfies `e_add(x+y) = e_add(x) + e_add(y)` **exactly** b
 
 **Result**: The additive subspace is provably correct but practically useless — a ~600x signal-to-noise ratio means the downstream transformer would need extreme precision to extract the additive information.
 
-### 15.4 Summary of Failures
+### 15.4 Summary of Failures {#15-4-summary-of-failures}
 
 Both approaches failed for the same fundamental reason: **the v8 architecture is hostile to additivity**.
 
@@ -1270,7 +1376,7 @@ Both approaches failed for the same fundamental reason: **the v8 architecture is
 
 These results led to the v9 redesign, which addresses each failure mode directly.
 
-### 15.5 NumberEncoder v9: Math-Aware Multi-Lane Architecture (`np_emb_v9.py`)
+### 15.5 NumberEncoder v9: Math-Aware Multi-Lane Architecture (`np_emb_v9.py`) {#15-5-numberencoder-v9-math-aware-multi-lane-architecture-np-emb-v9-py}
 
 The v9 encoder is a ground-up redesign informed by the failure analysis of approaches 2 and 3, plus seven design recommendations:
 
@@ -1282,7 +1388,7 @@ The v9 encoder is a ground-up redesign informed by the failure analysis of appro
 6. Probe-based evaluation
 7. Prioritize invariances for generic math
 
-#### 15.5.1 Three-Lane Architecture
+#### 15.5.1 Three-Lane Architecture {#15-5-1-three-lane-architecture}
 
 The 128-dim embedding is partitioned into three specialized lanes:
 
@@ -1332,7 +1438,7 @@ RMSNorm: normed = x / RMS(x) * γ    where RMS = sqrt(mean(x²) + ε)
 
 RMSNorm normalizes the overall magnitude without subtracting the mean, so the direction of the projected vector is preserved. The learned per-dim scale `rms_scale` (initialized to 1.0) allows the network to assign different importance to different semantic dimensions.
 
-#### 15.5.2 Multi-Objective Pretraining
+#### 15.5.2 Multi-Objective Pretraining {#15-5-2-multi-objective-pretraining}
 
 The v9 training loss combines reconstruction (existing from v8) with three new probe-based objectives:
 
@@ -1361,7 +1467,7 @@ L = L_recon + L_compose + L_order + L_magnitude + L_spread
 
 **Probes are discarded**: The AdditionProbe, OrderProbe, and MagnitudeProbe are only used during pretraining. The saved checkpoint contains only the encoder state_dict. These probes shape the encoder's representation but are not part of the downstream GPT-2 model.
 
-#### 15.5.3 Operation-Aware Sampling
+#### 15.5.3 Operation-Aware Sampling {#15-5-3-operation-aware-sampling}
 
 The v8 encoder was trained on log-uniform samples — good for covering the number line but poorly aligned with the arithmetic tasks the downstream model faces. The v9 sampling distribution includes:
 
@@ -1376,7 +1482,7 @@ The v8 encoder was trained on log-uniform samples — good for covering the numb
 
 The operation-results fraction ensures the encoder sees (x, y, x+y, x-y) tuples in the same batch, directly benefiting the composition loss which samples pairs within the batch.
 
-#### 15.5.4 Probe-Based Evaluation
+#### 15.5.4 Probe-Based Evaluation {#15-5-4-probe-based-evaluation}
 
 After training, the encoder is evaluated with six probes that measure how useful the embeddings are for downstream math — not just reconstruction accuracy:
 
@@ -1391,7 +1497,7 @@ After training, the encoder is evaluated with six probes that measure how useful
 
 Additionally, the standard v8 tests (uniqueness, continuity, reversibility, expressiveness, compatibility) are preserved, plus a new lane structure test verifying that the scale lane dims scale linearly with x and the residue lane dims repeat with the correct period.
 
-#### 15.5.5 Encoder Parameters
+#### 15.5.5 Encoder Parameters {#15-5-5-encoder-parameters}
 
 | Component | Parameters | Learnable |
 |-----------|-----------|-----------|
@@ -1411,7 +1517,7 @@ Additionally, the standard v8 tests (uniqueness, continuity, reversibility, expr
 
 The encoder itself has ~7.4K learnable parameters (vs ~9.2K in v8). The probes add ~34.8K during pretraining but are discarded afterward. The checkpoint saves only the encoder state_dict.
 
-#### 15.5.6 How v9 Addresses Each Failure
+#### 15.5.6 How v9 Addresses Each Failure {#15-5-6-how-v9-addresses-each-failure}
 
 | Failure Mode (Approaches 2&3) | v9 Fix |
 |-------------------------------|--------|
@@ -1423,7 +1529,7 @@ The encoder itself has ~7.4K learnable parameters (vs ~9.2K in v8). The probes a
 | No digit-level features | Residue lane provides exact digit-period structure for parity, carry, last-digit reasoning |
 | Evaluation measures only reconstruction | Probe-based evaluation directly measures downstream math utility |
 
-#### 15.5.7 Compatibility with GPT-2 Model
+#### 15.5.7 Compatibility with GPT-2 Model {#15-5-7-compatibility-with-gpt-2-model}
 
 The v9 encoder is **NOT** a drop-in replacement for the v8 encoder. The state_dict has different keys:
 
@@ -1453,7 +1559,41 @@ Integrating v9 into the GPT-2 model (fe_unfreeze, fe_textdec) would require:
   │ Order ρ        │ 0.9996    │ 1.000000   │
   └────────────────┴───────────┴────────────┘
 
-#### 15.6 FE-v9 Integration Stabilization Update (March 3, 2026)
+#### 15.6 Early FE-SME vs Base Benchmark (3-digit SME, 1k range) {#15-6-early-fe-sme-vs-base-benchmark-3-digit-sme-1k-range}
+
+This is the earlier benchmark where SME outputs had only three digit positions (`d0,d1,d2`) and FE-SME outperformed base on the `1k` setup.
+
+Logs reviewed:
+- FE-SME: `slurm_logs/validate_sme_77768.log` (`data/numtasks_sme_1k`)
+- Base: `slurm_logs/validate_base_77778.log` (`data/numtasks_base_1k`)
+
+Run context:
+- FE-SME checkpoint iter: `10000`
+- Base checkpoint iter: `15000`
+- FE-SME digit positions tracked: `d0,d1,d2` only
+
+Overall numeric results:
+
+| Model | Exact%, MAE | Invalid rate |
+|---|---:|---:|
+| FE-SME (3-digit) | 83.59%, 10.98 | 0.67% |
+| Base | 63.68%, 721.28 | 0.42% |
+| Delta (FE - Base) | +19.91, -710.31 | +0.25 |
+
+Per-task comparison (strictly comparable numeric tasks):
+
+| Task | Base (Exact%, MAE) | FE-SME (Exact%, MAE) | Delta exact | Delta MAE |
+|---|---:|---:|---:|---:|
+| ADD | 34.12%, 1782.22 | 59.24%, 4.67 | +25.12 | -1777.55 |
+| SUB | 25.97%, 2255.08 | 60.17%, 9.14 | +34.20 | -2245.94 |
+| SUM | 4.51%, 4816.13 | 17.62%, 143.76 | +13.11 | -4672.37 |
+| MIN | 98.20%, 0.05 | 93.24%, 0.51 | -4.96 | +0.46 |
+| MAX | 97.32%, 13.00 | 98.08%, 0.01 | +0.76 | -12.99 |
+| COUNT | 100.00%, 0.00 | 100.00%, 0.00 | +0.00 | +0.00 |
+
+`SORT` is excluded from the table above because these old validators used different accounting (`base` per-example exact vs `SME` per decoded output-number exact), so direct percentage comparison is not apples-to-apples.
+
+#### 15.7 FE-v9 Integration Stabilization Update (March 3, 2026) {#15-7-fe-v9-integration-stabilization-update-march-3-2026}
 
 After integrating the v9 encoder into FE training, a key optimization issue was observed: gradients were often dominated by the `num_encoder`/`num_adapter` path while transformer gradients stayed very small. The architecture has now been updated to stabilize this interface.
 
@@ -1519,14 +1659,14 @@ This behavior was confirmed in logs:
 - At iter 800: `beta=0.0000`, adapter grad ≈ 0 by design
 - At iter 3200: `beta=0.0109`, adapter grads non-zero but transformer still dominant
 
-#### 15.7 FE-v9 Run Update: `78772` / `78816` (March 3, 2026)
+#### 15.8 FE-v9 Run Update: `78772` / `78816` (March 3, 2026) {#15-8-fe-v9-run-update-78772-78816-march-3-2026}
 
 Logs reviewed:
 - `slurm_logs/gpt2_sme_v9_78772.log` (training)
 - `slurm_logs/validate_v9_78816.log` (standard + extended validation)
 - Comparison baseline: `slurm_logs/validate_v9_78769.log`
 
-##### 15.7.1 Training behavior (`gpt2_sme_v9_78772.log`)
+##### 15.8.1 Training behavior (`gpt2_sme_v9_78772.log`) {#15-8-1-training-behavior-gpt2-sme-v9-78772-log}
 
 The run completed successfully to 35k iters with steadily improving eval loss:
 
@@ -1551,7 +1691,7 @@ However, after beta approached 1.0, adapter gradients dominated preclip norm aga
 
 This indicates the blend warmup stabilized early training, but full-handoff still re-enters the adapter-dominant regime.
 
-##### 15.7.2 Standard validation vs previous v9
+##### 15.8.2 Standard validation vs previous v9 {#15-8-2-standard-validation-vs-previous-v9}
 
 | Metric | v9 prev (`78769`) | v9 new (`78816`) | Delta |
 |--------|-------------------|------------------|-------|
@@ -1569,7 +1709,7 @@ Interpretation:
 - Exact/token quality dropped.
 - Error magnitude improved substantially (fewer huge misses on average).
 
-##### 15.7.3 Per-task comparison (ExactVal / MAE)
+##### 15.8.3 Per-task comparison (ExactVal / MAE) {#15-8-3-per-task-comparison-exactval-mae}
 
 | Task | Prev Exact | New Exact | Prev MAE | New MAE | Net |
 |------|------------|-----------|----------|---------|-----|
@@ -1583,7 +1723,7 @@ Interpretation:
 
 The largest change is SUM: exact correctness dropped heavily, but average numerical distance improved.
 
-##### 15.7.4 Extended evaluation comparison
+##### 15.8.4 Extended evaluation comparison {#15-8-4-extended-evaluation-comparison}
 
 Overall extended metrics:
 - Previous v9: `Exact 70.3%`, `MAE 658.23`, `CondMAE 1239.11`
@@ -1596,10 +1736,125 @@ SUM length generalization:
 - OOD lengths (10/15/20/30) remain poor, with high MAE.
 - The old suspicious `len=30 MAE=0.00` artifact is gone; new values are non-zero and more plausible.
 
-##### 15.7.5 Practical conclusion for this run
+##### 15.8.5 Practical conclusion for this run {#15-8-5-practical-conclusion-for-this-run}
 
 This configuration shifted the model toward "closer numeric answers" at the cost of exact symbolic correctness.
 
 If target objective is exact token/value accuracy, this run is a regression vs previous v9 and also behind FE-unfreeze runs.
 
 If target objective is reducing catastrophic numeric error magnitude, this run is an improvement over previous v9.
+
+#### 15.9 Fixed-Length SME Mantissa + Digit-Position Weighted Loss (4-digit / r10k) (March 4-5, 2026) {#15-9-fixed-length-sme-mantissa-digit-position-weighted-loss-4-digit-r10k-march-4-5-2026}
+
+This set of experiments targets the dominant FE-v9 exactness failure mode: **valid SME decodes that are off in later digit positions** (and, in variable-length SME, premature `END`).
+
+Logs reviewed:
+- Variable-length (baseline): `slurm_logs/val_sme_id_d4_4dig_r10k_20260303_205237_78876.log`
+- Fixlen-only: `slurm_logs/validate_v9_v9_4dig_r10k_fixlen_20260304_035452_id_78888.log`
+- Fixlen + weighted digits: `slurm_logs/val_sme_id_d4_v9_4dig_r10k_fixlen_wdig_a05_20260304_191943_78950.log`
+- OOD (fixlen-outd4, d1-3): `slurm_logs/val_sme_ood_d1_3_ood_fixlen_outd4_20260305_120000_78961.log`
+- OOD (fixlen-outd4, d5-8): `slurm_logs/val_sme_ood_d5_8_ood_fixlen_outd4_20260305_120000_78962.log`
+
+##### 15.9.1 Fixlen: force a fixed SME mantissa length {#15-9-1-fixlen-force-a-fixed-sme-mantissa-length}
+
+Data-generation change (outputs only):
+- Set `SME_MIN_DIGITS=4` so every output number is encoded as `SIGN EXP D0 D1 D2 D3 END` (pads trailing zeros).
+
+Intuition:
+- Removes the "stop early" strategy from variable-length mantissas.
+- Equalizes the supervision density across digit positions.
+
+##### 15.9.2 Digit-position weighted loss: how weights were derived {#15-9-2-digit-position-weighted-loss-how-weights-were-derived}
+
+We derive weights from the **fixlen-only** baseline digit accuracies on ID (from `validate_v9_v9_4dig_r10k_fixlen_20260304_035452_id_78888.log`):
+- `d0=0.9746`, `d1=0.8721`, `d2=0.6951`, `d3=0.6570`
+
+Convert to per-position error rates:
+- `e_i = 1 - acc(d_i)` = `[0.0254, 0.1279, 0.3049, 0.3430]`
+
+Use a softened power-law (alpha=0.5) and normalize to mean 1.0:
+- `w_i = e_i^alpha`
+- `w_i <- w_i / mean(w)`
+- Final weights (d0..d3): **`[0.385, 0.864, 1.335, 1.416]`** (mean = 1.0)
+
+Implementation details:
+- Weights multiply the cross-entropy **only** for SME digit tokens at positions `d0..d3`.
+- SME sign/exponent/`END` remain weight 1.0.
+
+##### 15.9.3 ID results (4-digit / r10k) {#15-9-3-id-results-4-digit-r10k}
+
+Metric: **Extended eval `OVERALL Exact%`**.
+
+| FE-v9 variant | ID Exact% | Notes |
+|---|---:|---|
+| Variable-length SME (baseline) | 61.2% | Best of the unweighted variants here |
+| Fixlen-only (`SME_MIN_DIGITS=4`) | 55.2% | Exactness drops when forcing longer outputs without reweighting |
+| Fixlen + weighted digits (alpha=0.5) | **65.4%** | Recovers and surpasses baseline by pushing gradient onto later digits |
+
+##### 15.9.4 OOD results (exclude magnitude OOD) {#15-9-4-ood-results-exclude-magnitude-ood}
+
+OOD evaluation needed a dataset tweak to make fixlen evaluation meaningful.
+
+Problem:
+- Older OOD splits were generated with variable-length output mantissas, so token-level comparisons for fixlen models are dominated by `END` position mismatches (not true numeric ability).
+
+Fix:
+- Regenerate OOD splits with outputs capped to 4 sig digits (`OUTPUT_SIG_DIGITS_MAX=4`) and padded to 4 SME digits (`SME_MIN_DIGITS=4`), tag: `ood_fixlen_outd4_20260305_120000`.
+
+Metric: **Extended eval `OVERALL Exact%`** (FE-v9 fixlen+wdig).
+
+| OOD split | Condition | FE-v9 Exact% |
+|---|---|---:|
+| `ood_d1_3` | inputs have 1-3 sig digits (outputs fixed to 4 digits) | 68.4% |
+| `ood_d5_8` | inputs have 5-8 sig digits (outputs fixed to 4 digits) | 63.1% |
+
+##### 15.9.5 Base vs FE-v9 (fixlen+wdig): ID + OOD comparison (exclude magnitude OOD) {#15-9-5-base-vs-fe-v9-fixlen-wdig-id-ood-comparison-exclude-magnitude-ood}
+
+Notes on metrics:
+- **Base** overall uses `Numeric exact-example rate` (value-level exact match after parsing).
+- **Base** per-task uses `OutExact` (exact output string match). On these datasets the output formatting is canonical, so for single-number tasks `OutExact` closely tracks numeric exactness.
+- **FE-v9** uses extended-eval `Exact%` (value-level exact).
+
+Overall exactness:
+
+| Split | Base (Exact%, MAE) | FE-v9 fixlen+wdig (Exact%, MAE) | Delta exact (FE - Base) | Delta MAE (FE - Base) |
+|---|---:|---:|---:|---:|
+| ID (`d4`, `r10k`) | 92.3%, 1139.60 | 65.4%, 35.06 | -26.9 | -1104.54 |
+| OOD `d1_3` (inputs 1-3 sig-digs) | 89.7%, 3308.64 | 68.4%, 14.75 | -21.3 | -3293.89 |
+| OOD `d5_8` (inputs 5-8 sig-digs) | 53.9%, 7138.31 | 63.1%, 27.78 | +9.2 | -7110.53 |
+
+Per-task exactness (ID):
+
+| Task | Base (Exact%, MAE) | FE-v9 (Exact%, MAE) | Delta exact | Delta MAE |
+|---|---:|---:|---:|---:|
+| ADD | 92.7%, 2488.93 | 69.9%, 11.80 | -22.8 | -2477.13 |
+| SUB | 92.0%, 621.70 | 66.3%, 5.35 | -25.7 | -616.35 |
+| SUM | 62.5%, 10836.35 | 54.4%, 383.65 | -8.1 | -10452.70 |
+| MIN | 99.9%, 0.00 | 69.6%, 0.00 | -30.3 | +0.00 |
+| MAX | 99.9%, 3.66 | 88.4%, 0.11 | -11.5 | -3.55 |
+| SORT | 99.1%, 2.08 | 10.6%, 0.10 | -88.5 | -1.98 |
+| COUNT | 100.0%, 0.00 | 100.0%, 0.00 | +0.0 | +0.00 |
+
+Per-task exactness (OOD `d1_3`):
+
+| Task | Base (Exact%, MAE) | FE-v9 (Exact%, MAE) | Delta exact | Delta MAE |
+|---|---:|---:|---:|---:|
+| ADD | 87.2%, 9839.22 | 73.6%, 8.39 | -13.6 | -9830.83 |
+| SUB | 87.1%, 6473.64 | 71.4%, 19.78 | -15.7 | -6453.86 |
+| SUM | 61.4%, 19702.10 | 58.8%, 112.02 | -2.6 | -19590.08 |
+| MIN | 99.3%, 9.56 | 72.7%, 1.11 | -26.6 | -8.45 |
+| MAX | 99.9%, 8.25 | 90.6%, 0.11 | -9.3 | -8.14 |
+| SORT | 93.9%, 536.80 | 12.2%, 5.48 | -81.7 | -531.32 |
+| COUNT | 100.0%, 0.00 | 100.0%, 0.00 | +0.0 | +0.00 |
+
+Per-task exactness (OOD `d5_8`):
+
+| Task | Base (Exact%, MAE) | FE-v9 (Exact%, MAE) | Delta exact | Delta MAE |
+|---|---:|---:|---:|---:|
+| ADD | 60.9%, 2956.55 | 66.4%, 4.33 | +5.5 | -2952.22 |
+| SUB | 63.3%, 25817.17 | 65.4%, 114.16 | +2.1 | -25703.01 |
+| SUM | 44.5%, 10154.87 | 52.4%, 214.72 | +7.9 | -9940.15 |
+| MIN | 51.0%, 73.49 | 65.1%, 0.06 | +14.1 | -73.43 |
+| MAX | 53.2%, 1672.43 | 85.3%, 0.05 | +32.1 | -1672.38 |
+| SORT | 3.9%, 0.00 | 7.2%, 0.09 | +3.3 | +0.09 |
+| COUNT | 98.8%, 0.01 | 100.0%, 0.00 | +1.2 | -0.01 |
