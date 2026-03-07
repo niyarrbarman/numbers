@@ -443,7 +443,7 @@ def sample_training_numbers(batch_size: int, device: torch.device) -> Tensor:
     ints = ints * int_signs
 
     # Operation results at scale: x±y where x,y are log-uniform
-    n_pairs = n_ops // 2
+    n_pairs = (n_ops + 1) // 2
     exp_a = torch.empty(n_pairs, device=device).uniform_(0.0, 9.0)
     exp_b = torch.empty(n_pairs, device=device).uniform_(0.0, 9.0)
     a = 10.0 ** exp_a
