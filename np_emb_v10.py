@@ -415,7 +415,7 @@ def sample_training_numbers(batch_size: int, device: torch.device) -> Tensor:
     exp_u = torch.empty(n_logu, device=device).uniform_(0.0, 9.0)
     logu = 10.0 ** exp_u
     logu_signs = 2 * torch.randint(0, 2, (n_logu,), device=device,
-                                    dtype=torch.float32) - 1
+                                    dtype=torch.int64).float() - 1
     logu = logu * logu_signs
 
     # Small numbers
@@ -434,10 +434,10 @@ def sample_training_numbers(batch_size: int, device: torch.device) -> Tensor:
             lo = 10 ** (d_val - 1) if d_val > 1 else 0
             hi = 10 ** d_val
             vals = torch.randint(lo, hi, (count,), device=device,
-                                 dtype=torch.float32)
+                                 dtype=torch.int64).float()
             ints[mask] = vals
     int_signs = 2 * torch.randint(0, 2, (n_int,), device=device,
-                                   dtype=torch.float32) - 1
+                                   dtype=torch.int64).float() - 1
     ints = ints * int_signs
 
     # Operation results at scale: x±y where x,y are log-uniform
@@ -447,9 +447,9 @@ def sample_training_numbers(batch_size: int, device: torch.device) -> Tensor:
     a = 10.0 ** exp_a
     b = 10.0 ** exp_b
     a_signs = 2 * torch.randint(0, 2, (n_pairs,), device=device,
-                                 dtype=torch.float32) - 1
+                                 dtype=torch.int64).float() - 1
     b_signs = 2 * torch.randint(0, 2, (n_pairs,), device=device,
-                                 dtype=torch.float32) - 1
+                                 dtype=torch.int64).float() - 1
     a = a * a_signs
     b = b * b_signs
     ops = torch.cat([a + b, a - b])[:n_ops]
@@ -482,10 +482,10 @@ def sample_training_numbers(batch_size: int, device: torch.device) -> Tensor:
             lo = 10 ** (d_val - 1) if d_val > 1 else 0
             hi = 10 ** d_val
             vals = torch.randint(lo, hi, (count,), device=device,
-                                 dtype=torch.float32)
+                                 dtype=torch.int64).float()
             digit_nums[mask] = vals
     d_signs = 2 * torch.randint(0, 2, (n_digit,), device=device,
-                                 dtype=torch.float32) - 1
+                                 dtype=torch.int64).float() - 1
     digit_nums = digit_nums * d_signs
 
     samples = torch.cat([logu, small, zero, ints, ops, struct, digit_nums])
