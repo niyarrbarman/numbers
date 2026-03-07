@@ -1,6 +1,6 @@
 #!/bin/bash
 # Train NumberEncoder v10 (high-fidelity, 1B range).
-# 1 node, 2 GPUs (DataParallel), 2M steps, ~4-5hrs on A100.
+# 1 node, 1 GPU, batch=1024, 2M steps.
 #
 # Usage:
 #   sbatch 124M/scripts/run_encoder_v10.slurm
@@ -10,7 +10,7 @@
 #SBATCH -N 1
 #SBATCH -n 1
 #SBATCH --ntasks-per-node=1
-#SBATCH --gres=gpu:2
+#SBATCH --gres=gpu:1
 #SBATCH -p small
 #SBATCH --time=12:00:00
 #SBATCH -o slurm_logs/np_emb_v10_%j.log
@@ -32,7 +32,7 @@ echo "NumberEncoder v10 Training (1B range)"
 echo "  Max steps:   ${MAX_STEPS}"
 echo "  Seed:        ${SEED}"
 echo "  Node:        $(hostname)"
-echo "  GPUs:        2"
+echo "  GPUs:        1"
 if command -v nvidia-smi &>/dev/null; then
   echo "  GPU type:    $(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | head -1 || echo 'N/A')"
 fi
@@ -41,7 +41,7 @@ echo "=========================================="
 apptainer exec \
   --nv \
   --env "PYTHONUSERBASE=${MYENVS}/numbers" \
-  --env "CUDA_VISIBLE_DEVICES=0,1" \
+  --env "CUDA_VISIBLE_DEVICES=0" \
   --bind /tmpdir,/work \
   "${IMAGE}" \
   python3 "${REPO_DIR}/../np_emb_v10.py" \

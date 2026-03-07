@@ -667,19 +667,10 @@ class NumberEmbeddingSystem(nn.Module):
                 + lam_decorr * loss_decorr
                 + lam_sub * loss_sub)
 
-    def train_model(self, num_steps: int = 2000000, batch_size: int = 512,
+    def train_model(self, num_steps: int = 2000000, batch_size: int = 1024,
                     lr: float = 5e-4, log_interval: int = 10000,
                     warmup_steps: int = 5000, grad_clip: float = 1.0,
                     checkpoint_dir: str = "/tmpdir/m24047brmn/numbers/checkpoints"):
-        # DataParallel: use all available GPUs, scale batch size
-        n_gpu = torch.cuda.device_count() if torch.cuda.is_available() else 1
-        if n_gpu > 1:
-            dp_module = nn.DataParallel(self)
-            batch_size = batch_size * n_gpu
-            print(f"  Using {n_gpu} GPUs via DataParallel "
-                  f"(effective batch={batch_size})")
-        else:
-            dp_module = None
 
         optimizer = torch.optim.AdamW(self.parameters(), lr=lr,
                                        betas=(0.9, 0.999), eps=1e-8,
@@ -732,10 +723,7 @@ class NumberEmbeddingSystem(nn.Module):
             x = sample_training_numbers(batch_size, self.device)
 
             optimizer.zero_grad()
-            if dp_module is not None:
-                emb, recon, sign_logit = dp_module(x)
-            else:
-                emb, recon, sign_logit = self.forward(x)
+            emb, recon, sign_logit = self.forward(x)
             loss = self.compute_loss(x, emb, recon, sign_logit,
                                      lam_compose, lam_order,
                                      lam_magnitude, lam_digit,
@@ -1543,7 +1531,7 @@ def demo(num_steps: int = 2000000, scale_dims: int = 16,
 
     print(f"Training ({num_steps:,} steps, batch 512)...")
     t0 = time.time()
-    system.train_model(num_steps=num_steps, batch_size=512, lr=5e-4,
+    system.train_model(num_steps=num_steps, batch_size=1024, lr=5e-4,
                        log_interval=max(1, num_steps // 100))
     elapsed = time.time() - t0
     print(f"  Done in {elapsed:.1f}s ({elapsed/3600:.1f}h)\n")
