@@ -1529,7 +1529,7 @@ def demo(num_steps: int = 2000000, scale_dims: int = 16,
               f"semantic={e_norm:7.3f}")
     print()
 
-    print(f"Training ({num_steps:,} steps, batch 512)...")
+    print(f"Training ({num_steps:,} steps, batch 1024)...")
     t0 = time.time()
     system.train_model(num_steps=num_steps, batch_size=1024, lr=5e-4,
                        log_interval=max(1, num_steps // 100))
