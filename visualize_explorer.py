@@ -6,14 +6,13 @@ Interactive 3D UMAP plot with click-to-measure 128d L2 distance.
 Click any two points to see the full-dimensional L2 distance,
 cosine similarity, and both numbers' details. Click again to reset.
 
-Supports both v8 and v9 (math-aware multi-lane) checkpoints.
+Supports v8, v9, and v10 (high-fidelity 1B) checkpoints.
 The variant is auto-detected from the checkpoint file.
 
 Usage:
   python3 visualize_explorer.py
   python3 visualize_explorer.py --range 5000 --n 3000
-  python3 visualize_explorer.py --checkpoint checkpoints/np_emb_v8_500k_model.pt --dim 2
-  python3 visualize_explorer.py --checkpoint checkpoints/np_emb_v9_500k_model.pt
+  python3 visualize_explorer.py --checkpoint checkpoints/np_emb_v10_2000k_model.pt --dim 2
 """
 
 import os
@@ -32,6 +31,7 @@ from sklearn.decomposition import PCA
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from np_emb_torch import NumberEmbeddingSystem as NumberEmbeddingSystemV8
 from np_emb_v9 import NumberEmbeddingSystem as NumberEmbeddingSystemV9
+from np_emb_v10 import NumberEmbeddingSystem as NumberEmbeddingSystemV10
 
 CHECKPOINT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "checkpoints")
 
@@ -47,6 +47,8 @@ def find_latest_checkpoint():
 
 def detect_variant(ckpt):
     """Detect checkpoint variant from saved keys."""
+    if ckpt.get('variant') == 'v10_high_fidelity_1B':
+        return 'v10'
     if ckpt.get('variant') == 'v9_math_aware':
         return 'v9'
     return 'v8'
@@ -57,10 +59,22 @@ def load_model(checkpoint_path, device):
     variant = detect_variant(ckpt)
     embedding_dim = ckpt.get('embedding_dim', 128)
 
-    if variant == 'v9':
+    if variant == 'v10':
+        scale_dims = ckpt.get('scale_dims', 16)
+        residue_periods = ckpt.get('residue_periods',
+                                   [2, 5, 10, 100, 1000, 10000, 100000,
+                                    1000000, 10000000, 100000000, 1000000000])
+        residue_periods = [int(p) for p in residue_periods]
+        system = NumberEmbeddingSystemV10(
+            embedding_dim=embedding_dim, scale_dims=scale_dims,
+            residue_periods=residue_periods, device=device)
+        system.load_state_dict(ckpt['full_state_dict'])
+        system.eval()
+        print(f"Loaded v10 (high-fidelity 1B): {checkpoint_path}")
+        print(f"  Scale dims: {scale_dims}, Residue periods: {residue_periods}")
+    elif variant == 'v9':
         scale_dims = ckpt.get('scale_dims', 16)
         residue_periods = ckpt.get('residue_periods', [10, 100, 1000, 10000, 100000])
-        # Convert to int list if needed
         residue_periods = [int(p) for p in residue_periods]
         system = NumberEmbeddingSystemV9(
             embedding_dim=embedding_dim, scale_dims=scale_dims,
@@ -80,7 +94,7 @@ def load_model(checkpoint_path, device):
 
 def generate_numbers(range_max, n_samples, seed=42):
     rng = np.random.RandomState(seed)
-    numbers = rng.uniform(-range_max, range_max, size=n_samples).astype(np.float32)
+    numbers = rng.uniform(-range_max, range_max, size=n_samples).astype(np.float64)
     numbers.sort()
     print(f"  Generated {n_samples} numbers from U(-{range_max}, {range_max})")
     return numbers
@@ -88,7 +102,7 @@ def generate_numbers(range_max, n_samples, seed=42):
 
 def encode_numbers(system, numbers):
     with torch.no_grad():
-        x = torch.tensor(numbers, device=system.device)
+        x = torch.tensor(numbers, dtype=torch.float64, device=system.device)
         emb, recon, _ = system.forward(x)
         return emb.cpu().numpy(), recon.cpu().numpy()
 
@@ -311,7 +325,8 @@ def build_explorer(numbers, embeddings, reconstructions, coords, dim, method, ou
 
 def main():
     parser = argparse.ArgumentParser(description="Interactive number embedding explorer")
-    parser.add_argument("--checkpoint", type=str, default=None)
+    parser.add_argument("--checkpoint", type=str,
+                        default="checkpoints/np_emb_v10_2000k_model.pt")
     parser.add_argument("--range", type=float, default=1000.0, dest="range_max",
                         help="U(-RANGE, RANGE) (default: 1000)")
     parser.add_argument("--n", type=int, default=2000,
