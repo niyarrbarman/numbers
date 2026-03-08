@@ -1,0 +1,85 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+==========================================
+NumberEncoder v10 Training (1B range)
+  Max steps:   2000000
+  Seed:        42
+  Node:        turpancomp0
+  GPUs:        2
+  GPU type:    NVIDIA A100 80GB PCIe
+==========================================
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Log: logs/run_v10_20260307_222932.log
+Seed: 42  |  Max steps: 2,000,000  |  Device: cuda
+Scale dims: 16  |  Residue periods: [2, 5, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000]
+GPU: NVIDIA A100 80GB PCIe
+
+======================================================================
+NUMBER EMBEDDING v10 — HIGH-FIDELITY MATH-AWARE ENCODER (1B)
+======================================================================
+
+Architecture:  68 raw → 128d embedding
+  Lane 1 (Scale):    16 dims — x * weight, additive
+  Lane 2 (Residue):  22 dims — sin/cos at 11 periods (float64), periods=[2, 5, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000]
+  Lane 3 (Semantic): 90 dims — Fourier(66d, log-space) + LogMag + Sign → proj → scale
+  Encoder params:    6,246
+  Decoder params:    99,586
+  Probe params:      136,203 (discarded after pretraining)
+  Total params:      242,035
+  Device:            cuda
+
+Before training:
+           0.0 → scale=    0.000  residue=3.317  semantic=  3.503
+           0.0 → scale=    0.000  residue=3.317  semantic=  3.504
+           0.1 → scale=    0.001  residue=3.317  semantic=  3.335
+           1.0 → scale=    0.013  residue=3.317  semantic=  4.223
+           3.1 → scale=    0.040  residue=3.317  semantic=  4.795
+         -42.0 → scale=    0.541  residue=3.317  semantic=  4.986
+         100.0 → scale=    1.289  residue=3.317  semantic=  5.642
+        1000.0 → scale=   12.890  residue=3.317  semantic=  6.643
+      100000.0 → scale= 1288.963  residue=3.317  semantic=  9.573
+     1000000.0 → scale=12889.626  residue=3.317  semantic= 10.514
+   100000000.0 → scale=1288962.625  residue=3.317  semantic= 13.766
+  1000000000.0 → scale=12889627.000  residue=3.317  semantic= 15.811
+       -1234.5 → scale=   15.912  residue=3.317  semantic=  5.817
+  -1000000000.0 → scale=12889627.000  residue=3.317  semantic= 15.106
+
+Training (2,000,000 steps, batch 512)...
+  Using 2 GPUs via DataParallel (effective batch=1024)
+/opt/pytorch/pytorch/aten/src/ATen/native/cuda/IndexKernel.cu:93: operator(): block: [1,0,0], thread: [5,0,0] Assertion `-sizes[i] <= index && index < sizes[i] && "index out of bounds"` failed.
+
+Output saved to: logs/run_v10_20260307_222932.log
+Traceback (most recent call last):
+  File "/work/m24047/m24047brmn/numbers/GPT2/../np_emb_v10.py", line 1671, in <module>
+    system = demo(num_steps=args.max_steps,
+  File "/work/m24047/m24047brmn/numbers/GPT2/../np_emb_v10.py", line 1546, in demo
+    system.train_model(num_steps=num_steps, batch_size=512, lr=5e-4,
+  File "/work/m24047/m24047brmn/numbers/GPT2/../np_emb_v10.py", line 736, in train_model
+    emb, recon, sign_logit = dp_module(x)
+  File "/usr/local/lib/python3.10/dist-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/torch/nn/parallel/data_parallel.py", line 183, in forward
+    inputs, module_kwargs = self.scatter(inputs, kwargs, self.device_ids)
+  File "/usr/local/lib/python3.10/dist-packages/torch/nn/parallel/data_parallel.py", line 207, in scatter
+    return scatter_kwargs(inputs, kwargs, device_ids, dim=self.dim)
+  File "/usr/local/lib/python3.10/dist-packages/torch/nn/parallel/scatter_gather.py", line 88, in scatter_kwargs
+    scattered_inputs = scatter(inputs, target_gpus, dim) if inputs else []
+  File "/usr/local/lib/python3.10/dist-packages/torch/nn/parallel/scatter_gather.py", line 75, in scatter
+    res = scatter_map(inputs)
+  File "/usr/local/lib/python3.10/dist-packages/torch/nn/parallel/scatter_gather.py", line 62, in scatter_map
+    return list(zip(*map(scatter_map, obj)))
+  File "/usr/local/lib/python3.10/dist-packages/torch/nn/parallel/scatter_gather.py", line 58, in scatter_map
+    return Scatter.apply(target_gpus, None, dim, obj)
+  File "/usr/local/lib/python3.10/dist-packages/torch/autograd/function.py", line 575, in apply
+    return super().apply(*args, **kwargs)  # type: ignore[misc]
+  File "/usr/local/lib/python3.10/dist-packages/torch/nn/parallel/_functions.py", line 104, in forward
+    outputs = comm.scatter(input, target_gpus, chunk_sizes, ctx.dim, streams)
+  File "/usr/local/lib/python3.10/dist-packages/torch/nn/parallel/comm.py", line 205, in scatter
+    return tuple(torch._C._scatter(tensor, devices, chunk_sizes, dim, streams))
+RuntimeError: CUDA error: CUDA-capable device(s) is/are busy or unavailable
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+

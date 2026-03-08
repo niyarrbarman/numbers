@@ -1,0 +1,60 @@
+Log: logs/run_v10_20260307_223254.log
+Seed: 42  |  Max steps: 2,000,000  |  Device: cuda
+Scale dims: 16  |  Residue periods: [2, 5, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000]
+GPU: NVIDIA A100 80GB PCIe
+
+======================================================================
+NUMBER EMBEDDING v10 — HIGH-FIDELITY MATH-AWARE ENCODER (1B)
+======================================================================
+
+Architecture:  68 raw → 128d embedding
+  Lane 1 (Scale):    16 dims — x * weight, additive
+  Lane 2 (Residue):  22 dims — sin/cos at 11 periods (float64), periods=[2, 5, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000]
+  Lane 3 (Semantic): 90 dims — Fourier(66d, log-space) + LogMag + Sign → proj → scale
+  Encoder params:    6,246
+  Decoder params:    99,586
+  Probe params:      136,203 (discarded after pretraining)
+  Total params:      242,035
+  Device:            cuda
+
+Before training:
+           0.0 → scale=    0.000  residue=3.317  semantic=  3.503
+           0.0 → scale=    0.000  residue=3.317  semantic=  3.504
+           0.1 → scale=    0.001  residue=3.317  semantic=  3.335
+           1.0 → scale=    0.013  residue=3.317  semantic=  4.223
+           3.1 → scale=    0.040  residue=3.317  semantic=  4.795
+         -42.0 → scale=    0.541  residue=3.317  semantic=  4.986
+         100.0 → scale=    1.289  residue=3.317  semantic=  5.642
+        1000.0 → scale=   12.890  residue=3.317  semantic=  6.643
+      100000.0 → scale= 1288.963  residue=3.317  semantic=  9.573
+     1000000.0 → scale=12889.626  residue=3.317  semantic= 10.514
+   100000000.0 → scale=1288962.625  residue=3.317  semantic= 13.766
+  1000000000.0 → scale=12889627.000  residue=3.317  semantic= 15.811
+       -1234.5 → scale=   15.912  residue=3.317  semantic=  5.817
+  -1000000000.0 → scale=12889627.000  residue=3.317  semantic= 15.106
+
+Training (2,000,000 steps, batch 512)...
+  Using 2 GPUs via DataParallel (effective batch=1024)
+  Step   20000/2000000 | Loss: 119.546510 [P1:core] | lr: 5.00e-04 | scale_w: [-1.47e-03, 2.77e-03]
+    Lane norms (1, 1K, 1M, 1B): scale=[0.01,5.77,5774.35,5774353.50] residue=[3.32,3.32,3.32,3.32] semantic=[4.83,8.38,13.18,24.29]
+  Step   40000/2000000 | Loss: 75.222534 [P1:core] | lr: 5.00e-04 | scale_w: [-5.41e-04, 1.31e-03]
+    Lane norms (1, 1K, 1M, 1B): scale=[0.00,2.00,1996.82,1996818.38] residue=[3.32,3.32,3.32,3.32] semantic=[7.19,9.43,13.47,27.84]
+  Step   60000/2000000 | Loss: 91.619447 [P1:core] | lr: 4.99e-04 | scale_w: [-5.94e-04, 3.96e-04]
+    Lane norms (1, 1K, 1M, 1B): scale=[0.00,0.97,971.90,971902.62] residue=[3.32,3.32,3.32,3.32] semantic=[14.61,16.36,16.87,31.07]
+  Step   80000/2000000 | Loss: 113.235919 [P1:core] | lr: 4.98e-04 | scale_w: [-1.80e-04, 2.25e-04]
+    Lane norms (1, 1K, 1M, 1B): scale=[0.00,0.42,422.75,422747.12] residue=[3.32,3.32,3.32,3.32] semantic=[22.53,24.83,25.89,35.92]
+  Step  100000/2000000 | Loss: 111.293790 [P1:core] | lr: 4.97e-04 | scale_w: [-1.58e-04, 1.91e-04]
+    Lane norms (1, 1K, 1M, 1B): scale=[0.00,0.39,394.43,394429.03] residue=[3.32,3.32,3.32,3.32] semantic=[30.74,30.86,30.14,39.79]
+  Step  120000/2000000 | Loss: 105.719835 [P1:core] | lr: 4.96e-04 | scale_w: [-1.79e-04, 2.96e-04]
+    Lane norms (1, 1K, 1M, 1B): scale=[0.00,0.61,607.72,607722.88] residue=[3.32,3.32,3.32,3.32] semantic=[37.15,36.98,36.51,45.21]
+  Step  140000/2000000 | Loss: 104.399625 [P1:core] | lr: 4.94e-04 | scale_w: [-7.28e-05, 2.38e-04]
+    Lane norms (1, 1K, 1M, 1B): scale=[0.00,0.37,368.60,368596.56] residue=[3.32,3.32,3.32,3.32] semantic=[42.25,42.73,41.98,50.66]
+  Step  160000/2000000 | Loss: 99.968406 [P1:core] | lr: 4.93e-04 | scale_w: [-2.88e-04, 3.85e-04]
+    Lane norms (1, 1K, 1M, 1B): scale=[0.00,0.76,755.66,755664.44] residue=[3.32,3.32,3.32,3.32] semantic=[50.50,45.95,40.82,53.06]
+  Step  180000/2000000 | Loss: 93.197557 [P1:core] | lr: 4.91e-04 | scale_w: [-5.08e-04, 2.85e-04]
+    Lane norms (1, 1K, 1M, 1B): scale=[0.00,0.65,652.83,652829.81] residue=[3.32,3.32,3.32,3.32] semantic=[52.27,52.28,46.42,61.28]
+  ** Phase checkpoint saved: /tmpdir/m24047brmn/numbers/checkpoints/np_emb_v10_P1_core_200k_model.pt
+  Step  200000/2000000 | Loss: 97.065038 [P2:obj] | lr: 4.88e-04 | scale_w: [-5.08e-04, 9.39e-04]
+    Lane norms (1, 1K, 1M, 1B): scale=[0.00,1.50,1503.42,1503418.75] residue=[3.32,3.32,3.32,3.32] semantic=[53.91,53.99,47.29,61.19]
+  Step  220000/2000000 | Loss: 55.367400 [P2:obj] | lr: 4.86e-04 | scale_w: [-2.85e-04, 2.16e-04]
+    Lane norms (1, 1K, 1M, 1B): scale=[0.00,0.52,520.18,520177.31] residue=[3.32,3.32,3.32,3.32] semantic=[51.56,47.67,42.89,70.62]

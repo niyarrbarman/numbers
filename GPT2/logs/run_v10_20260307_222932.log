@@ -1,0 +1,37 @@
+Log: logs/run_v10_20260307_222932.log
+Seed: 42  |  Max steps: 2,000,000  |  Device: cuda
+Scale dims: 16  |  Residue periods: [2, 5, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000]
+GPU: NVIDIA A100 80GB PCIe
+
+======================================================================
+NUMBER EMBEDDING v10 — HIGH-FIDELITY MATH-AWARE ENCODER (1B)
+======================================================================
+
+Architecture:  68 raw → 128d embedding
+  Lane 1 (Scale):    16 dims — x * weight, additive
+  Lane 2 (Residue):  22 dims — sin/cos at 11 periods (float64), periods=[2, 5, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000]
+  Lane 3 (Semantic): 90 dims — Fourier(66d, log-space) + LogMag + Sign → proj → scale
+  Encoder params:    6,246
+  Decoder params:    99,586
+  Probe params:      136,203 (discarded after pretraining)
+  Total params:      242,035
+  Device:            cuda
+
+Before training:
+           0.0 → scale=    0.000  residue=3.317  semantic=  3.503
+           0.0 → scale=    0.000  residue=3.317  semantic=  3.504
+           0.1 → scale=    0.001  residue=3.317  semantic=  3.335
+           1.0 → scale=    0.013  residue=3.317  semantic=  4.223
+           3.1 → scale=    0.040  residue=3.317  semantic=  4.795
+         -42.0 → scale=    0.541  residue=3.317  semantic=  4.986
+         100.0 → scale=    1.289  residue=3.317  semantic=  5.642
+        1000.0 → scale=   12.890  residue=3.317  semantic=  6.643
+      100000.0 → scale= 1288.963  residue=3.317  semantic=  9.573
+     1000000.0 → scale=12889.626  residue=3.317  semantic= 10.514
+   100000000.0 → scale=1288962.625  residue=3.317  semantic= 13.766
+  1000000000.0 → scale=12889627.000  residue=3.317  semantic= 15.811
+       -1234.5 → scale=   15.912  residue=3.317  semantic=  5.817
+  -1000000000.0 → scale=12889627.000  residue=3.317  semantic= 15.106
+
+Training (2,000,000 steps, batch 512)...
+  Using 2 GPUs via DataParallel (effective batch=1024)
