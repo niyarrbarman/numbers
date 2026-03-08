@@ -24,7 +24,7 @@ mkdir -p $(dirname "$OUTPUT")
 srun apptainer exec \
     --env "PYTHONUSERBASE=${MYENVS}/nemo" \
     --bind /tmpdir,/work /work/conteneurs/calmip/nemo_25.04.03_arm.sif \
-    python /work/m24047/m24047brmn/nemo/numbers/GPT2/124M/fe_adapt/convert_nemo_ckpt.py \
+    python /work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/convert_nemo_ckpt.py \
         --nemo-ckpt "$NEMO_CKPT" \
         --output "$OUTPUT"
 
