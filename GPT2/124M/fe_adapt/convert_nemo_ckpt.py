@@ -23,7 +23,10 @@ Key mapping:
 """
 
 import argparse
+import os
+import re
 import sys
+import traceback
 from pathlib import Path
 
 import torch
@@ -98,7 +101,6 @@ def convert_state_dict(megatron_state):
             continue
 
         # Transformer layers
-        import re
         layer_match = re.match(r'decoder\.layers\.(\d+)\.(.*)', k)
         if not layer_match:
             print(f"  unmapped: {key}")
@@ -163,85 +165,71 @@ def convert_state_dict(megatron_state):
 
 
 def load_nemo_checkpoint(ckpt_path):
-    """Load NeMo distributed checkpoint and extract model state dict."""
+    """Load NeMo distributed checkpoint and extract model state dict.
+
+    Uses PyTorch DCP (distributed checkpoint) with a single-process group.
+    NeMo stores weights in DCP format under <ckpt>/weights/, which cannot
+    be loaded with plain torch.load — it needs torch.distributed.checkpoint.
+    """
     ckpt_path = Path(ckpt_path)
 
-    # Try approach 1: NeMo's io API
-    try:
-        from nemo import lightning as nl
-        from nemo.collections.llm import GPTModel
-        from nemo.collections.llm.gpt.model import MegatronGPTModel
-        import nemo.lightning as nemo_lightning
+    # If it's a plain .pt file, load directly
+    if ckpt_path.is_file():
+        print(f"Loading plain checkpoint file: {ckpt_path}")
+        ckpt = torch.load(str(ckpt_path), map_location='cpu', weights_only=False)
+        if isinstance(ckpt, dict) and 'state_dict' in ckpt:
+            return ckpt['state_dict']
+        if isinstance(ckpt, dict) and 'model_state_dict' in ckpt:
+            return ckpt['model_state_dict']
+        return ckpt
 
-        print("Attempting NeMo restore...")
-        # This requires the full NeMo setup
-        model = nl.io.load_context(str(ckpt_path)).model
-        state = model.state_dict()
-        print(f"  Loaded via NeMo io: {len(state)} tensors")
-        return state
-    except Exception as e:
-        print(f"  NeMo io load failed: {e}")
+    # --- DCP loading for NeMo distributed checkpoints ---
+    weights_dir = ckpt_path / "weights"
+    if not weights_dir.exists():
+        weights_dir = ckpt_path / "model"
+    if not weights_dir.exists():
+        print(f"ERROR: No weights/ or model/ directory in {ckpt_path}")
+        print(f"  Contents: {list(ckpt_path.iterdir())}")
+        sys.exit(1)
 
-    # Try approach 2: Megatron distributed checkpointing
-    try:
-        from megatron.core import dist_checkpointing
-        print("Attempting Megatron dist_checkpointing...")
-        # This requires knowing the sharded state dict structure
-        raise NotImplementedError("Direct dist_checkpointing requires model instantiation")
-    except Exception as e:
-        print(f"  Megatron dist_checkpointing failed: {e}")
+    print(f"Loading via PyTorch DCP from {weights_dir}...")
 
-    # Try approach 3: Direct torch load of individual shard files
-    try:
-        weights_dir = ckpt_path / "weights"
-        if not weights_dir.exists():
-            weights_dir = ckpt_path / "model"
-        if not weights_dir.exists():
-            # Maybe the checkpoint IS a file
-            if ckpt_path.is_file():
-                ckpt = torch.load(str(ckpt_path), map_location='cpu', weights_only=False)
-                if isinstance(ckpt, dict) and 'state_dict' in ckpt:
-                    return ckpt['state_dict']
-                return ckpt
+    # List shard files for diagnostics
+    shard_files = list(weights_dir.glob("*.distcp")) or list(weights_dir.glob("*.pt"))
+    print(f"  Found {len(shard_files)} shard file(s)")
 
-        # Try PyTorch DCP
-        import torch.distributed.checkpoint as dcp
-        print(f"Attempting PyTorch DCP from {weights_dir}...")
+    import torch.distributed as dist
+    import torch.distributed.checkpoint as dcp
+    from torch.distributed.checkpoint import FileSystemReader
 
-        # We need to build a state dict template. Try loading metadata first.
-        metadata_path = weights_dir / ".metadata"
-        if metadata_path.exists():
-            from torch.distributed.checkpoint.metadata import Metadata
-            metadata = torch.load(str(metadata_path), map_location='cpu', weights_only=False)
-            print(f"  Found metadata with {len(metadata.state_dict_metadata)} entries")
+    # Initialize single-process distributed group (required by DCP)
+    os.environ.setdefault('MASTER_ADDR', 'localhost')
+    os.environ.setdefault('MASTER_PORT', '29500')
+    os.environ.setdefault('RANK', '0')
+    os.environ.setdefault('WORLD_SIZE', '1')
+    if not dist.is_initialized():
+        dist.init_process_group('gloo')
+        print("  Initialized single-process distributed group (gloo)")
 
-        # For TP=1/PP=1, try loading the single shard directly
-        shard_files = list(weights_dir.glob("*.distcp"))
-        if not shard_files:
-            shard_files = list(weights_dir.glob("*.pt"))
+    # Read metadata to discover tensor names and shapes
+    reader = FileSystemReader(str(weights_dir))
+    metadata = reader.read_metadata()
+    print(f"  Metadata: {len(metadata.state_dict_metadata)} entries")
 
-        if len(shard_files) == 1:
-            print(f"  Loading single shard: {shard_files[0]}")
-            state = torch.load(str(shard_files[0]), map_location='cpu', weights_only=False)
-            if isinstance(state, dict):
-                return state
+    # Build empty state dict template from metadata
+    state_dict = {}
+    for key, tensor_meta in metadata.state_dict_metadata.items():
+        if hasattr(tensor_meta, 'size'):
+            state_dict[key] = torch.empty(tensor_meta.size)
 
-        # Multiple shards — need DCP
-        print(f"  Found {len(shard_files)} shard files, using DCP...")
-        # This requires torch.distributed to be initialized
-        raise NotImplementedError(
-            f"Multi-shard loading requires torch.distributed. "
-            f"Found {len(shard_files)} shards in {weights_dir}")
+    # Load weights into the template
+    dcp.load(state_dict, storage_reader=reader)
 
-    except Exception as e:
-        print(f"  Direct load failed: {e}")
+    if dist.is_initialized():
+        dist.destroy_process_group()
 
-    print("\nERROR: Could not load checkpoint. Options:")
-    print("  1. Run inside NeMo container with torchrun")
-    print("  2. Provide a pre-converted .pt file")
-    print(f"  Checkpoint path: {ckpt_path}")
-    print(f"  Contents: {list(ckpt_path.iterdir()) if ckpt_path.is_dir() else 'N/A'}")
-    sys.exit(1)
+    print(f"  Loaded {len(state_dict)} tensors via DCP")
+    return state_dict
 
 
 def main():

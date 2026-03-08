@@ -3,7 +3,6 @@
 #SBATCH -N 1
 #SBATCH -n 1
 #SBATCH --ntasks-per-node=1
-#SBATCH --gres=gpu:1
 #SBATCH -p small
 #SBATCH --time=00:30:00
 #SBATCH --output=slurm/%x_%j.out
@@ -24,7 +23,7 @@ mkdir -p $(dirname "$OUTPUT")
 
 srun apptainer exec \
     --env "PYTHONUSERBASE=${MYENVS}/nemo" \
-    --bind /tmpdir,/work --nv /work/conteneurs/calmip/nemo_25.04.03_arm.sif \
+    --bind /tmpdir,/work /work/conteneurs/calmip/nemo_25.04.03_arm.sif \
     python /work/m24047/m24047brmn/nemo/numbers/GPT2/124M/fe_adapt/convert_nemo_ckpt.py \
         --nemo-ckpt "$NEMO_CKPT" \
         --output "$OUTPUT"
