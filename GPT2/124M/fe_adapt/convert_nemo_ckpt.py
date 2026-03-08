@@ -71,11 +71,83 @@ def split_qkv_weight(fused_weight):
     return q, k, v
 
 
+def _convert_layer(converted, layer_idx, rest, value):
+    """Convert a single layer's weight tensor to our naming convention."""
+    prefix = f'transformer.h.{layer_idx}'
+
+    # Self-attention QKV (fused) → split into q/k/v_proj
+    if rest == 'self_attention.linear_qkv.weight':
+        q, k_w, v = split_qkv_weight(value)
+        converted[f'{prefix}.attn.q_proj.weight'] = q
+        converted[f'{prefix}.attn.k_proj.weight'] = k_w
+        converted[f'{prefix}.attn.v_proj.weight'] = v
+        return True
+
+    if rest == 'self_attention.linear_qkv.bias':
+        q_b, k_b, v_b = split_qkv_weight(value.unsqueeze(-1))
+        converted[f'{prefix}.attn.q_proj.bias'] = q_b.squeeze(-1)
+        converted[f'{prefix}.attn.k_proj.bias'] = k_b.squeeze(-1)
+        converted[f'{prefix}.attn.v_proj.bias'] = v_b.squeeze(-1)
+        return True
+
+    # Pre-attention norm (fused into linear_qkv in Megatron)
+    if rest == 'self_attention.linear_qkv.layer_norm_weight':
+        converted[f'{prefix}.attn_norm.weight'] = value
+        return True
+    if rest == 'self_attention.linear_qkv.layer_norm_bias':
+        converted[f'{prefix}.attn_norm.bias'] = value
+        return True
+
+    # Output projection
+    if rest == 'self_attention.linear_proj.weight':
+        converted[f'{prefix}.attn.o_proj.weight'] = value
+        return True
+    if rest == 'self_attention.linear_proj.bias':
+        converted[f'{prefix}.attn.o_proj.bias'] = value
+        return True
+
+    # FFN up projection
+    if rest == 'mlp.linear_fc1.weight':
+        converted[f'{prefix}.mlp.up_proj.weight'] = value
+        return True
+    if rest == 'mlp.linear_fc1.bias':
+        converted[f'{prefix}.mlp.up_proj.bias'] = value
+        return True
+
+    # Pre-FFN norm (fused into linear_fc1 in Megatron)
+    if rest == 'mlp.linear_fc1.layer_norm_weight':
+        converted[f'{prefix}.ffn_norm.weight'] = value
+        return True
+    if rest == 'mlp.linear_fc1.layer_norm_bias':
+        converted[f'{prefix}.ffn_norm.bias'] = value
+        return True
+
+    # FFN down projection
+    if rest == 'mlp.linear_fc2.weight':
+        converted[f'{prefix}.mlp.down_proj.weight'] = value
+        return True
+    if rest == 'mlp.linear_fc2.bias':
+        converted[f'{prefix}.mlp.down_proj.bias'] = value
+        return True
+
+    return False
+
+
 def convert_state_dict(megatron_state):
-    """Convert Megatron-Core state dict to our standalone format."""
+    """Convert Megatron-Core state dict to our standalone format.
+
+    Handles two layouts:
+      - Per-layer keys:  decoder.layers.{i}.xxx.weight  (shape [out, in])
+      - Stacked keys:    decoder.layers.xxx.weight       (shape [n_layers, out, in])
+    NeMo DCP often uses the stacked format for efficiency.
+    """
     converted = {}
 
     for key, value in megatron_state.items():
+        # Skip optimizer states
+        if 'optimizer' in key:
+            continue
+
         # Strip common prefixes
         k = key
         for prefix in ['model.module.', 'module.', 'model.']:
@@ -86,12 +158,10 @@ def convert_state_dict(megatron_state):
         # Embedding
         if k == 'embedding.word_embeddings.weight':
             converted['transformer.wte.weight'] = value
-            # Weight tying: lm_head.weight = wte.weight (handled by model)
             continue
 
         # Output projection (if not tied)
         if k == 'output_layer.weight':
-            # Usually tied with wte — skip if same shape
             converted['lm_head.weight'] = value
             continue
 
@@ -99,67 +169,35 @@ def convert_state_dict(megatron_state):
         if k == 'decoder.final_layernorm.weight':
             converted['transformer.ln_f.weight'] = value
             continue
+        if k == 'decoder.final_layernorm.bias':
+            converted['transformer.ln_f.bias'] = value
+            continue
 
-        # Transformer layers
+        # --- Per-layer format: decoder.layers.{i}.xxx ---
         layer_match = re.match(r'decoder\.layers\.(\d+)\.(.*)', k)
-        if not layer_match:
-            print(f"  unmapped: {key}")
+        if layer_match:
+            layer_idx = int(layer_match.group(1))
+            rest = layer_match.group(2)
+            if _convert_layer(converted, layer_idx, rest, value):
+                continue
+            print(f"  unmapped: {key} (rest={rest})")
             continue
 
-        layer_idx = int(layer_match.group(1))
-        rest = layer_match.group(2)
-        prefix = f'transformer.h.{layer_idx}'
-
-        # Self-attention QKV (fused) → split into q/k/v_proj
-        if rest == 'self_attention.linear_qkv.weight':
-            q, k_w, v = split_qkv_weight(value)
-            converted[f'{prefix}.attn.q_proj.weight'] = q
-            converted[f'{prefix}.attn.k_proj.weight'] = k_w
-            converted[f'{prefix}.attn.v_proj.weight'] = v
+        # --- Stacked format: decoder.layers.xxx with shape [n_layers, ...] ---
+        stacked_match = re.match(r'decoder\.layers\.(.*)', k)
+        if stacked_match and value.dim() >= 1 and value.shape[0] == N_LAYERS:
+            rest = stacked_match.group(1)
+            ok = True
+            for layer_idx in range(N_LAYERS):
+                if not _convert_layer(converted, layer_idx, rest, value[layer_idx]):
+                    ok = False
+                    break
+            if ok:
+                continue
+            print(f"  unmapped stacked: {key} (rest={rest})")
             continue
 
-        if rest == 'self_attention.linear_qkv.bias':
-            q_b, k_b, v_b = split_qkv_weight(value.unsqueeze(-1))
-            converted[f'{prefix}.attn.q_proj.bias'] = q_b.squeeze(-1)
-            converted[f'{prefix}.attn.k_proj.bias'] = k_b.squeeze(-1)
-            converted[f'{prefix}.attn.v_proj.bias'] = v_b.squeeze(-1)
-            continue
-
-        # Pre-attention norm (fused into linear_qkv in Megatron)
-        if rest == 'self_attention.linear_qkv.layer_norm_weight':
-            converted[f'{prefix}.attn_norm.weight'] = value
-            continue
-
-        # Output projection
-        if rest == 'self_attention.linear_proj.weight':
-            converted[f'{prefix}.attn.o_proj.weight'] = value
-            continue
-        if rest == 'self_attention.linear_proj.bias':
-            converted[f'{prefix}.attn.o_proj.bias'] = value
-            continue
-
-        # FFN up projection
-        if rest == 'mlp.linear_fc1.weight':
-            converted[f'{prefix}.mlp.up_proj.weight'] = value
-            continue
-        if rest == 'mlp.linear_fc1.bias':
-            converted[f'{prefix}.mlp.up_proj.bias'] = value
-            continue
-
-        # Pre-FFN norm (fused into linear_fc1 in Megatron)
-        if rest == 'mlp.linear_fc1.layer_norm_weight':
-            converted[f'{prefix}.ffn_norm.weight'] = value
-            continue
-
-        # FFN down projection
-        if rest == 'mlp.linear_fc2.weight':
-            converted[f'{prefix}.mlp.down_proj.weight'] = value
-            continue
-        if rest == 'mlp.linear_fc2.bias':
-            converted[f'{prefix}.mlp.down_proj.bias'] = value
-            continue
-
-        print(f"  unmapped: {key} (rest={rest})")
+        print(f"  unmapped: {key}")
 
     return converted
 
@@ -277,6 +315,11 @@ def main():
         expected[f'transformer.h.{i}.mlp.up_proj.weight'] = (3072, 768)
         expected[f'transformer.h.{i}.mlp.down_proj.weight'] = (768, 3072)
         expected[f'transformer.h.{i}.ffn_norm.weight'] = (768,)
+
+    # Also list any extra keys (like biases) for information
+    extra_keys = set(converted.keys()) - set(expected.keys())
+    if extra_keys:
+        print(f"  Extra keys (biases etc): {sorted(extra_keys)}")
 
     ok = True
     for name, shape in expected.items():
