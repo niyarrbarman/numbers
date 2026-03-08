@@ -96,7 +96,7 @@ class ScaleLane(nn.Module):
         self.weight = nn.Parameter(init * signs)
 
     def forward(self, x: Tensor) -> Tensor:
-        return x.unsqueeze(-1) * self.weight  # (N, dims)
+        return x.float().unsqueeze(-1) * self.weight  # (N, dims)
 
 
 # =============================================================================
@@ -125,9 +125,10 @@ class ResidueLane(nn.Module):
         self.output_dim = 2 * len(periods)  # sin + cos per period
 
     def forward(self, x: Tensor) -> Tensor:
-        # Cast to float64 for precise modular arithmetic at large x
+        # Use float64 for precise modular arithmetic at large x
         # float32 fails for x=1e9: phase = 2π*1e9/10 = 6.28e8, precision ±75 radians
         # float64 is exact for integers up to 2^53 ≈ 9e15
+        # CRITICAL: x must arrive as float64 (not pre-truncated float32)
         x_64 = x.double().unsqueeze(-1)
         phases = 2.0 * math.pi * x_64 / self.periods  # (N, P)
         result = torch.cat([torch.sin(phases), torch.cos(phases)], dim=-1)
@@ -158,7 +159,8 @@ class FourierChannel(nn.Module):
         self.output_dim = 2 * num_freq  # sin + cos
 
     def forward(self, x: Tensor) -> Tensor:
-        log_x = torch.log10(torch.abs(x) + 1.0)  # [0, ~9] for |x| up to 1e9
+        x_f = x.float()
+        log_x = torch.log10(torch.abs(x_f) + 1.0)  # [0, ~9] for |x| up to 1e9
         phases = log_x.unsqueeze(-1) * self.frequencies  # (N, F)
         sin_f = torch.sin(phases) * self.amplitudes
         cos_f = torch.cos(phases) * self.amplitudes
@@ -172,7 +174,8 @@ class LogMagnitudeChannel(nn.Module):
         self.output_dim = 1
 
     def forward(self, x: Tensor) -> Tensor:
-        return torch.log10(torch.abs(x) + 1.0).unsqueeze(-1)
+        x_f = x.float()
+        return torch.log10(torch.abs(x_f) + 1.0).unsqueeze(-1)
 
 
 class SignChannel(nn.Module):
@@ -183,7 +186,7 @@ class SignChannel(nn.Module):
         self.output_dim = 1
 
     def forward(self, x: Tensor) -> Tensor:
-        return torch.tanh(self.alpha * x).unsqueeze(-1)
+        return torch.tanh(self.alpha * x.float()).unsqueeze(-1)
 
 
 # =============================================================================
@@ -413,21 +416,25 @@ def sample_training_numbers(batch_size: int, device: torch.device) -> Tensor:
     n_struct = int(batch_size * 0.10)
     n_digit = batch_size - n_logu - n_small - n_zero - n_int - n_ops - n_struct
 
+    # All computation in float64 to preserve integer precision up to 2^53
+    # This is CRITICAL: float32 has ±64 precision at 1e9, destroying
+    # residue lane features (parity, mod-5, mod-10) for large numbers.
+
     # Log-uniform with random sign: 10^U(0,9) ∈ [1, 1e9]
-    exp_u = torch.empty(n_logu, device=device).uniform_(0.0, 9.0)
+    exp_u = torch.empty(n_logu, device=device, dtype=torch.float64).uniform_(0.0, 9.0)
     logu = 10.0 ** exp_u
     logu_signs = 2 * torch.randint(0, 2, (n_logu,), device=device,
-                                    dtype=torch.int64).float() - 1
+                                    dtype=torch.int64).double() - 1
     logu = logu * logu_signs
 
     # Small numbers
-    small = torch.empty(n_small, device=device).uniform_(-100.0, 100.0)
+    small = torch.empty(n_small, device=device, dtype=torch.float64).uniform_(-100.0, 100.0)
 
     # Near-zero
-    zero = torch.empty(n_zero, device=device).uniform_(-1.0, 1.0)
+    zero = torch.empty(n_zero, device=device, dtype=torch.float64).uniform_(-1.0, 1.0)
 
     # Exact integers by digit count (important for digit probes)
-    ints = torch.zeros(n_int, device=device)
+    ints = torch.zeros(n_int, device=device, dtype=torch.float64)
     int_ndigits = torch.randint(1, 10, (n_int,), device=device)
     for d_val in range(1, 10):
         mask = (int_ndigits == d_val)
@@ -436,22 +443,22 @@ def sample_training_numbers(batch_size: int, device: torch.device) -> Tensor:
             lo = 10 ** (d_val - 1) if d_val > 1 else 0
             hi = 10 ** d_val
             vals = torch.randint(lo, hi, (count,), device=device,
-                                 dtype=torch.int64).float()
+                                 dtype=torch.int64).double()
             ints[mask] = vals
     int_signs = 2 * torch.randint(0, 2, (n_int,), device=device,
-                                   dtype=torch.int64).float() - 1
+                                   dtype=torch.int64).double() - 1
     ints = ints * int_signs
 
     # Operation results at scale: x±y where x,y are log-uniform
     n_pairs = (n_ops + 1) // 2
-    exp_a = torch.empty(n_pairs, device=device).uniform_(0.0, 9.0)
-    exp_b = torch.empty(n_pairs, device=device).uniform_(0.0, 9.0)
+    exp_a = torch.empty(n_pairs, device=device, dtype=torch.float64).uniform_(0.0, 9.0)
+    exp_b = torch.empty(n_pairs, device=device, dtype=torch.float64).uniform_(0.0, 9.0)
     a = 10.0 ** exp_a
     b = 10.0 ** exp_b
     a_signs = 2 * torch.randint(0, 2, (n_pairs,), device=device,
-                                 dtype=torch.int64).float() - 1
+                                 dtype=torch.int64).double() - 1
     b_signs = 2 * torch.randint(0, 2, (n_pairs,), device=device,
-                                 dtype=torch.int64).float() - 1
+                                 dtype=torch.int64).double() - 1
     a = a * a_signs
     b = b * b_signs
     ops = torch.cat([a + b, a - b])[:n_ops]
@@ -469,13 +476,13 @@ def sample_training_numbers(batch_size: int, device: torch.device) -> Tensor:
     # Powers of 10
     for e in range(10):
         struct_pool.append(10 ** e)
-    struct_pool = torch.tensor(struct_pool, device=device, dtype=torch.float32)
+    struct_pool = torch.tensor(struct_pool, device=device, dtype=torch.float64)
     idx = torch.randint(0, len(struct_pool), (n_struct,), device=device)
     struct = struct_pool[idx]
-    struct = struct + torch.empty(n_struct, device=device).uniform_(-0.5, 0.5)
+    struct = struct + torch.empty(n_struct, device=device, dtype=torch.float64).uniform_(-0.5, 0.5)
 
     # Digit-uniform exact integers (extra batch for digit training)
-    digit_nums = torch.zeros(n_digit, device=device)
+    digit_nums = torch.zeros(n_digit, device=device, dtype=torch.float64)
     digit_ndigits = torch.randint(1, 10, (n_digit,), device=device)
     for d_val in range(1, 10):
         mask = (digit_ndigits == d_val)
@@ -484,10 +491,10 @@ def sample_training_numbers(batch_size: int, device: torch.device) -> Tensor:
             lo = 10 ** (d_val - 1) if d_val > 1 else 0
             hi = 10 ** d_val
             vals = torch.randint(lo, hi, (count,), device=device,
-                                 dtype=torch.int64).float()
+                                 dtype=torch.int64).double()
             digit_nums[mask] = vals
     d_signs = 2 * torch.randint(0, 2, (n_digit,), device=device,
-                                 dtype=torch.int64).float() - 1
+                                 dtype=torch.int64).double() - 1
     digit_nums = digit_nums * d_signs
 
     samples = torch.cat([logu, small, zero, ints, ops, struct, digit_nums])
@@ -550,23 +557,27 @@ class NumberEmbeddingSystem(nn.Module):
         eps_lm = 1e-8
         eps_bce = 1e-7
 
+        # Cast x to float32 for loss computation (emb/recon are float32).
+        # Digit labels are computed from the original float64 x below.
+        x_f = x.float()
+
         # ── Core losses (same as v9) ──
 
         # 1. Signed-log MSE (reconstruction)
-        f_x = torch.sign(x) * torch.log1p(torch.abs(x))
+        f_x = torch.sign(x_f) * torch.log1p(torch.abs(x_f))
         f_recon = torch.sign(recon) * torch.log1p(torch.abs(recon))
         loss_slog = F.mse_loss(f_recon, f_x)
 
         # 2. BCE sign loss
         sigma = torch.sigmoid(sign_logit)
-        target_sign = torch.where(x > 0, torch.ones_like(x),
-                                  torch.where(x < 0, torch.zeros_like(x),
-                                              torch.full_like(x, 0.5)))
+        target_sign = torch.where(x_f > 0, torch.ones_like(x_f),
+                                  torch.where(x_f < 0, torch.zeros_like(x_f),
+                                              torch.full_like(x_f, 0.5)))
         loss_bce = F.binary_cross_entropy(sigma.clamp(eps_bce, 1 - eps_bce),
                                           target_sign)
 
         # 3. Log-magnitude MSE
-        log_abs_x = torch.log(torch.abs(x) + eps_lm)
+        log_abs_x = torch.log(torch.abs(x_f) + eps_lm)
         log_abs_recon = torch.log(torch.abs(recon) + eps_lm)
         loss_lm = F.mse_loss(log_abs_recon, log_abs_x)
 
@@ -582,7 +593,7 @@ class NumberEmbeddingSystem(nn.Module):
         # 6. Composition loss (addition probe)
         if lam_compose > 0:
             half = n // 2
-            x1, x2 = x[:half], x[half:2 * half]
+            x1, x2 = x_f[:half], x_f[half:2 * half]
             emb1, emb2 = emb[:half], emb[half:2 * half]
             pred_sum = self.addition_probe(emb1, emb2)
             target_sum = x1 + x2
@@ -595,7 +606,7 @@ class NumberEmbeddingSystem(nn.Module):
         # 7. Order loss (hinge)
         if lam_order > 0:
             half = n // 2
-            xa, xb = x[:half], x[half:2 * half]
+            xa, xb = x_f[:half], x_f[half:2 * half]
             emb_a, emb_b = emb[:half], emb[half:2 * half]
             score_a = self.order_probe(emb_a)
             score_b = self.order_probe(emb_b)
@@ -609,7 +620,7 @@ class NumberEmbeddingSystem(nn.Module):
         # 8. Magnitude classification
         if lam_magnitude > 0:
             mag_logits = self.magnitude_probe(emb)
-            mag_labels = MagnitudeProbe.label(x)
+            mag_labels = MagnitudeProbe.label(x_f)
             loss_mag = F.cross_entropy(mag_logits, mag_labels)
         else:
             loss_mag = torch.tensor(0.0, device=emb.device)
@@ -617,6 +628,7 @@ class NumberEmbeddingSystem(nn.Module):
         # ── NEW: Lane-specific losses ──
 
         # 9. Digit classification from RESIDUE lane only
+        # Use original float64 x for precise digit extraction at 1e9
         if lam_digit > 0:
             residue_emb = self._get_residue_slice(emb)
             digit_logits = self.digit_probe(residue_emb)
@@ -644,7 +656,7 @@ class NumberEmbeddingSystem(nn.Module):
         # 11. Subtraction probe
         if lam_sub > 0:
             half = n // 2
-            x1, x2 = x[:half], x[half:2 * half]
+            x1, x2 = x_f[:half], x_f[half:2 * half]
             emb1, emb2 = emb[:half], emb[half:2 * half]
             pred_diff = self.subtraction_probe(emb1, emb2)
             target_diff = x1 - x2
@@ -815,16 +827,26 @@ class NumberEmbeddingSystem(nn.Module):
 def _encode_np(system: NumberEmbeddingSystem, vals) -> np.ndarray:
     with torch.no_grad():
         t = torch.tensor(np.atleast_1d(np.asarray(vals, dtype=np.float64)),
-                         dtype=torch.float32, device=system.device)
+                         dtype=torch.float64, device=system.device)
         return system.encode(t).cpu().numpy()
 
 
 def _forward_np(system: NumberEmbeddingSystem, vals):
     with torch.no_grad():
         t = torch.tensor(np.atleast_1d(np.asarray(vals, dtype=np.float64)),
-                         dtype=torch.float32, device=system.device)
+                         dtype=torch.float64, device=system.device)
         emb, recon, _ = system.forward(t)
         return emb.cpu().numpy(), recon.cpu().numpy()
+
+
+def _ridge_solve(X: torch.Tensor, y: torch.Tensor,
+                 lam: float = 1e-2) -> torch.Tensor:
+    """Ridge regression: w = (X'X + λI)^{-1} X'y, robust to rank deficiency."""
+    XtX = X.T @ X
+    # Scale regularization relative to the mean diagonal magnitude
+    diag_mean = XtX.diag().abs().mean().clamp(min=1e-8)
+    reg = lam * diag_mean * torch.eye(X.shape[1], device=X.device)
+    return torch.linalg.solve(XtX + reg, X.T @ y)
 
 
 # =============================================================================
@@ -847,10 +869,10 @@ def run_probe_tests(system: NumberEmbeddingSystem, n_train: int = 10000,
 
     for label, lo, hi in [("[-1K,1K]", -1000, 1000),
                            ("[-1M,1M]", -1000000, 1000000)]:
-        x1_tr = torch.empty(n_train, device=device).uniform_(lo, hi)
-        x2_tr = torch.empty(n_train, device=device).uniform_(lo, hi)
-        x1_te = torch.empty(n_test, device=device).uniform_(lo, hi)
-        x2_te = torch.empty(n_test, device=device).uniform_(lo, hi)
+        x1_tr = torch.empty(n_train, device=device, dtype=torch.float64).uniform_(lo, hi)
+        x2_tr = torch.empty(n_train, device=device, dtype=torch.float64).uniform_(lo, hi)
+        x1_te = torch.empty(n_test, device=device, dtype=torch.float64).uniform_(lo, hi)
+        x2_te = torch.empty(n_test, device=device, dtype=torch.float64).uniform_(lo, hi)
 
         with torch.no_grad():
             e1_tr = system.encode(x1_tr)
@@ -863,8 +885,7 @@ def run_probe_tests(system: NumberEmbeddingSystem, n_train: int = 10000,
         X_te = torch.cat([e1_te, e2_te], dim=-1)
         y_te = (x1_te + x2_te).float()
 
-        XtX = X_tr.T @ X_tr + 1e-4 * torch.eye(X_tr.shape[1], device=device)
-        w = torch.linalg.solve(XtX, X_tr.T @ y_tr)
+        w = _ridge_solve(X_tr, y_tr)
         pred = X_te @ w
         ss_res = ((y_te - pred) ** 2).sum().item()
         ss_tot = ((y_te - y_te.mean()) ** 2).sum().item()
@@ -877,10 +898,10 @@ def run_probe_tests(system: NumberEmbeddingSystem, n_train: int = 10000,
     print("\n  Probe 2: LINEAR SUBTRACTION — W @ [e(x); e(y)] → x-y")
     print("  " + "-" * 60)
 
-    x1_tr = torch.empty(n_train, device=device).uniform_(-1000, 1000)
-    x2_tr = torch.empty(n_train, device=device).uniform_(-1000, 1000)
-    x1_te = torch.empty(n_test, device=device).uniform_(-1000, 1000)
-    x2_te = torch.empty(n_test, device=device).uniform_(-1000, 1000)
+    x1_tr = torch.empty(n_train, device=device, dtype=torch.float64).uniform_(-1000, 1000)
+    x2_tr = torch.empty(n_train, device=device, dtype=torch.float64).uniform_(-1000, 1000)
+    x1_te = torch.empty(n_test, device=device, dtype=torch.float64).uniform_(-1000, 1000)
+    x2_te = torch.empty(n_test, device=device, dtype=torch.float64).uniform_(-1000, 1000)
 
     with torch.no_grad():
         e1_tr = system.encode(x1_tr)
@@ -893,8 +914,7 @@ def run_probe_tests(system: NumberEmbeddingSystem, n_train: int = 10000,
     X_te = torch.cat([e1_te, e2_te], dim=-1)
     y_te = (x1_te - x2_te).float()
 
-    XtX = X_tr.T @ X_tr + 1e-4 * torch.eye(X_tr.shape[1], device=device)
-    w_sub = torch.linalg.solve(XtX, X_tr.T @ y_tr)
+    w_sub = _ridge_solve(X_tr, y_tr)
     pred_sub = X_te @ w_sub
     ss_res = ((y_te - pred_sub) ** 2).sum().item()
     ss_tot = ((y_te - y_te.mean()) ** 2).sum().item()
@@ -907,14 +927,11 @@ def run_probe_tests(system: NumberEmbeddingSystem, n_train: int = 10000,
     print("\n  Probe 3: LINEAR ORDER — w @ e(x) ranks numbers correctly")
     print("  " + "-" * 60)
 
-    x_order = torch.linspace(-1e6, 1e6, 2000, device=device)
+    x_order = torch.linspace(-1e6, 1e6, 2000, device=device, dtype=torch.float64)
     with torch.no_grad():
         emb_order = system.encode(x_order)
 
-    XtX_o = emb_order.T @ emb_order + 1e-4 * torch.eye(
-        system.embedding_dim, device=device)
-    Xty_o = emb_order.T @ x_order
-    w_ord = torch.linalg.solve(XtX_o, Xty_o)
+    w_ord = _ridge_solve(emb_order, x_order.float())
     pred_order = emb_order @ w_ord
 
     rho, _ = spearmanr(x_order.cpu().numpy(), pred_order.cpu().numpy())
@@ -936,9 +953,7 @@ def run_probe_tests(system: NumberEmbeddingSystem, n_train: int = 10000,
 
     n_cls = MagnitudeProbe.NUM_CLASSES
     Y_oh = F.one_hot(y_tr, n_cls).float()
-    XtX_m = X_tr.T @ X_tr + 1e-3 * torch.eye(system.embedding_dim,
-                                                device=device)
-    W_mag = torch.linalg.solve(XtX_m, X_tr.T @ Y_oh)
+    W_mag = _ridge_solve(X_tr, Y_oh)
     pred_mag = (X_te @ W_mag).argmax(dim=-1)
     acc_mag = (pred_mag == y_te).float().mean().item()
     print(f"    Accuracy = {acc_mag:.4f} ({n_cls} classes)")
@@ -949,7 +964,7 @@ def run_probe_tests(system: NumberEmbeddingSystem, n_train: int = 10000,
     print("  " + "-" * 60)
 
     x_par = torch.randint(-5000, 5000, (5000,), device=device,
-                           dtype=torch.float32)
+                           dtype=torch.int64).double()
     with torch.no_grad():
         emb_par = system.encode(x_par)
     y_par = (x_par.long().abs() % 2).float()
@@ -957,9 +972,7 @@ def run_probe_tests(system: NumberEmbeddingSystem, n_train: int = 10000,
     X_tr_p, X_te_p = emb_par[:4000], emb_par[4000:]
     y_tr_p, y_te_p = y_par[:4000], y_par[4000:]
 
-    XtX_p = X_tr_p.T @ X_tr_p + 1e-3 * torch.eye(
-        system.embedding_dim, device=device)
-    w_par = torch.linalg.solve(XtX_p, X_tr_p.T @ y_tr_p)
+    w_par = _ridge_solve(X_tr_p, y_tr_p)
     pred_par = (X_te_p @ w_par > 0.5).float()
     acc_par = (pred_par == y_te_p).float().mean().item()
     print(f"    Accuracy = {acc_par:.4f}")
@@ -970,7 +983,7 @@ def run_probe_tests(system: NumberEmbeddingSystem, n_train: int = 10000,
     print("  " + "-" * 60)
 
     x_dig = torch.randint(-10000, 10000, (5000,), device=device,
-                           dtype=torch.float32)
+                           dtype=torch.int64).double()
     with torch.no_grad():
         emb_dig = system.encode(x_dig)
     y_dig = (x_dig.long().abs() % 10)
@@ -979,9 +992,7 @@ def run_probe_tests(system: NumberEmbeddingSystem, n_train: int = 10000,
     y_tr_d, y_te_d = y_dig[:4000], y_dig[4000:]
 
     Y_oh_d = F.one_hot(y_tr_d, 10).float()
-    XtX_d = X_tr_d.T @ X_tr_d + 1e-3 * torch.eye(
-        system.embedding_dim, device=device)
-    W_dig = torch.linalg.solve(XtX_d, X_tr_d.T @ Y_oh_d)
+    W_dig = _ridge_solve(X_tr_d, Y_oh_d)
     pred_dig = (X_te_d @ W_dig).argmax(dim=-1)
     acc_dig = (pred_dig == y_te_d).float().mean().item()
     print(f"    Accuracy = {acc_dig:.4f} (10 classes, chance=0.10)")
@@ -992,7 +1003,7 @@ def run_probe_tests(system: NumberEmbeddingSystem, n_train: int = 10000,
     print("  " + "-" * 60)
 
     x_all = torch.randint(0, 1000000000, (8000,), device=device,
-                           dtype=torch.float32)
+                           dtype=torch.int64).double()
     with torch.no_grad():
         emb_all = system.encode(x_all)
     k = system.scale_dims
@@ -1007,8 +1018,7 @@ def run_probe_tests(system: NumberEmbeddingSystem, n_train: int = 10000,
         y_tr_a = digit_labels[pos][:6000]
         y_te_a = digit_labels[pos][6000:]
         Y_oh_a = F.one_hot(y_tr_a, 10).float()
-        XtX_a = X_tr_a.T @ X_tr_a + 1e-3 * torch.eye(r, device=device)
-        W_a = torch.linalg.solve(XtX_a, X_tr_a.T @ Y_oh_a)
+        W_a = _ridge_solve(X_tr_a, Y_oh_a)
         pred_a = (X_te_a @ W_a).argmax(dim=-1)
         acc_a = (pred_a == y_te_a).float().mean().item()
         per_pos_acc.append(acc_a)
@@ -1032,8 +1042,8 @@ def run_probe_tests(system: NumberEmbeddingSystem, n_train: int = 10000,
     ]
     all_full, all_scale = [], []
     for name, lo1, hi1, lo2, hi2 in ranges:
-        xa = torch.empty(1000, device=device).uniform_(lo1, hi1)
-        xb = torch.empty(1000, device=device).uniform_(lo2, hi2)
+        xa = torch.empty(1000, device=device, dtype=torch.float64).uniform_(lo1, hi1)
+        xb = torch.empty(1000, device=device, dtype=torch.float64).uniform_(lo2, hi2)
         if name == "integers":
             xa = xa.round()
             xb = xb.round()
@@ -1066,10 +1076,10 @@ def run_probe_tests(system: NumberEmbeddingSystem, n_train: int = 10000,
           "[e(x); e(y)]")
     print("  " + "-" * 60)
 
-    x1_mm = torch.empty(n_train, device=device).uniform_(-10000, 10000)
-    x2_mm = torch.empty(n_train, device=device).uniform_(-10000, 10000)
-    x1_mm_te = torch.empty(n_test, device=device).uniform_(-10000, 10000)
-    x2_mm_te = torch.empty(n_test, device=device).uniform_(-10000, 10000)
+    x1_mm = torch.empty(n_train, device=device, dtype=torch.float64).uniform_(-10000, 10000)
+    x2_mm = torch.empty(n_train, device=device, dtype=torch.float64).uniform_(-10000, 10000)
+    x1_mm_te = torch.empty(n_test, device=device, dtype=torch.float64).uniform_(-10000, 10000)
+    x2_mm_te = torch.empty(n_test, device=device, dtype=torch.float64).uniform_(-10000, 10000)
 
     with torch.no_grad():
         e1_mm = system.encode(x1_mm)
@@ -1083,9 +1093,7 @@ def run_probe_tests(system: NumberEmbeddingSystem, n_train: int = 10000,
     for op_name, op_fn in [("MIN", torch.minimum), ("MAX", torch.maximum)]:
         y_tr_mm = op_fn(x1_mm, x2_mm).float()
         y_te_mm = op_fn(x1_mm_te, x2_mm_te).float()
-        XtX_mm = X_mm_tr.T @ X_mm_tr + 1e-4 * torch.eye(
-            X_mm_tr.shape[1], device=device)
-        w_mm = torch.linalg.solve(XtX_mm, X_mm_tr.T @ y_tr_mm)
+        w_mm = _ridge_solve(X_mm_tr, y_tr_mm)
         pred_mm = X_mm_te @ w_mm
         ss_res = ((y_te_mm - pred_mm) ** 2).sum().item()
         ss_tot = ((y_te_mm - y_te_mm.mean()) ** 2).sum().item()
@@ -1097,11 +1105,11 @@ def run_probe_tests(system: NumberEmbeddingSystem, n_train: int = 10000,
     print("\n  Probe 10: CROSS-SCALE — train on [0,1K], test on [1M,1B]")
     print("  " + "-" * 60)
 
-    x1_cs_tr = torch.empty(n_train, device=device).uniform_(-1000, 1000)
-    x2_cs_tr = torch.empty(n_train, device=device).uniform_(-1000, 1000)
+    x1_cs_tr = torch.empty(n_train, device=device, dtype=torch.float64).uniform_(-1000, 1000)
+    x2_cs_tr = torch.empty(n_train, device=device, dtype=torch.float64).uniform_(-1000, 1000)
     # Test on MUCH larger numbers
-    x1_cs_te = torch.empty(n_test, device=device).uniform_(-1e9, 1e9)
-    x2_cs_te = torch.empty(n_test, device=device).uniform_(-1e9, 1e9)
+    x1_cs_te = torch.empty(n_test, device=device, dtype=torch.float64).uniform_(-1e9, 1e9)
+    x2_cs_te = torch.empty(n_test, device=device, dtype=torch.float64).uniform_(-1e9, 1e9)
 
     with torch.no_grad():
         e1_cs_tr = system.encode(x1_cs_tr)
@@ -1114,9 +1122,7 @@ def run_probe_tests(system: NumberEmbeddingSystem, n_train: int = 10000,
     y_cs_tr = (x1_cs_tr + x2_cs_tr).float()
     y_cs_te = (x1_cs_te + x2_cs_te).float()
 
-    XtX_cs = X_cs_tr.T @ X_cs_tr + 1e-4 * torch.eye(
-        X_cs_tr.shape[1], device=device)
-    w_cs = torch.linalg.solve(XtX_cs, X_cs_tr.T @ y_cs_tr)
+    w_cs = _ridge_solve(X_cs_tr, y_cs_tr)
     pred_cs = X_cs_te @ w_cs
     ss_res_cs = ((y_cs_te - pred_cs) ** 2).sum().item()
     ss_tot_cs = ((y_cs_te - y_cs_te.mean()) ** 2).sum().item()
@@ -1264,12 +1270,30 @@ def run_standard_tests(system: NumberEmbeddingSystem):
     task_range_nums = np.concatenate([
         np.random.uniform(-1e9, 1e9, 400),
         np.random.uniform(-1000, 1000, 100),
-    ]).astype(np.float32)
+    ])
     embs_s = _encode_np(system, task_range_nums)
-    _, S, _ = np.linalg.svd(embs_s - embs_s.mean(axis=0), full_matrices=False)
-    eff = int(np.sum(S > 0.01 * S[0]))
-    check("Effective dimensionality > 40", eff > 40,
-          f"Effective dims: {eff}/{system.embedding_dim}")
+
+    # Per-lane effective dims (avoids scale lane dominating global PCA)
+    K = system.scale_dims
+    R = system.residue_dims
+    lane_slices = {
+        'scale': embs_s[:, :K],
+        'residue': embs_s[:, K:K + R],
+        'semantic': embs_s[:, K + R:],
+    }
+    total_eff = 0
+    for lane_name, lane_emb in lane_slices.items():
+        c = lane_emb - lane_emb.mean(axis=0)
+        _, S_lane, _ = np.linalg.svd(c, full_matrices=False)
+        eff_lane = int(np.sum(S_lane > 0.01 * S_lane[0])) if S_lane[0] > 1e-10 else 0
+        total_eff += eff_lane
+        print(f"    {lane_name:>8}: {eff_lane}/{lane_emb.shape[1]} effective dims")
+
+    check("Per-lane effective dimensionality > 40", total_eff > 40,
+          f"Total effective dims: {total_eff}/{system.embedding_dim} "
+          f"(scale={lane_slices['scale'].shape[1]}, "
+          f"residue={lane_slices['residue'].shape[1]}, "
+          f"semantic={lane_slices['semantic'].shape[1]})")
 
     ordered = np.linspace(-1e6, 1e6, 50)
     embs_o = _encode_np(system, ordered)
@@ -1326,7 +1350,8 @@ def run_standard_tests(system: NumberEmbeddingSystem):
 
     # Residue lane periodicity: period-10 features repeat every 10
     n_periods = len(system.encoder.residue_lane.periods)
-    x_base = torch.tensor([42.0, 137.0, 9999.0, 1e8], device=system.device)
+    x_base = torch.tensor([42.0, 137.0, 9999.0, 1e8], device=system.device,
+                           dtype=torch.float64)
     x_plus10 = x_base + 10.0
     with torch.no_grad():
         e_base_full = system.encode(x_base)
@@ -1342,18 +1367,21 @@ def run_standard_tests(system: NumberEmbeddingSystem):
     check("Residue period-10 repeats every 10", period10_err < 0.01,
           f"Max diff: {period10_err:.6f}")
 
-    # Parity: period-2 features differ for odd vs even
-    x_even = torch.tensor([2.0, 100.0, 1000.0], device=system.device)
-    x_odd = torch.tensor([3.0, 101.0, 1001.0], device=system.device)
+    # Parity: period-2 cos features differ for odd vs even
+    # sin(π·x) = 0 for all integers, so we check cos(π·x) = +1 even, -1 odd
+    x_even = torch.tensor([2.0, 100.0, 1000.0], device=system.device,
+                           dtype=torch.float64)
+    x_odd = torch.tensor([3.0, 101.0, 1001.0], device=system.device,
+                          dtype=torch.float64)
     with torch.no_grad():
         e_even = system.encode(x_even)
         e_odd = system.encode(x_odd)
-        # Period 2 is at index 0, sin at K+0, cos at K+n_periods+0
-        even_sin = e_even[:, K + 0]
-        odd_sin = e_odd[:, K + 0]
-    parity_diff = (even_sin - odd_sin).abs().mean().item()
-    check("Period-2 distinguishes even/odd", parity_diff > 0.5,
-          f"Mean |sin diff|: {parity_diff:.4f}")
+        # Period 2 is at index 0: sin at K+0, cos at K+n_periods+0
+        even_cos = e_even[:, K + n_periods + 0]
+        odd_cos = e_odd[:, K + n_periods + 0]
+    parity_diff = (even_cos - odd_cos).abs().mean().item()
+    check("Period-2 distinguishes even/odd (cos)", parity_diff > 0.5,
+          f"Mean |cos diff|: {parity_diff:.4f}")
 
     w = system.encoder.scale_lane.weight.detach().cpu().numpy()
     print(f"  Scale weight range: [{w.min():.2e}, {w.max():.2e}]")
@@ -1379,8 +1407,10 @@ def run_standard_tests(system: NumberEmbeddingSystem):
     # Residue features are numerically meaningful at 1e9
     with torch.no_grad():
         e_1b = system.encode(torch.tensor([1000000000.0],
+                                           dtype=torch.float64,
                                            device=system.device))
         e_1b_p1 = system.encode(torch.tensor([1000000001.0],
+                                              dtype=torch.float64,
                                               device=system.device))
         residue_1b = e_1b[:, K:K + R]
         residue_1b_p1 = e_1b_p1[:, K:K + R]
@@ -1395,7 +1425,7 @@ def run_standard_tests(system: NumberEmbeddingSystem):
 
     # 500 random numbers, check if embedding nearest neighbor matches
     # number nearest neighbor
-    disc_nums = np.sort(np.random.uniform(-1e6, 1e6, 500)).astype(np.float32)
+    disc_nums = np.sort(np.random.uniform(-1e6, 1e6, 500))
     disc_embs = _encode_np(system, disc_nums)
 
     # Number nearest neighbor: adjacent in sorted order
@@ -1418,7 +1448,7 @@ def run_standard_tests(system: NumberEmbeddingSystem):
     print("TEST 9: LANE INDEPENDENCE — Low correlation between lanes")
     print("-" * 70)
 
-    ind_nums = np.random.uniform(-1e6, 1e6, 1000).astype(np.float32)
+    ind_nums = np.random.uniform(-1e6, 1e6, 1000)
     ind_embs = _encode_np(system, ind_nums)
     scale_part = ind_embs[:, :K]
     residue_part = ind_embs[:, K:K + R]

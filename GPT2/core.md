@@ -1,211 +1,271 @@
- The Core Thesis
+# Core Thesis
 
-  Numbers are a modality. Just as images are a modality that BPE handles poorly (you wouldn't
-  OCR an image into text and feed that to a language model), numbers are a modality that BPE
-  handles poorly. BPE fragments "21530000000000" into arbitrary chunks like ["215", "300",
-  "000", "000", "00"] — destroying the magnitude, ordering, and arithmetic structure that
-  matters.
+Numbers are a modality.
 
-  LLaVA's insight was: don't force images through text tokenization. Give the model a
-  pretrained visual encoder and teach it to use those features. Your insight is the same for
-  numbers.
+Just as images are a modality that BPE handles poorly (you would not OCR an image into text and feed that to a language model), numbers are also a modality that BPE handles poorly.
 
-  LLaVA Architecture (for reference)
+Example: `21530000000000` can be fragmented into arbitrary chunks like `"215"`, `"300"`, `"000"`, `"000"`, `"00"`, which destroys magnitude, ordering, and arithmetic structure.
 
-  LLaVA training has two stages:
+LLaVA's key insight was: do not force images through text tokenization. Give the model a pretrained visual encoder and teach it to use those features.
 
-  Stage 1: Feature Alignment (freeze CLIP, freeze LLM, train ONLY the adapter)
-    - Data: 600K image-caption pairs
-    - Goal: adapter learns to project CLIP features into the LLM's
-      embedding manifold
-    - The LLM doesn't change — the adapter learns to "speak its language"
-    - Cheap: ~24 hours on 8× A100s
+This work applies the same principle to numbers.
 
-  Stage 2: Visual Instruction Tuning (freeze CLIP, LoRA on LLM, train adapter)
-    - Data: 150K visual Q&A + instruction pairs
-    - Goal: LLM learns to reason about visual tokens
-    - LoRA keeps most weights frozen, prevents catastrophic forgetting
-    - The LLM adapts to the new modality without losing language ability
+## LLaVA Architecture (Reference)
 
-  The key insight: the encoder never changes. CLIP was pretrained separately and stays frozen.
-  Only the adapter and (via LoRA) the LLM adapt.
+LLaVA training has two stages.
 
-  Your Architecture: NumericalLLM
+### Stage 1: Feature Alignment
 
-  Direct translation:
+- Freeze CLIP.
+- Freeze the LLM.
+- Train only the adapter.
+- Data: ~600K image-caption pairs.
+- Goal: project CLIP features into the LLM embedding manifold.
+- Result: the LLM does not change; the adapter learns to "speak its language."
+- Cost: relatively cheap (roughly a day on 8x A100s in reported setups).
 
-  Stage 1: Number Alignment (freeze NumberEncoder, freeze LLM, train ONLY adapter)
-    - Data: synthetic numerical tasks (your existing generator)
-    - Goal: adapter learns to project 128-dim number embeddings into
-      the LLM's embedding manifold
-    - This IS your blend schedule — but done with the LLM frozen
-    - Very cheap: the NumberEncoder is 7.4K params, adapter is ~690K
+### Stage 2: Visual Instruction Tuning
 
-  Stage 2: Math Instruction Tuning (freeze encoder, LoRA on LLM, train adapter)
-    - Data: math problems, numerical reasoning, mixed with language
-    - Goal: LLM learns to USE the numerical features for reasoning
-    - LoRA (rank 16-64) on attention projections + MLP
-    - Mix in general text to prevent forgetting
+- Freeze CLIP.
+- Apply LoRA to the LLM.
+- Train adapter + LoRA parameters.
+- Data: ~150K visual Q&A and instruction pairs.
+- Goal: teach the LLM to reason over visual tokens.
+- Benefit: LoRA avoids full finetuning and reduces catastrophic forgetting.
 
-  What Makes Numbers Different from Vision
+The key pattern: the encoder remains frozen; adaptation happens in the projection and lightweight LLM updates.
 
-  This is where the research gets interesting. Numbers are a better modality to adapt than
-  images:
+## Your Architecture: NumericalLLM
 
-  1. Numbers compress, images expand.
+Direct translation of the LLaVA recipe.
 
-  LLaVA injects 576 visual tokens per image — massively expanding the sequence. Your encoder
-  does the opposite: "21530000000000" goes from 5 BPE tokens to 1 token. You're saving context
-  length. For a financial report with 50 numbers, you might save 100+ positions. This is a
-  feature, not a cost.
+### Stage 1: Number Alignment
 
-  2. The encoder is tiny and analytically grounded.
+- Freeze `NumberEncoder`.
+- Freeze the LLM.
+- Train only an adapter.
+- Data: synthetic numerical tasks (existing generator).
+- Goal: project 128-dim number embeddings into the LLM embedding manifold.
+- Interpretation: this is the blend schedule done with a frozen LLM.
+- Cost: very low (`NumberEncoder` ~7.4K params; adapter ~690K).
 
-  CLIP needs 400M params and billions of image-text pairs. Your NumberEncoder needs 7.4K params
-   and is constructed from mathematical principles (Fourier features, log-magnitude, residue
-  system). It can be pretrained in hours on a single GPU. This means anyone can reproduce it.
+### Stage 2: Math Instruction Tuning
 
-  3. Numbers appear inline, not as a prefix.
+- Freeze `NumberEncoder`.
+- Apply LoRA to the LLM.
+- Train adapter + LoRA parameters.
+- Data: math reasoning + mixed language data.
+- Goal: teach the LLM to use numerical features for reasoning.
+- Practical setting: LoRA rank ~16-64 on attention projections and MLP.
+- Stability: mix general text to reduce forgetting.
 
-  LLaVA puts visual tokens at the start of the sequence, then text follows. Numbers appear
-  scattered throughout: "The population of France is 67390000 and Germany is 83200000, so the
-  difference is 15810000." This is architecturally more interesting — the model must handle
-  mixed text-and-number sequences where numbers can appear anywhere.
+## Why Numbers Are Different from Vision
 
-  4. The encoder provably captures the right properties.
+This is where the research case gets stronger.
 
-  You can formally verify that the NumberEncoder preserves ordering (Spearman ρ = 1.0), enables
-   addition recovery (R² = 0.9999), and distinguishes magnitudes. CLIP's properties are
-  empirical. This is a cleaner scientific story.
+### 1) Numbers compress, images expand
 
-  The Sequence Position Problem (and the solution)
+- LLaVA commonly injects many visual tokens per image.
+- Number encoding can reduce token count.
+- Example: one numeric span that becomes 1 numeric token instead of 3-5 BPE tokens.
+- Effect: context savings (e.g., many numbers in long reports).
 
-  There's a technical challenge unique to inline number injection. When you replace 3 BPE
-  tokens with 1 <NUM> token, all subsequent positions shift:
+### 2) The encoder is tiny and analytically grounded
 
-  Original:  [The, GDP, was, 215, 300, 000, in, 2023]
-                                ↑positions 3-5↑   ↑pos 6↑
+- CLIP-scale encoders are huge and data-hungry.
+- `NumberEncoder` is tiny (~7.4K params).
+- Built from mathematical priors (Fourier features, log-magnitude, residue system).
+- Pretraining can be done quickly and reproducibly.
 
-  With encoder: [The, GDP, was, <NUM>, in, 2023]
-                                        ↑pos 4↑
+### 3) Numbers appear inline, not as a single prefix block
 
-  " in" moved from position 6 to position 4. For a pretrained model using RoPE, this changes
-  the attention geometry.
+Unlike images (often encoded as a block of tokens), numbers are scattered throughout language:
 
-  Three solutions (pick one):
+`The population of France is 67390000 and Germany is 83200000, so the difference is 15810000.`
 
-  A. Multi-token number slots (cleanest for plug-and-play):
+The model must handle mixed text-number sequences with number tokens anywhere.
 
-  Always represent each number as K tokens (e.g., K=4):
-  [The, GDP, was, <NUM>, <NUM_CONT>, <NUM_CONT>, <NUM_CONT>, in, 2023]
-  - First token: NumberEncoder embedding via adapter
-  - Remaining K-1 tokens: learned "continuation" embeddings (or zeros, or copies)
-  - Positions stay exactly where a typical BPE tokenization would put them
-  - K chosen to match the median BPE token count for numbers in the training data
+### 4) Encoder properties can be formally validated
 
-  This is exactly what LLaVA does — it uses a fixed number of visual tokens per image
-  regardless of content.
+You can probe and verify properties such as:
 
-  B. Just fine-tune through it:
+- ordering preservation (Spearman rho ~1.0),
+- addition recoverability (high R^2),
+- magnitude separability.
 
-  RoPE is relatively robust to moderate position shifts. With LoRA fine-tuning, the model
-  adapts in a few thousand steps. Simpler to implement but less clean theoretically.
+This gives a cleaner scientific narrative than purely empirical feature quality.
 
-  C. Position-aware adapter:
+## Sequence Position Problem
 
-  The adapter produces the embedding AND a "virtual position offset" that adjusts the RoPE
-  rotation for subsequent tokens. Clever but complex.
+Inline number replacement changes positions.
 
-  For the 124M experiment, B is fine. For the Llama paper, A is the right choice.
+When 3 BPE tokens are replaced by 1 `<NUM>` token, subsequent positions shift. For RoPE-based models, this alters attention geometry.
 
-  The Output Problem
+### Example
 
-  The encoder helps the model understand numbers in the input. But the model still outputs
-  numbers as BPE tokens. This asymmetry is fine — it's the same as LLaVA, which understands
-  images but outputs only text.
+```text
+Original:     [The, GDP, was, 215, 300, 000, in, 2023]
+With encoder: [The, GDP, was, <NUM>, in, 2023]
+```
 
-  But you can push further. The value-regression aux loss I described earlier fits naturally
-  here:
+Here, `in` moves earlier in position index.
 
-  Input: "what is the population difference between France (67390000)
-          and Germany (83200000)?"
+### Solutions
 
-  Encoder handles: 67390000 → dense embedding, 83200000 → dense embedding
+#### A) Multi-token Number Slots (cleanest for plug-and-play)
 
-  Transformer processes everything, produces hidden states.
+Use fixed-width number slots with `K` tokens (e.g., `K=4`):
 
-  Output pathway 1 (main): LM head → text tokens → "15810000"
-  Output pathway 2 (aux):  Regression head → scalar → 15810000.0
-                            L_aux = |slog(pred) - slog(15810000)|
+```text
+[The, GDP, was, <NUM>, <NUM_CONT>, <NUM_CONT>, <NUM_CONT>, in, 2023]
+```
 
-  The aux loss is training-time only. At inference, normal text output.
+- First token: adapter-projected `NumberEncoder` embedding.
+- Remaining `K-1`: learned continuation embeddings (or tied/zero variants).
+- Position behavior becomes predictable.
+- Choose `K` from number-token statistics in data.
 
-  The aux loss forces the transformer's internal representation to be numerically precise,
-  which makes the BPE token prediction better downstream.
+This mirrors the fixed-token visual pattern in multimodal systems.
 
-  Experimental Roadmap for a Paper
+#### B) Finetune Through Position Shift
 
-  Experiment 1: Controlled comparison at 124M (train from scratch)
+- Keep `K=1` and rely on LoRA finetuning.
+- RoPE is often robust enough for moderate shifts.
+- Simpler implementation, weaker theoretical cleanliness.
 
-  Model: Base 124M
-  Input: BPE
-  Output: BPE
-  What it proves: Baseline
-  ────────────────────────────────────────
-  Model: FE-TextDec 124M
-  Input: NumberEncoder
-  Output: BPE
-  What it proves: Encoder helps with text output
-  ────────────────────────────────────────
-  Model: FE-TextDec 124M + aux
-  Input: NumberEncoder
-  Output: BPE + value aux
-  What it proves: Aux loss improves precision
+#### C) Position-aware Adapter
 
-  Data: your synthetic tasks, range 10^6, all 14 tasks. Same data for all three.
+- Adapter predicts both embedding and virtual positional adjustment.
+- Most complex option.
 
-  This is the cleanest experiment. Same model size, same data, same output format. Only the
-  input encoding differs.
+### Practical Recommendation
 
-  Experiment 2: Plug-and-play at 124M (pretrain then adapt)
+- For the 124M prototype: **B** is acceptable.
+- For a strong paper-grade system: **A** is cleaner.
 
-  1. Train Base 124M to convergence
-  2. Freeze it, plug in NumberEncoder, train adapter only (Stage 1)
-  3. LoRA fine-tune on same math data (Stage 2)
-  4. Compare to Base 124M and FE-from-scratch
+## Output Asymmetry and Aux Value Loss
 
-  This proves the approach transfers to pretrained models.
+Input-side numeric encoding improves understanding, but output is still text tokens (BPE). This is normal in multimodal setups.
 
-  Experiment 3: Plug into Llama/Qwen (the real test)
+You can add an auxiliary numeric regression objective during training:
 
-  1. Take Llama 3.2 1B or 3B (small enough to fine-tune on limited compute)
-  2. Stage 1: adapter alignment on synthetic math data
-  3. Stage 2: LoRA fine-tune on math benchmarks (GSM8K, MATH, etc.)
-  4. Evaluate on standard math benchmarks AND general language benchmarks (to show no
-  regression)
+```text
+Output path 1 (main): LM head -> text tokens (e.g., "15810000")
+Output path 2 (aux):  regression head -> scalar (e.g., 15810000.0)
+Loss: L_aux = |slog(pred) - slog(target)|
+```
 
-  This is the paper's main result.
+The auxiliary head is training-only. Inference remains standard text generation.
 
-  Experiment 4: Ablations
+Effect: it pressures hidden states to carry numerically precise representations, improving downstream token prediction for numbers.
 
-  - Freeze vs unfreeze encoder
-  - With vs without value aux loss
-  - Multi-token slots (K=1,2,4) vs single token
-  - Encoder size (64, 128, 256 dims)
-  - LoRA rank (8, 16, 32, 64)
+## Related Work: FoNE (Fourier Number Embedding)
 
-  What the Paper Looks Like
+Closest prior: FoNE (`arXiv:2502.09741`).
 
-  Title: something like "Numerical Modality Adaptation for Large Language Models"
+### FoNE Design (summary)
 
-  Claim: A small, analytically-constructed number encoder (7.4K params) plugged into any
-  pretrained LLM via adapter alignment + LoRA fine-tuning improves mathematical reasoning by X%
-   on standard benchmarks while maintaining language performance — at < 1% of pretraining cost.
+- **Encoding**: Fourier features with CRT-motivated periods (notably bases 2 and 5 for base-10 digit structure), scaled across powers of ten.
+- **Injection**: additive at numeric positions (`regular_embeddings + fourier_embeddings`), minimal projection.
+- **Decoding**: fixed Fourier digit fingerprints (0-9) used to compute per-digit logits.
+- **Training**: end-to-end with a specific LLM (no separately pretrained frozen encoder).
 
-  Why it's publishable:
-  - Novel framing (numbers as a modality, not just a tokenization problem)
-  - Principled encoder design (three lanes with provable properties)
-  - Practical recipe (works on any LLM, cheap to train)
-  - Strong empirical results on standard benchmarks
+### FoNE Results (as reported)
 
-  The 124M experiments are your proof of concept. The Llama experiment is the headline result.
+- Very strong long-digit arithmetic performance.
+- Large data-efficiency gains vs standard baselines.
+
+### How Your Approach Differs
+
+1. **Structured multi-lane encoder vs raw Fourier only**
+- Your lanes: Scale + Residue + Semantic.
+- Enables lane-specific probing and richer behavior.
+
+2. **Pretrained frozen encoder vs joint coupling to one LLM**
+- Train once, reuse across models.
+- CLIP/LLaVA-style modularity.
+
+3. **Adapter projection vs pure additive injection**
+- More expressive mapping into LLM manifold.
+- Decouples encoder dimension from model embedding size.
+
+4. **Range/generalization design choices**
+- Your setup targets broader numeric coverage with explicit residue period planning.
+
+### Required Baseline Grid (2x2)
+
+- FoNE additive (their encoder + their injection)
+- FoNE + adapter (their encoder + your injection)
+- Ours additive (your encoder + additive injection)
+- Ours + adapter (your full method)
+
+This separates gains from encoding vs gains from injection strategy.
+
+## Experimental Roadmap
+
+### Experiment 1: Controlled Comparison at 124M (from scratch)
+
+Common setup:
+
+- Same model scale.
+- Same synthetic data (all tasks, same numeric range).
+- Same output format.
+
+Variants:
+
+- **Base 124M**: BPE input -> BPE output (baseline).
+- **FE-TextDec 124M**: number-encoded input -> BPE output.
+- **FE-TextDec 124M + aux**: number-encoded input -> BPE output + value aux loss.
+
+What it proves:
+
+- Isolate benefit of numeric input encoding.
+- Measure additional precision benefit from aux objective.
+
+### Experiment 2: Plug-and-play at 124M (pretrain then adapt)
+
+1. Train Base 124M.
+2. Freeze it; plug in `NumberEncoder`; train adapter only (Stage 1).
+3. LoRA finetune on math data (Stage 2).
+4. Compare against Base 124M and from-scratch FE model.
+
+What it proves: transferability to pretrained checkpoints.
+
+### Experiment 3: Plug Into Llama/Qwen
+
+1. Select practical open model size (e.g., 1B-3B class).
+2. Stage 1 adapter alignment on synthetic math data.
+3. Stage 2 LoRA on benchmark math tasks.
+4. Evaluate both math and general-language benchmarks.
+
+What it proves: real-world applicability and limited language regression.
+
+### Experiment 4: Ablations
+
+- Freeze vs unfreeze encoder.
+- With vs without value aux loss.
+- Slot width `K=1,2,4` vs single-token replacement.
+- Encoder width `64,128,256`.
+- LoRA rank `8,16,32,64`.
+
+## Paper Shape
+
+### Working Title
+
+`Numerical Modality Adaptation for Large Language Models`
+
+### Core Claim
+
+A small analytically constructed number encoder (~7.4K params), aligned to pretrained LLMs via adapter + LoRA, improves mathematical reasoning at low adaptation cost while preserving language capability.
+
+### Why This Is Publishable
+
+- Novel framing: numbers as a modality, not only tokenization.
+- Principled encoder design with probeable properties.
+- Practical recipe: low compute, reusable across LLMs.
+- Benchmark-ready evaluation path.
+
+### Narrative Arc
+
+- 124M experiments establish the controlled proof of concept.
+- Larger pretrained-model adaptation is the headline result.
