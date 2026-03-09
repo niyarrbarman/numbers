@@ -26,10 +26,10 @@ optimizer parameter groups:
 using fused AdamW: True
 compiling the model... (takes a ~minute)
 Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
-step 0: train loss 15.6136, val loss 15.3878
-iter 0: loss 16.0432, time 66269.51ms, mfu -100.00%
+step 0: train loss 6.1502, val loss 6.1291
+iter 0: loss 5.9129, time 69261.80ms, mfu -100.00%
   === DIAG iter 0 ===
-  loss: 16.0432
+  loss: 5.9129
   grads (preclip): total 0.0000, transformer 0.0000, adapter 0.0000
   grad ratio (preclip): transformer 0.0000, adapter 0.0000
   grads: total 0.0000, transformer 0.0000, adapter 0.0000
@@ -38,19 +38,19 @@ iter 0: loss 16.0432, time 66269.51ms, mfu -100.00%
   <NUM> input tokens: 140/1024 (13.7%)
   lr: base 9.99e-07, adapter 9.99e-07
   num inject: beta 0.0000, norm_match true, base_norm 0.5602, delta_raw_norm 14603.6826, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.023/0.060
-  output token accuracy: 0.104 (99/956 tokens)
-iter 10: loss 15.4113, time 1383.25ms, mfu 0.62%
-iter 20: loss 15.4427, time 1515.62ms, mfu 0.61%
-iter 30: loss 15.4589, time 1530.23ms, mfu 0.61%
-iter 40: loss 15.2326, time 1497.35ms, mfu 0.60%
-iter 50: loss 15.7203, time 1527.08ms, mfu 0.60%
-iter 60: loss 15.6299, time 1520.57ms, mfu 0.59%
-iter 70: loss 15.5969, time 1497.67ms, mfu 0.59%
-iter 80: loss 15.7548, time 1515.90ms, mfu 0.59%
-iter 90: loss 15.2642, time 1551.82ms, mfu 0.58%
-iter 100: loss 15.7540, time 1547.14ms, mfu 0.58%
+  output token accuracy: 0.249 (238/956 tokens)
+iter 10: loss 6.0695, time 1369.45ms, mfu 0.62%
+iter 20: loss 5.9086, time 1425.95ms, mfu 0.62%
+iter 30: loss 6.1026, time 1537.07ms, mfu 0.61%
+iter 40: loss 6.1926, time 1575.09ms, mfu 0.61%
+iter 50: loss 5.8402, time 1551.64ms, mfu 0.60%
+iter 60: loss 6.1961, time 1503.89ms, mfu 0.60%
+iter 70: loss 5.8517, time 1569.49ms, mfu 0.59%
+iter 80: loss 6.2312, time 1612.46ms, mfu 0.59%
+iter 90: loss 6.1496, time 1565.81ms, mfu 0.58%
+iter 100: loss 6.0125, time 1657.23ms, mfu 0.58%
   === DIAG iter 100 ===
-  loss: 15.7540
+  loss: 6.0125
   grads (preclip): total 0.0000, transformer 0.0000, adapter 0.0000
   grad ratio (preclip): transformer 0.0000, adapter 0.0000
   grads: total 0.0000, transformer 0.0000, adapter 0.0000
@@ -59,30 +59,5 @@ iter 100: loss 15.7540, time 1547.14ms, mfu 0.58%
   <NUM> input tokens: 141/1024 (13.8%)
   lr: base 1.01e-04, adapter 1.01e-04
   num inject: beta 0.0000, norm_match true, base_norm 0.5602, delta_raw_norm 18653.0605, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.022/0.059
-  output token accuracy: 0.115 (109/951 tokens)
-iter 110: loss 15.0650, time 1530.37ms, mfu 0.58%
-iter 120: loss 15.4288, time 1511.57ms, mfu 0.58%
-iter 130: loss 16.0886, time 1511.12ms, mfu 0.58%
-iter 140: loss 16.0226, time 1529.08ms, mfu 0.57%
-iter 150: loss 15.9693, time 1511.57ms, mfu 0.57%
-iter 160: loss 15.4303, time 1507.30ms, mfu 0.57%
-iter 170: loss 15.4231, time 1496.60ms, mfu 0.57%
-iter 180: loss 15.2993, time 1490.65ms, mfu 0.57%
-iter 190: loss 15.4799, time 1490.11ms, mfu 0.57%
-iter 200: loss 15.8078, time 1486.97ms, mfu 0.57%
-  === DIAG iter 200 ===
-  loss: 15.8078
-  grads (preclip): total 0.0000, transformer 0.0000, adapter 0.0000
-  grad ratio (preclip): transformer 0.0000, adapter 0.0000
-  grads: total 0.0000, transformer 0.0000, adapter 0.0000
-  grad ratio: transformer 0.0000, adapter 0.0000
-  grad clip: max_norm 1.0000, pre_total 0.0000, coef 1.0000
-  <NUM> input tokens: 153/1024 (14.9%)
-  lr: base 2.01e-04, adapter 2.01e-04
-  num inject: beta 0.0000, norm_match true, base_norm 0.5602, delta_raw_norm 13916.0215, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.025/0.061
-  output token accuracy: 0.102 (95/928 tokens)
-iter 210: loss 16.1813, time 1513.59ms, mfu 0.57%
-iter 220: loss 15.3447, time 1483.14ms, mfu 0.57%
-iter 230: loss 15.3865, time 1482.55ms, mfu 0.57%
-iter 240: loss 15.9199, time 1476.65ms, mfu 0.57%
-slurmstepd: error: *** JOB 79216 ON turpancomp0 CANCELLED AT 2026-03-09T03:01:47 ***
+  output token accuracy: 0.258 (245/951 tokens)
+slurmstepd: error: *** JOB 79217 ON turpancomp0 CANCELLED AT 2026-03-09T03:07:01 ***
