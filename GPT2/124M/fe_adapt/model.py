@@ -3,7 +3,7 @@ Baby Luciole (114M Nemotron3) with NumberEncoder v10 adapter.
 
 Standalone PyTorch implementation of Nemotron3 architecture:
   - GQA (24 Q heads, 8 KV heads)
-  - LayerNorm (with bias)
+  - LayerNorm1P ((1+weight)*norm+bias, Nemotron style)
   - RoPE (rotary position embeddings)
   - Squared ReLU FFN
   - 12 layers, 768 hidden, 3072 FFN hidden
@@ -36,6 +36,26 @@ NUM_TOKEN_ID = 50256  # luciole_50k vocab is 0..50255; 50256 = <NUM>
 # =============================================================================
 # Nemotron3 building blocks
 # =============================================================================
+
+class LayerNorm1P(nn.Module):
+    """LayerNorm with (1 + weight) scaling, as used in Nemotron3.
+
+    Forward: (1 + weight) * ((x - mean) / sqrt(var + eps)) + bias
+    Weight is initialized to 0 (so effective scale starts at 1).
+    """
+
+    def __init__(self, dim, eps=1e-5):
+        super().__init__()
+        self.weight = nn.Parameter(torch.zeros(dim))
+        self.bias = nn.Parameter(torch.zeros(dim))
+        self.eps = eps
+
+    def forward(self, x):
+        mean = x.float().mean(-1, keepdim=True)
+        var = x.float().var(-1, keepdim=True, correction=0)
+        x_norm = (x.float() - mean) / torch.sqrt(var + self.eps)
+        return ((1.0 + self.weight.float()) * x_norm + self.bias.float()).type_as(x)
+
 
 def rotate_half(x):
     """Rotate half of the hidden dims for RoPE."""
@@ -149,9 +169,9 @@ class Block(nn.Module):
 
     def __init__(self, config):
         super().__init__()
-        self.attn_norm = nn.LayerNorm(config.n_embd)
+        self.attn_norm = LayerNorm1P(config.n_embd)
         self.attn = GroupedQueryAttention(config)
-        self.ffn_norm = nn.LayerNorm(config.n_embd)
+        self.ffn_norm = LayerNorm1P(config.n_embd)
         self.mlp = FeedForward(config)
 
     def forward(self, x):
@@ -198,7 +218,7 @@ class Nemotron(nn.Module):
             wte=nn.Embedding(config.vocab_size, config.n_embd),
             drop=nn.Dropout(config.dropout),
             h=nn.ModuleList([Block(config) for _ in range(config.n_layer)]),
-            ln_f=nn.LayerNorm(config.n_embd),
+            ln_f=LayerNorm1P(config.n_embd),
         ))
         self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
         self.transformer.wte.weight = self.lm_head.weight  # weight tying
