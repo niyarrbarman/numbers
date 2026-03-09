@@ -31,7 +31,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import init_process_group, destroy_process_group, barrier
 
 from model import NemotronConfig, Nemotron, NUM_TOKEN_ID
-from prepare import NUM_TOKEN_ID as _NUM_CHECK  # verify prepare.py is importable
+from prepare import NUM_TOKEN_ID as _NUM_CHECK, EOT_TOKEN_ID  # verify prepare.py is importable
 
 
 # -----------------------------------------------------------------------------
@@ -212,7 +212,7 @@ model_args = dict(
 if init_from == 'scratch':
     print("Initializing a new model from scratch")
     if meta_vocab_size is None:
-        print("defaulting to vocab_size 50304 (GPT-2 50257 rounded up)")
+        print("defaulting to vocab_size 50304 (luciole 50256 + NUM, padded)")
     model_args['vocab_size'] = meta_vocab_size if meta_vocab_size is not None else 50304
     nemconf = NemotronConfig(**model_args)
     model = Nemotron(nemconf)
@@ -353,7 +353,7 @@ def decode_context(token_ids, num_values, enc):
         if tok == NUM_TOKEN_ID:
             val = num_values[i]
             parts.append(f"<{val:g}>")
-        elif tok == 50256:  # EOT
+        elif tok == EOT_TOKEN_ID:  # </s>
             break
         else:
             try:
@@ -374,8 +374,8 @@ def compute_output_accuracy(logits, targets):
     Returns dict with overall accuracy and number of tokens evaluated.
     """
     preds = logits.argmax(dim=-1)
-    # Exclude padding (-1) and EOT (50256)
-    valid_mask = (targets >= 0) & (targets != 50256)
+    # Exclude padding (-1) and EOT
+    valid_mask = (targets >= 0) & (targets != EOT_TOKEN_ID)
     n_valid = valid_mask.sum().item()
     if n_valid == 0:
         return None
@@ -460,10 +460,10 @@ def collect_num_injection_stats(eval_model, num_values, num_mask, num_blend_beta
 @torch.no_grad()
 def eval_samples(eval_model, num_blend_beta, max_samples=5):
     """Run model on val batch, show full task context with predicted vs target text output."""
-    # Lazy load tiktoken (needs TIKTOKEN_CACHE_DIR set)
+    # Lazy load luciole_50k tokenizer
     try:
-        import tiktoken
-        enc = tiktoken.get_encoding("gpt2")
+        from prepare import _get_tokenizer
+        enc = _get_tokenizer()
     except Exception:
         enc = None
 
@@ -498,7 +498,7 @@ def eval_samples(eval_model, num_blend_beta, max_samples=5):
             continue
 
         # Find tasks bounded by EOT tokens
-        eot_positions = [i for i, t in enumerate(x_row) if t == 50256]
+        eot_positions = [i for i, t in enumerate(x_row) if t == EOT_TOKEN_ID]
         if not eot_positions:
             eot_positions = [0]
 
@@ -511,7 +511,7 @@ def eval_samples(eval_model, num_blend_beta, max_samples=5):
             # Find next EOT in target to bound the output
             seg_end = T
             for t in range(seg_start, T):
-                if y_row[t] == 50256:
+                if y_row[t] == EOT_TOKEN_ID:
                     seg_end = t
                     break
 
@@ -529,7 +529,7 @@ def eval_samples(eval_model, num_blend_beta, max_samples=5):
             # Find arrow position within segment to split input/output
             arrow_pos = None
             for t in range(seg_start, seg_end):
-                tok_text = enc.decode([x_row[t]]) if 0 <= x_row[t] < 50257 else ""
+                tok_text = enc.decode([x_row[t]]) if 0 <= x_row[t] < 50256 else ""
                 if "\u2192" in tok_text:
                     arrow_pos = t
                     break
@@ -545,8 +545,8 @@ def eval_samples(eval_model, num_blend_beta, max_samples=5):
             tgt_ids = y_row[out_start:seg_end]
             pred_ids = p_row[out_start:seg_end]
 
-            tgt_text = enc.decode([t for t in tgt_ids if 0 <= t < 50257])
-            pred_text = enc.decode([t for t in pred_ids if 0 <= t < 50257])
+            tgt_text = enc.decode([t for t in tgt_ids if 0 <= t < 50256])
+            pred_text = enc.decode([t for t in pred_ids if 0 <= t < 50256])
 
             # Parse numbers from both
             tgt_nums = [float(v) for v in _number_re.findall(tgt_text)]

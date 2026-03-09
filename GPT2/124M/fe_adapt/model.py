@@ -30,7 +30,7 @@ from torch.nn import functional as F
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..'))
 from np_emb_v10 import NumberEncoder
 
-NUM_TOKEN_ID = 50257  # GPT-2 vocab is 0..50256; 50257 = <NUM>
+NUM_TOKEN_ID = 50256  # luciole_50k vocab is 0..50255; 50256 = <NUM>
 
 
 # =============================================================================
