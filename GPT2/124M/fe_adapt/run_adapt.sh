@@ -8,13 +8,14 @@
 #SBATCH --output=slurm/%x_%j.out
 
 mkdir -p slurm
+set -euo pipefail
 
-# Paths
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_DIR="/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt"
 CONVERTED_CKPT="/tmpdir/m24047brmn/numbers/checkpoints/baby_luciole_converted.pt"
 ENCODER_CKPT="/tmpdir/m24047brmn/numbers/checkpoints/np_emb_v10_2000k_model.pt"
 DATA_DIR="/tmpdir/m24047brmn/numbers/data/numtasks_124M_fe"
 OUT_DIR="/tmpdir/m24047brmn/numbers/model_checkpoints/luciole_fe_adapt"
+IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest.sif"
 
 echo "=========================================="
 echo "Baby Luciole + NumberEncoder Adapter Training"
@@ -22,19 +23,17 @@ echo "  Converted checkpoint: $CONVERTED_CKPT"
 echo "  Encoder checkpoint:   $ENCODER_CKPT"
 echo "  Data dir:             $DATA_DIR"
 echo "  Output dir:           $OUT_DIR"
-echo "  GPU:                  $(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null || echo 'unknown')"
 echo "=========================================="
 
-# Activate environment (adjust for your setup)
-module purge
 module load gnu/11.2.0
 
-# If using conda:
-# source activate torch
-
-cd "$SCRIPT_DIR"
-
-python train.py \
+apptainer exec \
+  --nv \
+  --env "PYTHONUSERBASE=${MYENVS}/numbers" \
+  --env "TIKTOKEN_CACHE_DIR=/tmpdir/m24047brmn/tiktoken_cache" \
+  --bind /tmpdir,/work \
+  "${IMAGE}" \
+  python3 "${SCRIPT_DIR}/train.py" \
     init_from=pretrained \
     pretrained_ckpt="$CONVERTED_CKPT" \
     num_emb_checkpoint="$ENCODER_CKPT" \
