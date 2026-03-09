@@ -466,3 +466,400 @@ iter 2550: loss 1.2906, time 1672.09ms, mfu 0.95%
 iter 2560: loss 1.1690, time 1646.79ms, mfu 0.95%
 iter 2570: loss 1.1710, time 1706.50ms, mfu 0.95%
 iter 2580: loss 1.2721, time 1718.51ms, mfu 0.95%
+iter 2590: loss 1.0405, time 1658.71ms, mfu 0.96%
+iter 2600: loss 0.9610, time 1636.92ms, mfu 0.96%
+  === DIAG iter 2600 ===
+  loss: 0.9610
+  grads (pre): total 1.0462, lora 1.0462, adapter 0.0000
+  grads (post): total 1.0000, lora 1.0000, adapter 0.0000
+  <NUM> tokens: 0/2048 (0.0%)
+  lr: base 2.86e-04, lora 2.86e-04, adapter 8.59e-05
+  token accuracy: 0.764 (1562/2045)
+iter 2610: loss 1.2429, time 1705.34ms, mfu 0.96%
+iter 2620: loss 0.9895, time 1693.29ms, mfu 0.96%
+iter 2630: loss 1.1530, time 1671.11ms, mfu 0.96%
+iter 2640: loss 1.2359, time 1670.46ms, mfu 0.97%
+iter 2650: loss 1.1323, time 1678.54ms, mfu 0.97%
+iter 2660: loss 0.9053, time 1655.15ms, mfu 0.97%
+iter 2670: loss 1.0551, time 1718.04ms, mfu 0.97%
+iter 2680: loss 1.4162, time 1755.52ms, mfu 0.97%
+iter 2690: loss 1.5525, time 1686.54ms, mfu 0.97%
+iter 2700: loss 1.0555, time 1695.86ms, mfu 0.97%
+  === DIAG iter 2700 ===
+  loss: 1.0555
+  grads (pre): total 1.0612, lora 1.0612, adapter 0.0000
+  grads (post): total 1.0000, lora 1.0000, adapter 0.0000
+  <NUM> tokens: 0/2048 (0.0%)
+  lr: base 2.85e-04, lora 2.85e-04, adapter 8.55e-05
+  token accuracy: 0.750 (1534/2044)
+iter 2710: loss 1.1454, time 1695.76ms, mfu 0.97%
+iter 2720: loss 0.9987, time 1687.64ms, mfu 0.97%
+iter 2730: loss 1.1785, time 1705.28ms, mfu 0.97%
+iter 2740: loss 1.0241, time 1689.87ms, mfu 0.97%
+iter 2750: loss 1.1782, time 1690.90ms, mfu 0.97%
+iter 2760: loss 0.9445, time 1658.95ms, mfu 0.97%
+iter 2770: loss 1.3902, time 1662.69ms, mfu 0.97%
+iter 2780: loss 0.8792, time 1674.93ms, mfu 0.97%
+iter 2790: loss 1.2444, time 1738.54ms, mfu 0.97%
+iter 2800: loss 1.0439, time 1729.56ms, mfu 0.97%
+  === DIAG iter 2800 ===
+  loss: 1.0439
+  grads (pre): total 1.0538, lora 1.0538, adapter 0.0000
+  grads (post): total 1.0000, lora 1.0000, adapter 0.0000
+  <NUM> tokens: 0/2048 (0.0%)
+  lr: base 2.84e-04, lora 2.84e-04, adapter 8.51e-05
+  token accuracy: 0.739 (1512/2045)
+iter 2810: loss 1.1638, time 1725.82ms, mfu 0.97%
+iter 2820: loss 1.2445, time 1733.30ms, mfu 0.96%
+iter 2830: loss 1.1323, time 1679.70ms, mfu 0.97%
+iter 2840: loss 1.0726, time 1724.02ms, mfu 0.96%
+iter 2850: loss 1.2551, time 1704.18ms, mfu 0.96%
+iter 2860: loss 1.1095, time 1693.80ms, mfu 0.96%
+iter 2870: loss 1.3062, time 1688.60ms, mfu 0.97%
+iter 2880: loss 1.1079, time 1688.49ms, mfu 0.97%
+iter 2890: loss 1.4115, time 1689.76ms, mfu 0.97%
+iter 2900: loss 1.2559, time 1716.22ms, mfu 0.97%
+  === DIAG iter 2900 ===
+  loss: 1.2559
+  grads (pre): total 1.0238, lora 1.0238, adapter 0.0000
+  grads (post): total 1.0000, lora 1.0000, adapter 0.0000
+  <NUM> tokens: 0/2048 (0.0%)
+  lr: base 2.82e-04, lora 2.82e-04, adapter 8.46e-05
+  token accuracy: 0.682 (1393/2043)
+iter 2910: loss 1.2079, time 1701.82ms, mfu 0.97%
+iter 2920: loss 1.2057, time 1696.31ms, mfu 0.97%
+iter 2930: loss 1.1173, time 1689.12ms, mfu 0.97%
+iter 2940: loss 1.3615, time 1686.31ms, mfu 0.97%
+iter 2950: loss 1.2566, time 1689.64ms, mfu 0.97%
+iter 2960: loss 1.1527, time 1706.61ms, mfu 0.97%
+iter 2970: loss 0.9415, time 1702.03ms, mfu 0.97%
+iter 2980: loss 0.9498, time 1711.59ms, mfu 0.97%
+iter 2990: loss 1.0982, time 1720.21ms, mfu 0.96%
+iter 3000: loss 1.3149, time 1728.71ms, mfu 0.96%
+  === DIAG iter 3000 ===
+  loss: 1.3149
+  grads (pre): total 0.9715, lora 0.9715, adapter 0.0000
+  grads (post): total 0.9715, lora 0.9715, adapter 0.0000
+  <NUM> tokens: 0/2048 (0.0%)
+  lr: base 2.81e-04, lora 2.81e-04, adapter 8.42e-05
+  token accuracy: 0.696 (1422/2044)
+  --- Sample eval (val) ---
+iter 3010: loss 1.1531, time 1762.73ms, mfu 0.96%
+iter 3020: loss 1.2552, time 1694.27ms, mfu 0.96%
+iter 3030: loss 1.1679, time 1686.59ms, mfu 0.96%
+iter 3040: loss 1.1118, time 1698.75ms, mfu 0.96%
+iter 3050: loss 1.1403, time 1687.35ms, mfu 0.96%
+iter 3060: loss 1.1606, time 1679.54ms, mfu 0.96%
+iter 3070: loss 1.3501, time 1687.97ms, mfu 0.97%
+iter 3080: loss 1.4519, time 1677.23ms, mfu 0.97%
+iter 3090: loss 1.1212, time 1686.32ms, mfu 0.97%
+iter 3100: loss 1.2311, time 1699.42ms, mfu 0.97%
+  === DIAG iter 3100 ===
+  loss: 1.2311
+  grads (pre): total 1.1307, lora 1.1307, adapter 0.0000
+  grads (post): total 1.0000, lora 1.0000, adapter 0.0000
+  <NUM> tokens: 0/2048 (0.0%)
+  lr: base 2.79e-04, lora 2.79e-04, adapter 8.37e-05
+  token accuracy: 0.707 (1445/2044)
+iter 3110: loss 1.0204, time 1686.61ms, mfu 0.97%
+iter 3120: loss 1.1448, time 1683.98ms, mfu 0.97%
+iter 3130: loss 1.2127, time 1700.04ms, mfu 0.97%
+iter 3140: loss 1.2276, time 1687.26ms, mfu 0.97%
+iter 3150: loss 1.3758, time 1676.33ms, mfu 0.97%
+iter 3160: loss 1.1882, time 1678.50ms, mfu 0.97%
+iter 3170: loss 1.2557, time 1685.10ms, mfu 0.97%
+iter 3180: loss 1.2239, time 1678.66ms, mfu 0.97%
+iter 3190: loss 0.9738, time 1677.23ms, mfu 0.97%
+iter 3200: loss 1.2125, time 1693.34ms, mfu 0.97%
+  === DIAG iter 3200 ===
+  loss: 1.2125
+  grads (pre): total 1.0949, lora 1.0949, adapter 0.0000
+  grads (post): total 1.0000, lora 1.0000, adapter 0.0000
+  <NUM> tokens: 0/2048 (0.0%)
+  lr: base 2.78e-04, lora 2.78e-04, adapter 8.33e-05
+  token accuracy: 0.703 (1437/2044)
+iter 3210: loss 1.0201, time 1680.92ms, mfu 0.97%
+iter 3220: loss 0.9780, time 1720.50ms, mfu 0.97%
+iter 3230: loss 1.0142, time 1717.10ms, mfu 0.97%
+iter 3240: loss 1.0336, time 1684.44ms, mfu 0.97%
+iter 3250: loss 1.0243, time 1664.86ms, mfu 0.97%
+iter 3260: loss 1.0781, time 2178.92ms, mfu 0.95%
+iter 3270: loss 1.0289, time 1680.07ms, mfu 0.95%
+iter 3280: loss 1.0595, time 1707.68ms, mfu 0.95%
+iter 3290: loss 1.1240, time 1694.33ms, mfu 0.95%
+iter 3300: loss 1.2724, time 1714.52ms, mfu 0.96%
+  === DIAG iter 3300 ===
+  loss: 1.2724
+  grads (pre): total 1.0390, lora 1.0390, adapter 0.0000
+  grads (post): total 1.0000, lora 1.0000, adapter 0.0000
+  <NUM> tokens: 0/2048 (0.0%)
+  lr: base 2.76e-04, lora 2.76e-04, adapter 8.28e-05
+  token accuracy: 0.716 (1463/2044)
+iter 3310: loss 1.0649, time 1700.17ms, mfu 0.96%
+iter 3320: loss 1.1024, time 1690.00ms, mfu 0.96%
+iter 3330: loss 1.1163, time 1705.71ms, mfu 0.96%
+iter 3340: loss 1.1132, time 1694.34ms, mfu 0.96%
+iter 3350: loss 1.3482, time 1684.26ms, mfu 0.96%
+iter 3360: loss 1.1427, time 1702.05ms, mfu 0.96%
+iter 3370: loss 1.3820, time 1708.27ms, mfu 0.96%
+iter 3380: loss 1.1780, time 1710.37ms, mfu 0.96%
+iter 3390: loss 0.9896, time 1694.79ms, mfu 0.96%
+iter 3400: loss 1.1123, time 1755.24ms, mfu 0.96%
+  === DIAG iter 3400 ===
+  loss: 1.1123
+  grads (pre): total 0.9638, lora 0.9638, adapter 0.0000
+  grads (post): total 0.9638, lora 0.9638, adapter 0.0000
+  <NUM> tokens: 0/2048 (0.0%)
+  lr: base 2.74e-04, lora 2.74e-04, adapter 8.23e-05
+  token accuracy: 0.728 (1488/2044)
+iter 3410: loss 1.0759, time 1706.89ms, mfu 0.96%
+iter 3420: loss 1.0287, time 1691.06ms, mfu 0.96%
+iter 3430: loss 1.0882, time 1697.81ms, mfu 0.96%
+iter 3440: loss 1.2575, time 1686.28ms, mfu 0.96%
+iter 3450: loss 1.0071, time 1728.85ms, mfu 0.96%
+iter 3460: loss 1.2127, time 1705.05ms, mfu 0.96%
+iter 3470: loss 1.0765, time 1702.08ms, mfu 0.96%
+iter 3480: loss 1.2394, time 1704.05ms, mfu 0.96%
+iter 3490: loss 1.2579, time 1704.93ms, mfu 0.96%
+iter 3500: loss 1.0503, time 1748.31ms, mfu 0.96%
+  === DIAG iter 3500 ===
+  loss: 1.0503
+  grads (pre): total 0.9957, lora 0.9957, adapter 0.0000
+  grads (post): total 0.9957, lora 0.9957, adapter 0.0000
+  <NUM> tokens: 0/2048 (0.0%)
+  lr: base 2.72e-04, lora 2.72e-04, adapter 8.17e-05
+  token accuracy: 0.740 (1513/2044)
+iter 3510: loss 1.2337, time 1701.85ms, mfu 0.96%
+iter 3520: loss 0.9039, time 1679.13ms, mfu 0.96%
+iter 3530: loss 1.1239, time 1694.48ms, mfu 0.96%
+iter 3540: loss 1.1526, time 1670.62ms, mfu 0.96%
+iter 3550: loss 1.2263, time 1722.03ms, mfu 0.96%
+iter 3560: loss 1.0083, time 1727.67ms, mfu 0.96%
+iter 3570: loss 1.2649, time 1706.43ms, mfu 0.96%
+iter 3580: loss 1.0543, time 1695.81ms, mfu 0.96%
+iter 3590: loss 1.0901, time 1732.70ms, mfu 0.96%
+iter 3600: loss 1.1624, time 1730.80ms, mfu 0.96%
+  === DIAG iter 3600 ===
+  loss: 1.1624
+  grads (pre): total 1.0017, lora 1.0017, adapter 0.0000
+  grads (post): total 1.0000, lora 1.0000, adapter 0.0000
+  <NUM> tokens: 0/2048 (0.0%)
+  lr: base 2.71e-04, lora 2.71e-04, adapter 8.12e-05
+  token accuracy: 0.734 (1502/2045)
+iter 3610: loss 1.0447, time 1696.13ms, mfu 0.96%
+iter 3620: loss 1.0566, time 1701.28ms, mfu 0.96%
+iter 3630: loss 1.4270, time 1686.10ms, mfu 0.96%
+iter 3640: loss 1.2716, time 1695.08ms, mfu 0.96%
+iter 3650: loss 1.2708, time 1693.22ms, mfu 0.96%
+iter 3660: loss 1.1905, time 1688.85ms, mfu 0.96%
+iter 3670: loss 1.3124, time 1698.40ms, mfu 0.96%
+iter 3680: loss 1.1897, time 1709.84ms, mfu 0.96%
+iter 3690: loss 1.1003, time 1679.48ms, mfu 0.97%
+iter 3700: loss 0.9684, time 1679.85ms, mfu 0.97%
+  === DIAG iter 3700 ===
+  loss: 0.9684
+  grads (pre): total 0.9816, lora 0.9816, adapter 0.0000
+  grads (post): total 0.9816, lora 0.9816, adapter 0.0000
+  <NUM> tokens: 0/2048 (0.0%)
+  lr: base 2.69e-04, lora 2.69e-04, adapter 8.06e-05
+  token accuracy: 0.762 (1557/2044)
+iter 3710: loss 1.0804, time 1667.11ms, mfu 0.97%
+iter 3720: loss 1.4786, time 1635.54ms, mfu 0.97%
+iter 3730: loss 1.0535, time 1648.97ms, mfu 0.97%
+iter 3740: loss 1.0570, time 1655.71ms, mfu 0.98%
+iter 3750: loss 0.9364, time 1639.90ms, mfu 0.98%
+iter 3760: loss 1.0331, time 1630.01ms, mfu 0.98%
+iter 3770: loss 1.2825, time 1622.90ms, mfu 0.98%
+iter 3780: loss 1.0578, time 1661.32ms, mfu 0.98%
+iter 3790: loss 1.1230, time 1641.55ms, mfu 0.99%
+iter 3800: loss 1.2152, time 1739.70ms, mfu 0.98%
+  === DIAG iter 3800 ===
+  loss: 1.2152
+  grads (pre): total 0.9185, lora 0.9185, adapter 0.0000
+  grads (post): total 0.9185, lora 0.9185, adapter 0.0000
+  <NUM> tokens: 0/2048 (0.0%)
+  lr: base 2.67e-04, lora 2.67e-04, adapter 8.01e-05
+  token accuracy: 0.720 (1472/2044)
+iter 3810: loss 1.1388, time 1653.87ms, mfu 0.98%
+iter 3820: loss 1.1771, time 1643.84ms, mfu 0.98%
+iter 3830: loss 1.1809, time 1644.50ms, mfu 0.99%
+iter 3840: loss 1.0099, time 1651.51ms, mfu 0.99%
+iter 3850: loss 0.9967, time 1661.81ms, mfu 0.99%
+iter 3860: loss 1.2714, time 1657.80ms, mfu 0.99%
+iter 3870: loss 1.2953, time 1652.36ms, mfu 0.99%
+iter 3880: loss 1.1069, time 1659.78ms, mfu 0.99%
+iter 3890: loss 1.2659, time 1660.02ms, mfu 0.99%
+iter 3900: loss 1.1253, time 1648.87ms, mfu 0.99%
+  === DIAG iter 3900 ===
+  loss: 1.1253
+  grads (pre): total 1.0533, lora 1.0533, adapter 0.0000
+  grads (post): total 1.0000, lora 1.0000, adapter 0.0000
+  <NUM> tokens: 0/2048 (0.0%)
+  lr: base 2.65e-04, lora 2.65e-04, adapter 7.95e-05
+  token accuracy: 0.745 (1524/2045)
+iter 3910: loss 1.1456, time 1648.46ms, mfu 0.99%
+iter 3920: loss 1.0260, time 1654.62ms, mfu 0.99%
+iter 3930: loss 1.1655, time 1655.66ms, mfu 0.99%
+iter 3940: loss 1.0218, time 1692.26ms, mfu 0.99%
+iter 3950: loss 0.9955, time 1719.75ms, mfu 0.98%
+iter 3960: loss 1.1386, time 1641.63ms, mfu 0.99%
+iter 3970: loss 0.9953, time 1629.06ms, mfu 0.99%
+iter 3980: loss 1.1999, time 1639.22ms, mfu 0.99%
+iter 3990: loss 1.0752, time 1637.95ms, mfu 0.99%
+step 4000: train loss 1.0902, val loss 1.1032
+  saved checkpoint to /tmpdir/m24047brmn/numbers/model_checkpoints/tulu_base_lora/ckpt_iter4000.pt
+  new best val loss: 1.1578
+iter 4000: loss 1.1443, time 16860.29ms, mfu 0.90%
+  === DIAG iter 4000 ===
+  loss: 1.1443
+  grads (pre): total 0.9082, lora 0.9082, adapter 0.0000
+  grads (post): total 0.9082, lora 0.9082, adapter 0.0000
+  <NUM> tokens: 0/2048 (0.0%)
+  lr: base 2.63e-04, lora 2.63e-04, adapter 7.89e-05
+  token accuracy: 0.730 (1492/2044)
+  --- Sample eval (val) ---
+iter 4010: loss 1.0646, time 1646.03ms, mfu 0.91%
+iter 4020: loss 1.1104, time 1624.06ms, mfu 0.92%
+iter 4030: loss 1.2727, time 1649.02ms, mfu 0.93%
+iter 4040: loss 1.0994, time 1690.71ms, mfu 0.93%
+iter 4050: loss 1.4158, time 1705.44ms, mfu 0.94%
+iter 4060: loss 1.1531, time 1681.43ms, mfu 0.94%
+iter 4070: loss 0.8198, time 1691.72ms, mfu 0.94%
+iter 4080: loss 1.4485, time 1706.78ms, mfu 0.94%
+iter 4090: loss 0.7829, time 1680.66ms, mfu 0.95%
+iter 4100: loss 1.2061, time 1679.78ms, mfu 0.95%
+  === DIAG iter 4100 ===
+  loss: 1.2061
+  grads (pre): total 0.9497, lora 0.9497, adapter 0.0000
+  grads (post): total 0.9497, lora 0.9497, adapter 0.0000
+  <NUM> tokens: 0/2048 (0.0%)
+  lr: base 2.61e-04, lora 2.61e-04, adapter 7.83e-05
+  token accuracy: 0.705 (1441/2044)
+iter 4110: loss 1.1965, time 1672.59ms, mfu 0.95%
+iter 4120: loss 0.9839, time 1665.33ms, mfu 0.96%
+iter 4130: loss 1.2605, time 1672.60ms, mfu 0.96%
+iter 4140: loss 1.1310, time 1661.77ms, mfu 0.96%
+iter 4150: loss 1.2119, time 1674.34ms, mfu 0.96%
+iter 4160: loss 1.2065, time 1719.98ms, mfu 0.96%
+iter 4170: loss 1.1586, time 1708.35ms, mfu 0.96%
+iter 4180: loss 1.1235, time 1715.39ms, mfu 0.96%
+iter 4190: loss 1.0798, time 1705.01ms, mfu 0.96%
+iter 4200: loss 1.0166, time 1661.17ms, mfu 0.97%
+  === DIAG iter 4200 ===
+  loss: 1.0166
+  grads (pre): total 0.9528, lora 0.9528, adapter 0.0000
+  grads (post): total 0.9528, lora 0.9528, adapter 0.0000
+  <NUM> tokens: 0/2048 (0.0%)
+  lr: base 2.59e-04, lora 2.59e-04, adapter 7.77e-05
+  token accuracy: 0.750 (1533/2045)
+iter 4210: loss 1.2725, time 1733.50ms, mfu 0.96%
+iter 4220: loss 1.0527, time 1722.92ms, mfu 0.96%
+iter 4230: loss 1.0997, time 1705.28ms, mfu 0.96%
+iter 4240: loss 1.0539, time 1695.54ms, mfu 0.96%
+iter 4250: loss 1.0485, time 1698.34ms, mfu 0.96%
+iter 4260: loss 1.0661, time 1695.95ms, mfu 0.96%
+iter 4270: loss 1.3188, time 1701.09ms, mfu 0.96%
+iter 4280: loss 1.1991, time 1691.25ms, mfu 0.96%
+iter 4290: loss 1.2069, time 1676.58ms, mfu 0.97%
+iter 4300: loss 1.1371, time 1699.72ms, mfu 0.97%
+  === DIAG iter 4300 ===
+  loss: 1.1371
+  grads (pre): total 0.9514, lora 0.9514, adapter 0.0000
+  grads (post): total 0.9514, lora 0.9514, adapter 0.0000
+  <NUM> tokens: 0/2048 (0.0%)
+  lr: base 2.57e-04, lora 2.57e-04, adapter 7.70e-05
+  token accuracy: 0.733 (1499/2045)
+iter 4310: loss 1.1939, time 1680.81ms, mfu 0.97%
+iter 4320: loss 1.3197, time 1672.30ms, mfu 0.97%
+iter 4330: loss 1.2427, time 1678.72ms, mfu 0.97%
+iter 4340: loss 1.1755, time 1668.04ms, mfu 0.97%
+iter 4350: loss 1.1611, time 1617.59ms, mfu 0.98%
+iter 4360: loss 1.0087, time 1731.62ms, mfu 0.97%
+iter 4370: loss 1.1212, time 1729.90ms, mfu 0.97%
+iter 4380: loss 1.2019, time 1721.92ms, mfu 0.97%
+iter 4390: loss 1.0934, time 1697.69ms, mfu 0.97%
+iter 4400: loss 0.9514, time 1717.17ms, mfu 0.97%
+  === DIAG iter 4400 ===
+  loss: 0.9514
+  grads (pre): total 0.9044, lora 0.9044, adapter 0.0000
+  grads (post): total 0.9044, lora 0.9044, adapter 0.0000
+  <NUM> tokens: 0/2048 (0.0%)
+  lr: base 2.55e-04, lora 2.55e-04, adapter 7.64e-05
+  token accuracy: 0.784 (1601/2043)
+iter 4410: loss 0.9159, time 1716.56ms, mfu 0.97%
+iter 4420: loss 1.2763, time 1649.66ms, mfu 0.97%
+iter 4430: loss 1.1151, time 1664.28ms, mfu 0.97%
+iter 4440: loss 1.0063, time 1672.98ms, mfu 0.97%
+iter 4450: loss 0.8369, time 1761.63ms, mfu 0.97%
+iter 4460: loss 1.0643, time 1685.91ms, mfu 0.97%
+iter 4470: loss 1.1770, time 1686.92ms, mfu 0.97%
+iter 4480: loss 1.0350, time 1665.63ms, mfu 0.97%
+iter 4490: loss 1.0127, time 1688.60ms, mfu 0.97%
+iter 4500: loss 1.1605, time 1721.10ms, mfu 0.97%
+  === DIAG iter 4500 ===
+  loss: 1.1605
+  grads (pre): total 0.8852, lora 0.8852, adapter 0.0000
+  grads (post): total 0.8852, lora 0.8852, adapter 0.0000
+  <NUM> tokens: 0/2048 (0.0%)
+  lr: base 2.52e-04, lora 2.52e-04, adapter 7.57e-05
+  token accuracy: 0.727 (1487/2044)
+iter 4510: loss 1.0688, time 1682.81ms, mfu 0.97%
+iter 4520: loss 1.2377, time 1684.26ms, mfu 0.97%
+iter 4530: loss 1.0574, time 1681.06ms, mfu 0.97%
+iter 4540: loss 0.9666, time 1665.48ms, mfu 0.97%
+iter 4550: loss 1.1127, time 1701.52ms, mfu 0.97%
+iter 4560: loss 1.1918, time 1667.51ms, mfu 0.97%
+iter 4570: loss 1.1647, time 1653.62ms, mfu 0.97%
+iter 4580: loss 1.1592, time 1669.08ms, mfu 0.98%
+iter 4590: loss 1.2255, time 1662.64ms, mfu 0.98%
+iter 4600: loss 1.3512, time 1686.75ms, mfu 0.98%
+  === DIAG iter 4600 ===
+  loss: 1.3512
+  grads (pre): total 0.9679, lora 0.9679, adapter 0.0000
+  grads (post): total 0.9679, lora 0.9679, adapter 0.0000
+  <NUM> tokens: 0/2048 (0.0%)
+  lr: base 2.50e-04, lora 2.50e-04, adapter 7.50e-05
+  token accuracy: 0.687 (1404/2045)
+iter 4610: loss 1.2438, time 1663.56ms, mfu 0.98%
+iter 4620: loss 1.0032, time 1671.74ms, mfu 0.98%
+iter 4630: loss 0.9308, time 1660.86ms, mfu 0.98%
+iter 4640: loss 1.0388, time 1708.37ms, mfu 0.98%
+iter 4650: loss 1.0385, time 1716.66ms, mfu 0.98%
+iter 4660: loss 0.8952, time 1706.02ms, mfu 0.97%
+iter 4670: loss 0.8763, time 1695.26ms, mfu 0.97%
+iter 4680: loss 1.2646, time 1704.18ms, mfu 0.97%
+iter 4690: loss 1.0381, time 1701.99ms, mfu 0.97%
+iter 4700: loss 1.2237, time 1711.33ms, mfu 0.97%
+  === DIAG iter 4700 ===
+  loss: 1.2237
+  grads (pre): total 0.8737, lora 0.8737, adapter 0.0000
+  grads (post): total 0.8737, lora 0.8737, adapter 0.0000
+  <NUM> tokens: 0/2048 (0.0%)
+  lr: base 2.48e-04, lora 2.48e-04, adapter 7.44e-05
+  token accuracy: 0.705 (1442/2045)
+iter 4710: loss 0.9943, time 1708.29ms, mfu 0.97%
+iter 4720: loss 1.0038, time 1739.97ms, mfu 0.97%
+iter 4730: loss 1.0696, time 1736.85ms, mfu 0.96%
+iter 4740: loss 0.8705, time 1658.00ms, mfu 0.97%
+iter 4750: loss 1.0210, time 1643.25ms, mfu 0.97%
+iter 4760: loss 1.1670, time 1655.35ms, mfu 0.97%
+iter 4770: loss 1.2767, time 1640.72ms, mfu 0.98%
+iter 4780: loss 1.0830, time 1645.80ms, mfu 0.98%
+iter 4790: loss 1.2065, time 1651.66ms, mfu 0.98%
+iter 4800: loss 1.1291, time 1635.17ms, mfu 0.98%
+  === DIAG iter 4800 ===
+  loss: 1.1291
+  grads (pre): total 0.8917, lora 0.8917, adapter 0.0000
+  grads (post): total 0.8917, lora 0.8917, adapter 0.0000
+  <NUM> tokens: 0/2048 (0.0%)
+  lr: base 2.46e-04, lora 2.46e-04, adapter 7.37e-05
+  token accuracy: 0.741 (1515/2044)
+iter 4810: loss 1.0655, time 1658.78ms, mfu 0.98%
+iter 4820: loss 0.9878, time 1633.03ms, mfu 0.98%
+iter 4830: loss 1.0126, time 1650.13ms, mfu 0.99%
+iter 4840: loss 1.1646, time 1725.69ms, mfu 0.98%
+iter 4850: loss 1.3096, time 1722.35ms, mfu 0.98%
+iter 4860: loss 1.0394, time 1709.80ms, mfu 0.98%
+iter 4870: loss 0.9645, time 1737.27ms, mfu 0.97%
+iter 4880: loss 1.3376, time 1762.32ms, mfu 0.97%
+iter 4890: loss 1.1288, time 1746.16ms, mfu 0.97%
