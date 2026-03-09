@@ -3,7 +3,7 @@ Baby Luciole (114M Nemotron3) with NumberEncoder v10 adapter.
 
 Standalone PyTorch implementation of Nemotron3 architecture:
   - GQA (24 Q heads, 8 KV heads)
-  - RMSNorm (no bias)
+  - LayerNorm (with bias)
   - RoPE (rotary position embeddings)
   - Squared ReLU FFN
   - 12 layers, 768 hidden, 3072 FFN hidden
@@ -36,19 +36,6 @@ NUM_TOKEN_ID = 50257  # GPT-2 vocab is 0..50256; 50257 = <NUM>
 # =============================================================================
 # Nemotron3 building blocks
 # =============================================================================
-
-class RMSNorm(nn.Module):
-    """Root Mean Square Layer Normalization (no bias, no centering)."""
-
-    def __init__(self, dim, eps=1e-6):
-        super().__init__()
-        self.weight = nn.Parameter(torch.ones(dim))
-        self.eps = eps
-
-    def forward(self, x):
-        norm = x.float().pow(2).mean(-1, keepdim=True).add(self.eps).rsqrt()
-        return (x.float() * norm).type_as(x) * self.weight
-
 
 def rotate_half(x):
     """Rotate half of the hidden dims for RoPE."""
@@ -162,9 +149,9 @@ class Block(nn.Module):
 
     def __init__(self, config):
         super().__init__()
-        self.attn_norm = RMSNorm(config.n_embd)
+        self.attn_norm = nn.LayerNorm(config.n_embd)
         self.attn = GroupedQueryAttention(config)
-        self.ffn_norm = RMSNorm(config.n_embd)
+        self.ffn_norm = nn.LayerNorm(config.n_embd)
         self.mlp = FeedForward(config)
 
     def forward(self, x):
@@ -211,7 +198,7 @@ class Nemotron(nn.Module):
             wte=nn.Embedding(config.vocab_size, config.n_embd),
             drop=nn.Dropout(config.dropout),
             h=nn.ModuleList([Block(config) for _ in range(config.n_layer)]),
-            ln_f=RMSNorm(config.n_embd),
+            ln_f=nn.LayerNorm(config.n_embd),
         ))
         self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
         self.transformer.wte.weight = self.lm_head.weight  # weight tying
@@ -269,7 +256,7 @@ class Nemotron(nn.Module):
         Handles vocab_size mismatch: original has 50256, ours has 50304.
         Adapter/encoder keys are skipped (loaded separately from num_emb_checkpoint).
         """
-        ckpt = torch.load(ckpt_path, map_location='cpu', weights_only=True)
+        ckpt = torch.load(ckpt_path, map_location='cpu', weights_only=False)
         if isinstance(ckpt, dict) and 'model_state_dict' in ckpt:
             state = ckpt['model_state_dict']
         else:
