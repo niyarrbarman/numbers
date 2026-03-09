@@ -51,7 +51,7 @@ apptainer exec \
     lr_decay_iters=20000 \
     min_lr=1e-4 \
     num_norm_match=True \
-    num_blend_warmup_iters=1000 \
+    num_blend_warmup_iters=0 \
     num_blend_ramp_iters=10000 \
     eval_interval=2000 \
     diag_interval=100 \
