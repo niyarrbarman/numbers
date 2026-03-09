@@ -1,0 +1,21 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+Loading raw dataset from /tmpdir/m24047brmn/numbers/data/tulu3_math_grade/raw
+Total examples: 49980
+Split: train=43984, val=2998, test=2998
+
+  train: 43984 examples
+    base:    23,858,222 tokens,      0 <NUM>
+    adapted: 23,833,208 tokens, 212946 <NUM>
+  val: 2998 examples
+    base:     1,641,342 tokens,      0 <NUM>
+    adapted:  1,639,629 tokens,  14516 <NUM>
+  test: 2998 examples
+    base:     1,625,903 tokens,      0 <NUM>
+    adapted:  1,623,991 tokens,  14554 <NUM>
+    saved 2998 raw test examples to test_examples.json
+
+Done! Data saved to:
+  base:    /tmpdir/m24047brmn/numbers/data/tulu3_math_grade/base
+  adapted: /tmpdir/m24047brmn/numbers/data/tulu3_math_grade/adapted
+Data preparation complete.

@@ -14,7 +14,8 @@ set -euo pipefail
 mkdir -p slurm
 
 SCRIPT_DIR="/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt"
-IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest.sif"
+# IMAGE="/work/conteneurs/sessions-interactives/triton-llvm-3.3.0-calmip-si-latest.sif"
+IMAGE="/work/conteneurs/calmip/nemo_25.04.03_arm.sif"
 
 # Data paths
 RAW_DIR="/tmpdir/m24047brmn/numbers/data/tulu3_math_grade/raw"
