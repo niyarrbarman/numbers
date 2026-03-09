@@ -3131,3 +3131,1166 @@ iter 14550: loss 2.4028, time 1965.92ms, mfu 0.43%
 iter 14560: loss 2.4385, time 1946.63ms, mfu 0.43%
 iter 14570: loss 2.3421, time 2134.43ms, mfu 0.43%
 iter 14580: loss 2.5470, time 2133.47ms, mfu 0.43%
+iter 14590: loss 2.5160, time 2123.58ms, mfu 0.42%
+iter 14600: loss 2.1733, time 2081.97ms, mfu 0.42%
+  === DIAG iter 14600 ===
+  loss: 2.1733
+  grads (preclip): total 0.0526, transformer 0.0000, adapter 0.0526
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0526, transformer 0.0000, adapter 0.0526
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0526, coef 1.0000
+  <NUM> input tokens: 144/1024 (14.1%)
+  lr: base 2.68e-04, adapter 2.68e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 1469412736.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.003/0.033
+  output token accuracy: 0.553 (505/913 tokens)
+iter 14610: loss 2.4930, time 2041.94ms, mfu 0.42%
+iter 14620: loss 2.1376, time 2037.03ms, mfu 0.42%
+iter 14630: loss 2.0499, time 2178.93ms, mfu 0.42%
+iter 14640: loss 2.5899, time 2068.97ms, mfu 0.42%
+iter 14650: loss 2.2840, time 2084.79ms, mfu 0.42%
+iter 14660: loss 2.8635, time 2066.61ms, mfu 0.42%
+iter 14670: loss 2.5360, time 2062.93ms, mfu 0.42%
+iter 14680: loss 2.6910, time 2132.19ms, mfu 0.41%
+iter 14690: loss 2.5530, time 2130.56ms, mfu 0.41%
+iter 14700: loss 2.1055, time 2113.62ms, mfu 0.41%
+  === DIAG iter 14700 ===
+  loss: 2.1055
+  grads (preclip): total 0.0439, transformer 0.0000, adapter 0.0439
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0439, transformer 0.0000, adapter 0.0439
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0439, coef 1.0000
+  <NUM> input tokens: 163/1024 (15.9%)
+  lr: base 2.62e-04, adapter 2.62e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 1364628736.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.002/0.026
+  output token accuracy: 0.533 (504/945 tokens)
+iter 14710: loss 2.0483, time 2104.40ms, mfu 0.41%
+iter 14720: loss 2.4279, time 2110.89ms, mfu 0.41%
+iter 14730: loss 2.4182, time 2099.20ms, mfu 0.41%
+iter 14740: loss 2.1950, time 2085.18ms, mfu 0.41%
+iter 14750: loss 2.6162, time 2080.87ms, mfu 0.41%
+iter 14760: loss 2.6623, time 2072.89ms, mfu 0.41%
+iter 14770: loss 2.7347, time 2072.43ms, mfu 0.41%
+iter 14780: loss 2.9493, time 2073.98ms, mfu 0.41%
+iter 14790: loss 2.0779, time 2066.47ms, mfu 0.41%
+iter 14800: loss 2.1904, time 2072.25ms, mfu 0.41%
+  === DIAG iter 14800 ===
+  loss: 2.1904
+  grads (preclip): total 0.0550, transformer 0.0000, adapter 0.0550
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0550, transformer 0.0000, adapter 0.0550
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0550, coef 1.0000
+  <NUM> input tokens: 153/1024 (14.9%)
+  lr: base 2.56e-04, adapter 2.56e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 1317710080.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.002/0.030
+  output token accuracy: 0.519 (480/925 tokens)
+iter 14810: loss 2.2960, time 2066.58ms, mfu 0.41%
+iter 14820: loss 2.3340, time 1898.84ms, mfu 0.41%
+iter 14830: loss 2.0680, time 1901.88ms, mfu 0.42%
+iter 14840: loss 2.4955, time 1898.88ms, mfu 0.42%
+iter 14850: loss 2.9427, time 1970.46ms, mfu 0.42%
+iter 14860: loss 1.8852, time 2056.67ms, mfu 0.42%
+iter 14870: loss 2.3075, time 1942.37ms, mfu 0.42%
+iter 14880: loss 2.4928, time 1929.73ms, mfu 0.43%
+iter 14890: loss 2.6372, time 1925.05ms, mfu 0.43%
+iter 14900: loss 2.2042, time 2010.23ms, mfu 0.43%
+  === DIAG iter 14900 ===
+  loss: 2.2042
+  grads (preclip): total 0.0491, transformer 0.0000, adapter 0.0491
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0491, transformer 0.0000, adapter 0.0491
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0491, coef 1.0000
+  <NUM> input tokens: 165/1024 (16.1%)
+  lr: base 2.51e-04, adapter 2.51e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 1191662848.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.004/0.074
+  output token accuracy: 0.551 (522/947 tokens)
+iter 14910: loss 2.4980, time 1945.43ms, mfu 0.43%
+iter 14920: loss 2.6502, time 1926.42ms, mfu 0.43%
+iter 14930: loss 2.0741, time 1853.90ms, mfu 0.43%
+iter 14940: loss 2.7449, time 1834.49ms, mfu 0.44%
+iter 14950: loss 2.7962, time 1880.96ms, mfu 0.44%
+iter 14960: loss 2.6490, time 1864.02ms, mfu 0.44%
+iter 14970: loss 2.4147, time 1864.66ms, mfu 0.44%
+iter 14980: loss 1.9036, time 1876.31ms, mfu 0.44%
+iter 14990: loss 2.4788, time 1875.66ms, mfu 0.44%
+iter 15000: loss 2.6536, time 1880.73ms, mfu 0.44%
+  === DIAG iter 15000 ===
+  loss: 2.6536
+  grads (preclip): total 0.0408, transformer 0.0000, adapter 0.0408
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0408, transformer 0.0000, adapter 0.0408
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0408, coef 1.0000
+  <NUM> input tokens: 153/1024 (14.9%)
+  lr: base 2.45e-04, adapter 2.45e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 1278548608.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.003/0.086
+  output token accuracy: 0.483 (445/922 tokens)
+  --- Sample eval (val) ---
+iter 15010: loss 2.6458, time 1898.85ms, mfu 0.45%
+iter 15020: loss 2.1704, time 1904.96ms, mfu 0.45%
+iter 15030: loss 2.3140, time 1904.23ms, mfu 0.45%
+iter 15040: loss 2.1189, time 1899.71ms, mfu 0.45%
+iter 15050: loss 2.3262, time 1944.25ms, mfu 0.45%
+iter 15060: loss 2.7125, time 1929.38ms, mfu 0.45%
+iter 15070: loss 1.9557, time 1951.87ms, mfu 0.44%
+iter 15080: loss 2.6172, time 1991.18ms, mfu 0.44%
+iter 15090: loss 2.3878, time 1965.61ms, mfu 0.44%
+iter 15100: loss 2.7302, time 1934.59ms, mfu 0.44%
+  === DIAG iter 15100 ===
+  loss: 2.7302
+  grads (preclip): total 0.0368, transformer 0.0000, adapter 0.0368
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0368, transformer 0.0000, adapter 0.0368
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0368, coef 1.0000
+  <NUM> input tokens: 157/1024 (15.3%)
+  lr: base 2.40e-04, adapter 2.40e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 1158979584.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.004/0.035
+  output token accuracy: 0.533 (492/923 tokens)
+iter 15110: loss 2.5572, time 2069.42ms, mfu 0.44%
+iter 15120: loss 2.3270, time 1984.24ms, mfu 0.44%
+iter 15130: loss 3.0233, time 1931.36ms, mfu 0.44%
+iter 15140: loss 2.7631, time 1919.43ms, mfu 0.44%
+iter 15150: loss 2.5494, time 1909.99ms, mfu 0.44%
+iter 15160: loss 2.4496, time 1900.72ms, mfu 0.44%
+iter 15170: loss 2.5575, time 2069.78ms, mfu 0.44%
+iter 15180: loss 2.5676, time 1949.67ms, mfu 0.44%
+iter 15190: loss 2.5577, time 1956.20ms, mfu 0.44%
+iter 15200: loss 2.5622, time 1985.50ms, mfu 0.44%
+  === DIAG iter 15200 ===
+  loss: 2.5622
+  grads (preclip): total 0.0484, transformer 0.0000, adapter 0.0484
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0484, transformer 0.0000, adapter 0.0484
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0484, coef 1.0000
+  <NUM> input tokens: 127/1024 (12.4%)
+  lr: base 2.34e-04, adapter 2.34e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 1456131456.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.004/0.035
+  output token accuracy: 0.459 (436/950 tokens)
+iter 15210: loss 2.2115, time 1984.78ms, mfu 0.44%
+iter 15220: loss 2.8918, time 1921.22ms, mfu 0.44%
+iter 15230: loss 2.3375, time 2029.13ms, mfu 0.44%
+iter 15240: loss 2.5133, time 1999.34ms, mfu 0.43%
+iter 15250: loss 2.1001, time 1970.70ms, mfu 0.43%
+iter 15260: loss 2.2308, time 1984.90ms, mfu 0.43%
+iter 15270: loss 2.3825, time 1982.16ms, mfu 0.43%
+iter 15280: loss 1.9429, time 1931.08ms, mfu 0.43%
+iter 15290: loss 2.2985, time 1989.69ms, mfu 0.43%
+iter 15300: loss 2.1259, time 1956.13ms, mfu 0.43%
+  === DIAG iter 15300 ===
+  loss: 2.1259
+  grads (preclip): total 0.0374, transformer 0.0000, adapter 0.0374
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0374, transformer 0.0000, adapter 0.0374
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0374, coef 1.0000
+  <NUM> input tokens: 153/1024 (14.9%)
+  lr: base 2.29e-04, adapter 2.29e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 1354961536.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.003/0.154
+  output token accuracy: 0.542 (515/950 tokens)
+iter 15310: loss 2.4836, time 1950.30ms, mfu 0.43%
+iter 15320: loss 1.9940, time 2063.97ms, mfu 0.43%
+iter 15330: loss 2.3817, time 1959.13ms, mfu 0.43%
+iter 15340: loss 2.6213, time 1953.22ms, mfu 0.43%
+iter 15350: loss 2.8239, time 2020.79ms, mfu 0.43%
+iter 15360: loss 2.6299, time 1999.38ms, mfu 0.43%
+iter 15370: loss 2.2611, time 1988.44ms, mfu 0.43%
+iter 15380: loss 2.9965, time 1983.96ms, mfu 0.43%
+iter 15390: loss 2.5980, time 1979.93ms, mfu 0.43%
+iter 15400: loss 3.0518, time 1977.33ms, mfu 0.43%
+  === DIAG iter 15400 ===
+  loss: 3.0518
+  grads (preclip): total 0.0522, transformer 0.0000, adapter 0.0522
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0522, transformer 0.0000, adapter 0.0522
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0522, coef 1.0000
+  <NUM> input tokens: 129/1024 (12.6%)
+  lr: base 2.24e-04, adapter 2.24e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 913815552.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.003/0.021
+  output token accuracy: 0.509 (467/918 tokens)
+iter 15410: loss 2.3565, time 1981.36ms, mfu 0.43%
+iter 15420: loss 2.6256, time 1975.09ms, mfu 0.43%
+iter 15430: loss 2.5919, time 1960.46ms, mfu 0.43%
+iter 15440: loss 2.4073, time 1982.90ms, mfu 0.43%
+iter 15450: loss 3.1414, time 1935.90ms, mfu 0.43%
+iter 15460: loss 2.7229, time 1942.93ms, mfu 0.43%
+iter 15470: loss 2.3203, time 1939.54ms, mfu 0.43%
+iter 15480: loss 2.4824, time 1904.01ms, mfu 0.44%
+iter 15490: loss 2.7668, time 1981.15ms, mfu 0.43%
+iter 15500: loss 2.6226, time 2138.29ms, mfu 0.43%
+  === DIAG iter 15500 ===
+  loss: 2.6226
+  grads (preclip): total 0.0691, transformer 0.0000, adapter 0.0691
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0691, transformer 0.0000, adapter 0.0691
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0691, coef 1.0000
+  <NUM> input tokens: 137/1024 (13.4%)
+  lr: base 2.19e-04, adapter 2.19e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 1251376128.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.003/0.126
+  output token accuracy: 0.505 (466/923 tokens)
+iter 15510: loss 2.0942, time 2071.47ms, mfu 0.43%
+iter 15520: loss 2.4778, time 2031.89ms, mfu 0.43%
+iter 15530: loss 2.5447, time 1960.01ms, mfu 0.43%
+iter 15540: loss 3.0334, time 1959.42ms, mfu 0.43%
+iter 15550: loss 2.5590, time 1953.08ms, mfu 0.43%
+iter 15560: loss 2.1843, time 1949.82ms, mfu 0.43%
+iter 15570: loss 2.5807, time 2052.79ms, mfu 0.43%
+iter 15580: loss 2.7769, time 2046.48ms, mfu 0.43%
+iter 15590: loss 2.2201, time 2041.65ms, mfu 0.43%
+iter 15600: loss 2.5263, time 2036.26ms, mfu 0.43%
+  === DIAG iter 15600 ===
+  loss: 2.5263
+  grads (preclip): total 0.0618, transformer 0.0000, adapter 0.0618
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0618, transformer 0.0000, adapter 0.0618
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0618, coef 1.0000
+  <NUM> input tokens: 136/1024 (13.3%)
+  lr: base 2.14e-04, adapter 2.14e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 1341467136.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.003/0.032
+  output token accuracy: 0.509 (468/920 tokens)
+iter 15610: loss 2.8675, time 2031.56ms, mfu 0.43%
+iter 15620: loss 2.2780, time 2042.94ms, mfu 0.42%
+iter 15630: loss 2.3349, time 2035.48ms, mfu 0.42%
+iter 15640: loss 2.1441, time 2028.65ms, mfu 0.42%
+iter 15650: loss 2.5702, time 2028.83ms, mfu 0.42%
+iter 15660: loss 2.3525, time 2054.02ms, mfu 0.42%
+iter 15670: loss 2.7175, time 2022.37ms, mfu 0.42%
+iter 15680: loss 2.6119, time 1923.68ms, mfu 0.42%
+iter 15690: loss 1.9203, time 1920.75ms, mfu 0.43%
+iter 15700: loss 2.2507, time 1977.41ms, mfu 0.43%
+  === DIAG iter 15700 ===
+  loss: 2.2507
+  grads (preclip): total 0.0501, transformer 0.0000, adapter 0.0501
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0501, transformer 0.0000, adapter 0.0501
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0501, coef 1.0000
+  <NUM> input tokens: 141/1024 (13.8%)
+  lr: base 2.09e-04, adapter 2.09e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 1047283264.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.001/0.023
+  output token accuracy: 0.499 (481/963 tokens)
+iter 15710: loss 2.3389, time 2011.62ms, mfu 0.43%
+iter 15720: loss 2.7056, time 1968.83ms, mfu 0.43%
+iter 15730: loss 2.3839, time 1951.49ms, mfu 0.43%
+iter 15740: loss 2.9127, time 1899.26ms, mfu 0.43%
+iter 15750: loss 2.4846, time 1889.35ms, mfu 0.43%
+iter 15760: loss 2.6677, time 2020.78ms, mfu 0.43%
+iter 15770: loss 2.4831, time 2008.39ms, mfu 0.43%
+iter 15780: loss 3.0465, time 2016.07ms, mfu 0.43%
+iter 15790: loss 2.9238, time 2007.25ms, mfu 0.43%
+iter 15800: loss 2.5286, time 1992.46ms, mfu 0.43%
+  === DIAG iter 15800 ===
+  loss: 2.5286
+  grads (preclip): total 0.0548, transformer 0.0000, adapter 0.0548
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0548, transformer 0.0000, adapter 0.0548
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0548, coef 1.0000
+  <NUM> input tokens: 144/1024 (14.1%)
+  lr: base 2.04e-04, adapter 2.04e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 933589056.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.004/0.177
+  output token accuracy: 0.540 (501/928 tokens)
+iter 15810: loss 2.6657, time 2048.05ms, mfu 0.43%
+iter 15820: loss 2.2356, time 2012.86ms, mfu 0.43%
+iter 15830: loss 2.6597, time 2035.97ms, mfu 0.43%
+iter 15840: loss 3.0710, time 2020.91ms, mfu 0.43%
+iter 15850: loss 2.6141, time 2020.08ms, mfu 0.43%
+iter 15860: loss 2.4020, time 2015.56ms, mfu 0.43%
+iter 15870: loss 2.7788, time 1923.90ms, mfu 0.43%
+iter 15880: loss 2.8002, time 2100.81ms, mfu 0.43%
+iter 15890: loss 2.7617, time 1997.11ms, mfu 0.43%
+iter 15900: loss 2.8297, time 2013.08ms, mfu 0.43%
+  === DIAG iter 15900 ===
+  loss: 2.8297
+  grads (preclip): total 0.0563, transformer 0.0000, adapter 0.0563
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0563, transformer 0.0000, adapter 0.0563
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0563, coef 1.0000
+  <NUM> input tokens: 157/1024 (15.3%)
+  lr: base 2.00e-04, adapter 2.00e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 1102267136.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.003/0.021
+  output token accuracy: 0.548 (499/910 tokens)
+iter 15910: loss 2.6054, time 2063.60ms, mfu 0.42%
+iter 15920: loss 2.6746, time 2029.39ms, mfu 0.42%
+iter 15930: loss 2.4539, time 1970.18ms, mfu 0.42%
+iter 15940: loss 2.2701, time 1952.83ms, mfu 0.43%
+iter 15950: loss 2.3757, time 2026.12ms, mfu 0.43%
+iter 15960: loss 1.9588, time 2040.64ms, mfu 0.42%
+iter 15970: loss 2.3844, time 2051.77ms, mfu 0.42%
+iter 15980: loss 2.5636, time 2046.47ms, mfu 0.42%
+iter 15990: loss 2.4262, time 2038.49ms, mfu 0.42%
+step 16000: train loss 2.4683, val loss 2.5616
+saving checkpoint to /tmpdir/m24047brmn/numbers/model_checkpoints/luciole_fe_adapt/ckpt_iter16000.pt
+  new best val loss: 2.5616
+iter 16000: loss 2.1315, time 9107.48ms, mfu 0.39%
+  === DIAG iter 16000 ===
+  loss: 2.1315
+  grads (preclip): total 0.0571, transformer 0.0000, adapter 0.0571
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0571, transformer 0.0000, adapter 0.0571
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0571, coef 1.0000
+  <NUM> input tokens: 146/1024 (14.3%)
+  lr: base 1.95e-04, adapter 1.95e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 1082948096.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.002/0.020
+  output token accuracy: 0.532 (492/924 tokens)
+  --- Sample eval (val) ---
+iter 16010: loss 2.3243, time 2012.91ms, mfu 0.39%
+iter 16020: loss 2.5387, time 2008.21ms, mfu 0.40%
+iter 16030: loss 2.3762, time 1993.44ms, mfu 0.40%
+iter 16040: loss 2.2026, time 1993.25ms, mfu 0.40%
+iter 16050: loss 2.6279, time 1984.85ms, mfu 0.41%
+iter 16060: loss 2.1254, time 1986.32ms, mfu 0.41%
+iter 16070: loss 2.4206, time 1989.99ms, mfu 0.41%
+iter 16080: loss 2.0521, time 1996.22ms, mfu 0.41%
+iter 16090: loss 2.8828, time 1955.13ms, mfu 0.41%
+iter 16100: loss 2.2732, time 2010.70ms, mfu 0.41%
+  === DIAG iter 16100 ===
+  loss: 2.2732
+  grads (preclip): total 0.0389, transformer 0.0000, adapter 0.0389
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0389, transformer 0.0000, adapter 0.0389
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0389, coef 1.0000
+  <NUM> input tokens: 143/1024 (14.0%)
+  lr: base 1.90e-04, adapter 1.90e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 841375488.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.003/0.114
+  output token accuracy: 0.553 (527/953 tokens)
+iter 16110: loss 2.2953, time 1983.67ms, mfu 0.42%
+iter 16120: loss 2.1761, time 2092.21ms, mfu 0.42%
+iter 16130: loss 3.2643, time 1996.17ms, mfu 0.42%
+iter 16140: loss 2.7306, time 1988.96ms, mfu 0.42%
+iter 16150: loss 2.6092, time 2027.86ms, mfu 0.42%
+iter 16160: loss 2.1757, time 1911.23ms, mfu 0.42%
+iter 16170: loss 2.1669, time 1974.73ms, mfu 0.42%
+iter 16180: loss 2.2676, time 1898.23ms, mfu 0.42%
+iter 16190: loss 2.5851, time 1960.30ms, mfu 0.43%
+iter 16200: loss 2.6248, time 1917.51ms, mfu 0.43%
+  === DIAG iter 16200 ===
+  loss: 2.6248
+  grads (preclip): total 0.0611, transformer 0.0000, adapter 0.0611
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0611, transformer 0.0000, adapter 0.0611
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0611, coef 1.0000
+  <NUM> input tokens: 131/1024 (12.8%)
+  lr: base 1.86e-04, adapter 1.86e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 905378368.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.003/0.069
+  output token accuracy: 0.452 (422/933 tokens)
+iter 16210: loss 2.5744, time 1914.76ms, mfu 0.43%
+iter 16220: loss 2.1441, time 1892.77ms, mfu 0.43%
+iter 16230: loss 2.1446, time 2071.74ms, mfu 0.43%
+iter 16240: loss 2.6233, time 2065.71ms, mfu 0.43%
+iter 16250: loss 1.9122, time 2064.04ms, mfu 0.43%
+iter 16260: loss 2.7490, time 2065.31ms, mfu 0.43%
+iter 16270: loss 2.8886, time 2067.47ms, mfu 0.42%
+iter 16280: loss 2.3920, time 2061.77ms, mfu 0.42%
+iter 16290: loss 2.1588, time 2060.08ms, mfu 0.42%
+iter 16300: loss 2.6348, time 2069.39ms, mfu 0.42%
+  === DIAG iter 16300 ===
+  loss: 2.6348
+  grads (preclip): total 0.0515, transformer 0.0000, adapter 0.0515
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0515, transformer 0.0000, adapter 0.0515
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0515, coef 1.0000
+  <NUM> input tokens: 157/1024 (15.3%)
+  lr: base 1.82e-04, adapter 1.82e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 814372160.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.004/0.051
+  output token accuracy: 0.573 (533/930 tokens)
+iter 16310: loss 2.4315, time 2048.32ms, mfu 0.42%
+iter 16320: loss 2.0482, time 2107.50ms, mfu 0.42%
+iter 16330: loss 2.2719, time 1956.91ms, mfu 0.42%
+iter 16340: loss 2.2856, time 1957.90ms, mfu 0.42%
+iter 16350: loss 3.3079, time 1948.87ms, mfu 0.42%
+iter 16360: loss 2.3095, time 1930.94ms, mfu 0.43%
+iter 16370: loss 2.3601, time 1895.15ms, mfu 0.43%
+iter 16380: loss 2.5716, time 1883.76ms, mfu 0.43%
+iter 16390: loss 2.3093, time 1880.47ms, mfu 0.43%
+iter 16400: loss 2.2209, time 2038.80ms, mfu 0.43%
+  === DIAG iter 16400 ===
+  loss: 2.2209
+  grads (preclip): total 0.0431, transformer 0.0000, adapter 0.0431
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0431, transformer 0.0000, adapter 0.0431
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0431, coef 1.0000
+  <NUM> input tokens: 159/1024 (15.5%)
+  lr: base 1.77e-04, adapter 1.77e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 1011744640.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.002/0.016
+  output token accuracy: 0.546 (523/958 tokens)
+iter 16410: loss 2.6007, time 2016.56ms, mfu 0.43%
+iter 16420: loss 1.9762, time 1904.36ms, mfu 0.43%
+iter 16430: loss 1.9762, time 1893.79ms, mfu 0.43%
+iter 16440: loss 2.6091, time 1886.02ms, mfu 0.44%
+iter 16450: loss 2.4708, time 1881.77ms, mfu 0.44%
+iter 16460: loss 2.8856, time 1966.57ms, mfu 0.44%
+iter 16470: loss 2.3377, time 1997.38ms, mfu 0.44%
+iter 16480: loss 2.0154, time 1977.81ms, mfu 0.44%
+iter 16490: loss 2.6839, time 1986.80ms, mfu 0.44%
+iter 16500: loss 2.9284, time 1985.85ms, mfu 0.43%
+  === DIAG iter 16500 ===
+  loss: 2.9284
+  grads (preclip): total 0.0682, transformer 0.0000, adapter 0.0682
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0682, transformer 0.0000, adapter 0.0682
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0682, coef 1.0000
+  <NUM> input tokens: 148/1024 (14.5%)
+  lr: base 1.73e-04, adapter 1.73e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 820740416.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.004/0.057
+  output token accuracy: 0.477 (439/921 tokens)
+iter 16510: loss 2.6608, time 1985.57ms, mfu 0.43%
+iter 16520: loss 2.3149, time 1982.48ms, mfu 0.43%
+iter 16530: loss 2.6927, time 1979.94ms, mfu 0.43%
+iter 16540: loss 2.3731, time 2025.52ms, mfu 0.43%
+iter 16550: loss 2.5464, time 1943.45ms, mfu 0.43%
+iter 16560: loss 2.2021, time 1936.04ms, mfu 0.43%
+iter 16570: loss 2.8713, time 1965.87ms, mfu 0.43%
+iter 16580: loss 2.6845, time 1990.48ms, mfu 0.43%
+iter 16590: loss 2.8743, time 2040.17ms, mfu 0.43%
+iter 16600: loss 2.1447, time 2044.29ms, mfu 0.43%
+  === DIAG iter 16600 ===
+  loss: 2.1447
+  grads (preclip): total 0.0436, transformer 0.0000, adapter 0.0436
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0436, transformer 0.0000, adapter 0.0436
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0436, coef 1.0000
+  <NUM> input tokens: 159/1024 (15.5%)
+  lr: base 1.69e-04, adapter 1.69e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 884611072.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.006/0.193
+  output token accuracy: 0.555 (524/944 tokens)
+iter 16610: loss 2.6774, time 2044.06ms, mfu 0.43%
+iter 16620: loss 2.6751, time 2037.60ms, mfu 0.43%
+iter 16630: loss 2.7918, time 2031.46ms, mfu 0.43%
+iter 16640: loss 2.3381, time 1993.51ms, mfu 0.43%
+iter 16650: loss 2.8399, time 1997.97ms, mfu 0.43%
+iter 16660: loss 2.2552, time 1993.15ms, mfu 0.43%
+iter 16670: loss 2.5761, time 1995.37ms, mfu 0.43%
+iter 16680: loss 2.6440, time 1992.00ms, mfu 0.43%
+iter 16690: loss 3.0448, time 2086.13ms, mfu 0.43%
+iter 16700: loss 2.3887, time 2084.94ms, mfu 0.42%
+  === DIAG iter 16700 ===
+  loss: 2.3887
+  grads (preclip): total 0.0515, transformer 0.0000, adapter 0.0515
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0515, transformer 0.0000, adapter 0.0515
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0515, coef 1.0000
+  <NUM> input tokens: 143/1024 (14.0%)
+  lr: base 1.65e-04, adapter 1.65e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 998428224.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.002/0.028
+  output token accuracy: 0.557 (521/936 tokens)
+iter 16710: loss 2.5711, time 2080.34ms, mfu 0.42%
+iter 16720: loss 2.0260, time 1950.70ms, mfu 0.42%
+iter 16730: loss 2.4376, time 1945.74ms, mfu 0.43%
+iter 16740: loss 2.0226, time 1943.78ms, mfu 0.43%
+iter 16750: loss 2.5059, time 1937.93ms, mfu 0.43%
+iter 16760: loss 2.3503, time 1934.77ms, mfu 0.43%
+iter 16770: loss 2.4391, time 2023.81ms, mfu 0.43%
+iter 16780: loss 2.5449, time 2024.00ms, mfu 0.43%
+iter 16790: loss 2.5107, time 2030.23ms, mfu 0.43%
+iter 16800: loss 2.4335, time 2034.67ms, mfu 0.43%
+  === DIAG iter 16800 ===
+  loss: 2.4335
+  grads (preclip): total 0.0522, transformer 0.0000, adapter 0.0522
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0522, transformer 0.0000, adapter 0.0522
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0522, coef 1.0000
+  <NUM> input tokens: 145/1024 (14.2%)
+  lr: base 1.62e-04, adapter 1.62e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 794555200.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.003/0.027
+  output token accuracy: 0.482 (466/967 tokens)
+iter 16810: loss 1.9961, time 2030.87ms, mfu 0.43%
+iter 16820: loss 1.9247, time 2024.84ms, mfu 0.43%
+iter 16830: loss 2.2021, time 2036.01ms, mfu 0.42%
+iter 16840: loss 2.3597, time 2021.98ms, mfu 0.42%
+iter 16850: loss 2.4001, time 2026.97ms, mfu 0.42%
+iter 16860: loss 2.6778, time 2030.75ms, mfu 0.42%
+iter 16870: loss 2.6805, time 2028.86ms, mfu 0.42%
+iter 16880: loss 2.8671, time 2023.48ms, mfu 0.42%
+iter 16890: loss 2.8201, time 2023.80ms, mfu 0.42%
+iter 16900: loss 2.8682, time 2036.51ms, mfu 0.42%
+  === DIAG iter 16900 ===
+  loss: 2.8682
+  grads (preclip): total 0.0481, transformer 0.0000, adapter 0.0481
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0481, transformer 0.0000, adapter 0.0481
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0481, coef 1.0000
+  <NUM> input tokens: 146/1024 (14.3%)
+  lr: base 1.58e-04, adapter 1.58e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 827382656.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.004/0.193
+  output token accuracy: 0.529 (492/930 tokens)
+iter 16910: loss 2.2531, time 2025.09ms, mfu 0.42%
+iter 16920: loss 2.4550, time 2027.45ms, mfu 0.42%
+iter 16930: loss 2.7288, time 1990.52ms, mfu 0.42%
+iter 16940: loss 2.8399, time 1978.92ms, mfu 0.42%
+iter 16950: loss 2.5371, time 1992.69ms, mfu 0.42%
+iter 16960: loss 2.3880, time 1989.88ms, mfu 0.42%
+iter 16970: loss 2.3476, time 1990.08ms, mfu 0.42%
+iter 16980: loss 2.1284, time 1984.36ms, mfu 0.43%
+iter 16990: loss 2.5060, time 1976.68ms, mfu 0.43%
+iter 17000: loss 2.6414, time 1998.71ms, mfu 0.43%
+  === DIAG iter 17000 ===
+  loss: 2.6414
+  grads (preclip): total 0.0383, transformer 0.0000, adapter 0.0383
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0383, transformer 0.0000, adapter 0.0383
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0383, coef 1.0000
+  <NUM> input tokens: 137/1024 (13.4%)
+  lr: base 1.54e-04, adapter 1.54e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 791039232.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.002/0.024
+  output token accuracy: 0.476 (438/920 tokens)
+  --- Sample eval (val) ---
+iter 17010: loss 2.1202, time 1983.52ms, mfu 0.43%
+iter 17020: loss 2.7047, time 1996.72ms, mfu 0.43%
+iter 17030: loss 2.8289, time 1985.30ms, mfu 0.43%
+iter 17040: loss 2.4148, time 1975.20ms, mfu 0.43%
+iter 17050: loss 2.6187, time 1982.36ms, mfu 0.43%
+iter 17060: loss 2.8190, time 1987.09ms, mfu 0.43%
+iter 17070: loss 3.1044, time 1999.64ms, mfu 0.43%
+iter 17080: loss 2.4913, time 1987.90ms, mfu 0.43%
+iter 17090: loss 2.2598, time 1979.51ms, mfu 0.43%
+iter 17100: loss 2.3356, time 1986.89ms, mfu 0.43%
+  === DIAG iter 17100 ===
+  loss: 2.3356
+  grads (preclip): total 0.0539, transformer 0.0000, adapter 0.0539
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0539, transformer 0.0000, adapter 0.0539
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0539, coef 1.0000
+  <NUM> input tokens: 147/1024 (14.4%)
+  lr: base 1.51e-04, adapter 1.51e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 703395648.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.003/0.039
+  output token accuracy: 0.533 (498/934 tokens)
+iter 17110: loss 2.7313, time 1982.76ms, mfu 0.43%
+iter 17120: loss 2.4685, time 1989.01ms, mfu 0.43%
+iter 17130: loss 2.5636, time 1988.21ms, mfu 0.43%
+iter 17140: loss 2.6497, time 1976.85ms, mfu 0.43%
+iter 17150: loss 2.9813, time 1989.44ms, mfu 0.43%
+iter 17160: loss 2.2538, time 2066.47ms, mfu 0.43%
+iter 17170: loss 2.7531, time 1991.74ms, mfu 0.43%
+iter 17180: loss 2.4271, time 1997.64ms, mfu 0.43%
+iter 17190: loss 2.6946, time 1991.71ms, mfu 0.43%
+iter 17200: loss 2.3716, time 1993.04ms, mfu 0.43%
+  === DIAG iter 17200 ===
+  loss: 2.3716
+  grads (preclip): total 0.0479, transformer 0.0000, adapter 0.0479
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0479, transformer 0.0000, adapter 0.0479
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0479, coef 1.0000
+  <NUM> input tokens: 136/1024 (13.3%)
+  lr: base 1.47e-04, adapter 1.47e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 660526976.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.005/0.130
+  output token accuracy: 0.479 (451/941 tokens)
+iter 17210: loss 2.3575, time 2043.64ms, mfu 0.43%
+iter 17220: loss 2.7137, time 1984.28ms, mfu 0.43%
+iter 17230: loss 2.5179, time 1979.68ms, mfu 0.43%
+iter 17240: loss 2.1961, time 1973.02ms, mfu 0.43%
+iter 17250: loss 2.7871, time 1976.34ms, mfu 0.43%
+iter 17260: loss 2.1209, time 1969.14ms, mfu 0.43%
+iter 17270: loss 2.4212, time 1984.71ms, mfu 0.43%
+iter 17280: loss 3.0592, time 2009.77ms, mfu 0.43%
+iter 17290: loss 2.4604, time 2002.00ms, mfu 0.43%
+iter 17300: loss 2.9158, time 1997.85ms, mfu 0.43%
+  === DIAG iter 17300 ===
+  loss: 2.9158
+  grads (preclip): total 0.0365, transformer 0.0000, adapter 0.0365
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0365, transformer 0.0000, adapter 0.0365
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0365, coef 1.0000
+  <NUM> input tokens: 127/1024 (12.4%)
+  lr: base 1.44e-04, adapter 1.44e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 804584576.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.003/0.034
+  output token accuracy: 0.456 (422/925 tokens)
+iter 17310: loss 2.4588, time 1990.78ms, mfu 0.43%
+iter 17320: loss 2.4128, time 2015.67ms, mfu 0.43%
+iter 17330: loss 2.2097, time 2015.69ms, mfu 0.43%
+iter 17340: loss 2.4044, time 2010.90ms, mfu 0.43%
+iter 17350: loss 2.1831, time 2009.86ms, mfu 0.43%
+iter 17360: loss 2.9418, time 2004.91ms, mfu 0.43%
+iter 17370: loss 2.8202, time 1999.09ms, mfu 0.43%
+iter 17380: loss 2.2564, time 1994.22ms, mfu 0.43%
+iter 17390: loss 2.8029, time 1987.09ms, mfu 0.43%
+iter 17400: loss 2.2387, time 2017.79ms, mfu 0.43%
+  === DIAG iter 17400 ===
+  loss: 2.2387
+  grads (preclip): total 0.0968, transformer 0.0000, adapter 0.0968
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0968, transformer 0.0000, adapter 0.0968
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0968, coef 1.0000
+  <NUM> input tokens: 156/1024 (15.2%)
+  lr: base 1.41e-04, adapter 1.41e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 668781888.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.004/0.154
+  output token accuracy: 0.595 (553/929 tokens)
+iter 17410: loss 2.8949, time 1999.89ms, mfu 0.43%
+iter 17420: loss 2.5288, time 1994.27ms, mfu 0.43%
+iter 17430: loss 2.5376, time 2001.03ms, mfu 0.43%
+iter 17440: loss 2.6731, time 1993.24ms, mfu 0.43%
+iter 17450: loss 2.7514, time 2118.82ms, mfu 0.42%
+iter 17460: loss 2.4247, time 1964.88ms, mfu 0.43%
+iter 17470: loss 2.4885, time 1967.90ms, mfu 0.43%
+iter 17480: loss 3.4345, time 1970.02ms, mfu 0.43%
+iter 17490: loss 2.3152, time 1949.05ms, mfu 0.43%
+iter 17500: loss 2.6594, time 1965.03ms, mfu 0.43%
+  === DIAG iter 17500 ===
+  loss: 2.6594
+  grads (preclip): total 0.0422, transformer 0.0000, adapter 0.0422
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0422, transformer 0.0000, adapter 0.0422
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0422, coef 1.0000
+  <NUM> input tokens: 120/1024 (11.7%)
+  lr: base 1.38e-04, adapter 1.38e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 715132160.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.004/0.022
+  output token accuracy: 0.462 (435/941 tokens)
+iter 17510: loss 2.5540, time 1974.72ms, mfu 0.43%
+iter 17520: loss 2.4971, time 1972.70ms, mfu 0.43%
+iter 17530: loss 2.6908, time 1941.63ms, mfu 0.43%
+iter 17540: loss 2.2480, time 2025.26ms, mfu 0.43%
+iter 17550: loss 2.7823, time 2181.25ms, mfu 0.43%
+iter 17560: loss 2.4417, time 2030.78ms, mfu 0.42%
+iter 17570: loss 2.8601, time 1951.61ms, mfu 0.43%
+iter 17580: loss 2.7809, time 2025.38ms, mfu 0.43%
+iter 17590: loss 2.3142, time 2019.16ms, mfu 0.43%
+iter 17600: loss 2.2649, time 2024.69ms, mfu 0.42%
+  === DIAG iter 17600 ===
+  loss: 2.2649
+  grads (preclip): total 0.0428, transformer 0.0000, adapter 0.0428
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0428, transformer 0.0000, adapter 0.0428
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0428, coef 1.0000
+  <NUM> input tokens: 147/1024 (14.4%)
+  lr: base 1.35e-04, adapter 1.35e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 934806080.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.002/0.017
+  output token accuracy: 0.532 (494/928 tokens)
+iter 17610: loss 2.2022, time 2130.37ms, mfu 0.42%
+iter 17620: loss 2.5174, time 2031.81ms, mfu 0.42%
+iter 17630: loss 2.5244, time 2053.98ms, mfu 0.42%
+iter 17640: loss 2.7886, time 2025.27ms, mfu 0.42%
+iter 17650: loss 2.8819, time 2018.57ms, mfu 0.42%
+iter 17660: loss 2.2357, time 2030.72ms, mfu 0.42%
+iter 17670: loss 2.1517, time 2028.01ms, mfu 0.42%
+iter 17680: loss 2.4832, time 2017.82ms, mfu 0.42%
+iter 17690: loss 2.5069, time 2016.02ms, mfu 0.42%
+iter 17700: loss 2.4395, time 2014.76ms, mfu 0.42%
+  === DIAG iter 17700 ===
+  loss: 2.4395
+  grads (preclip): total 0.0363, transformer 0.0000, adapter 0.0363
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0363, transformer 0.0000, adapter 0.0363
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0363, coef 1.0000
+  <NUM> input tokens: 139/1024 (13.6%)
+  lr: base 1.32e-04, adapter 1.32e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 805374784.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.003/0.043
+  output token accuracy: 0.526 (506/962 tokens)
+iter 17710: loss 2.4820, time 2010.56ms, mfu 0.42%
+iter 17720: loss 2.4175, time 1999.16ms, mfu 0.42%
+iter 17730: loss 2.4706, time 1908.81ms, mfu 0.42%
+iter 17740: loss 2.2629, time 1996.15ms, mfu 0.43%
+iter 17750: loss 2.6713, time 1978.12ms, mfu 0.43%
+iter 17760: loss 2.0818, time 1979.34ms, mfu 0.43%
+iter 17770: loss 2.2865, time 1938.55ms, mfu 0.43%
+iter 17780: loss 2.4371, time 1932.05ms, mfu 0.43%
+iter 17790: loss 2.4884, time 1930.93ms, mfu 0.43%
+iter 17800: loss 2.4944, time 2006.59ms, mfu 0.43%
+  === DIAG iter 17800 ===
+  loss: 2.4944
+  grads (preclip): total 0.0515, transformer 0.0000, adapter 0.0515
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0515, transformer 0.0000, adapter 0.0515
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0515, coef 1.0000
+  <NUM> input tokens: 127/1024 (12.4%)
+  lr: base 1.29e-04, adapter 1.29e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 705632000.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.004/0.172
+  output token accuracy: 0.457 (439/960 tokens)
+iter 17810: loss 2.1838, time 2006.30ms, mfu 0.43%
+iter 17820: loss 2.5201, time 2067.91ms, mfu 0.43%
+iter 17830: loss 1.9213, time 2066.71ms, mfu 0.43%
+iter 17840: loss 2.2908, time 1985.84ms, mfu 0.43%
+iter 17850: loss 2.5822, time 1991.47ms, mfu 0.43%
+iter 17860: loss 1.9617, time 2102.70ms, mfu 0.42%
+iter 17870: loss 2.9765, time 2090.30ms, mfu 0.42%
+iter 17880: loss 2.4406, time 2083.14ms, mfu 0.42%
+iter 17890: loss 2.8807, time 2085.48ms, mfu 0.42%
+iter 17900: loss 2.3560, time 2026.82ms, mfu 0.42%
+  === DIAG iter 17900 ===
+  loss: 2.3560
+  grads (preclip): total 0.0499, transformer 0.0000, adapter 0.0499
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0499, transformer 0.0000, adapter 0.0499
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0499, coef 1.0000
+  <NUM> input tokens: 138/1024 (13.5%)
+  lr: base 1.27e-04, adapter 1.27e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 721911296.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.002/0.034
+  output token accuracy: 0.545 (519/953 tokens)
+iter 17910: loss 2.5891, time 2076.84ms, mfu 0.42%
+iter 17920: loss 2.5630, time 2057.32ms, mfu 0.42%
+iter 17930: loss 2.2799, time 2031.65ms, mfu 0.42%
+iter 17940: loss 2.2643, time 2024.44ms, mfu 0.42%
+iter 17950: loss 2.2742, time 2033.06ms, mfu 0.42%
+iter 17960: loss 2.2841, time 2036.23ms, mfu 0.42%
+iter 17970: loss 2.3830, time 2037.28ms, mfu 0.42%
+iter 17980: loss 2.2811, time 2039.78ms, mfu 0.42%
+iter 17990: loss 2.3161, time 1966.97ms, mfu 0.42%
+step 18000: train loss 2.4806, val loss 2.5760
+saving checkpoint to /tmpdir/m24047brmn/numbers/model_checkpoints/luciole_fe_adapt/ckpt_iter18000.pt
+iter 18000: loss 2.3027, time 8069.46ms, mfu 0.39%
+  === DIAG iter 18000 ===
+  loss: 2.3027
+  grads (preclip): total 0.0542, transformer 0.0000, adapter 0.0542
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0542, transformer 0.0000, adapter 0.0542
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0542, coef 1.0000
+  <NUM> input tokens: 139/1024 (13.6%)
+  lr: base 1.24e-04, adapter 1.24e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 757923648.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.004/0.056
+  output token accuracy: 0.530 (496/935 tokens)
+  --- Sample eval (val) ---
+iter 18010: loss 2.2357, time 1899.31ms, mfu 0.40%
+iter 18020: loss 2.5323, time 1920.34ms, mfu 0.40%
+iter 18030: loss 2.4505, time 1899.02ms, mfu 0.40%
+iter 18040: loss 2.3135, time 1878.30ms, mfu 0.41%
+iter 18050: loss 2.4987, time 1831.17ms, mfu 0.42%
+iter 18060: loss 2.6221, time 1838.06ms, mfu 0.42%
+iter 18070: loss 2.4410, time 1838.51ms, mfu 0.42%
+iter 18080: loss 2.4267, time 1839.28ms, mfu 0.43%
+iter 18090: loss 2.3121, time 1831.62ms, mfu 0.43%
+iter 18100: loss 3.1656, time 2012.88ms, mfu 0.43%
+  === DIAG iter 18100 ===
+  loss: 3.1656
+  grads (preclip): total 0.0422, transformer 0.0000, adapter 0.0422
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0422, transformer 0.0000, adapter 0.0422
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0422, coef 1.0000
+  <NUM> input tokens: 127/1024 (12.4%)
+  lr: base 1.22e-04, adapter 1.22e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 720890432.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.004/0.031
+  output token accuracy: 0.454 (421/928 tokens)
+iter 18110: loss 2.1747, time 2017.31ms, mfu 0.43%
+iter 18120: loss 2.4429, time 1999.62ms, mfu 0.43%
+iter 18130: loss 2.5597, time 1977.93ms, mfu 0.43%
+iter 18140: loss 2.6224, time 1943.07ms, mfu 0.43%
+iter 18150: loss 2.1864, time 1956.09ms, mfu 0.43%
+iter 18160: loss 2.1998, time 1953.69ms, mfu 0.43%
+iter 18170: loss 2.2833, time 2105.40ms, mfu 0.43%
+iter 18180: loss 2.8973, time 2054.53ms, mfu 0.43%
+iter 18190: loss 2.4788, time 1993.88ms, mfu 0.43%
+iter 18200: loss 2.4227, time 2015.20ms, mfu 0.43%
+  === DIAG iter 18200 ===
+  loss: 2.4227
+  grads (preclip): total 0.0402, transformer 0.0000, adapter 0.0402
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0402, transformer 0.0000, adapter 0.0402
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0402, coef 1.0000
+  <NUM> input tokens: 171/1024 (16.7%)
+  lr: base 1.20e-04, adapter 1.20e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 640639040.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.004/0.064
+  output token accuracy: 0.544 (508/933 tokens)
+iter 18210: loss 2.5930, time 1989.86ms, mfu 0.43%
+iter 18220: loss 2.6348, time 1969.83ms, mfu 0.43%
+iter 18230: loss 2.1462, time 2010.68ms, mfu 0.43%
+iter 18240: loss 2.6328, time 1951.84ms, mfu 0.43%
+iter 18250: loss 2.2237, time 1927.17ms, mfu 0.43%
+iter 18260: loss 2.4997, time 1946.65ms, mfu 0.43%
+iter 18270: loss 2.5159, time 1905.83ms, mfu 0.43%
+iter 18280: loss 3.3135, time 1902.67ms, mfu 0.43%
+iter 18290: loss 2.6565, time 1906.31ms, mfu 0.44%
+iter 18300: loss 2.6100, time 1905.39ms, mfu 0.44%
+  === DIAG iter 18300 ===
+  loss: 2.6100
+  grads (preclip): total 0.0465, transformer 0.0000, adapter 0.0465
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0465, transformer 0.0000, adapter 0.0465
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0465, coef 1.0000
+  <NUM> input tokens: 157/1024 (15.3%)
+  lr: base 1.18e-04, adapter 1.18e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 811984832.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.003/0.058
+  output token accuracy: 0.536 (502/937 tokens)
+iter 18310: loss 2.5405, time 1896.31ms, mfu 0.44%
+iter 18320: loss 2.2736, time 1897.08ms, mfu 0.44%
+iter 18330: loss 2.3134, time 1893.91ms, mfu 0.44%
+iter 18340: loss 2.3760, time 1890.71ms, mfu 0.44%
+iter 18350: loss 2.8603, time 1891.47ms, mfu 0.44%
+iter 18360: loss 2.1180, time 1887.73ms, mfu 0.44%
+iter 18370: loss 2.6100, time 1981.08ms, mfu 0.44%
+iter 18380: loss 2.0126, time 1962.58ms, mfu 0.44%
+iter 18390: loss 2.7496, time 1934.99ms, mfu 0.44%
+iter 18400: loss 2.3000, time 1971.34ms, mfu 0.44%
+  === DIAG iter 18400 ===
+  loss: 2.3000
+  grads (preclip): total 0.0591, transformer 0.0000, adapter 0.0591
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0591, transformer 0.0000, adapter 0.0591
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0591, coef 1.0000
+  <NUM> input tokens: 145/1024 (14.2%)
+  lr: base 1.16e-04, adapter 1.16e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 549604864.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.005/0.133
+  output token accuracy: 0.545 (520/954 tokens)
+iter 18410: loss 2.2789, time 1963.80ms, mfu 0.44%
+iter 18420: loss 2.6534, time 1968.40ms, mfu 0.44%
+iter 18430: loss 2.5187, time 1972.58ms, mfu 0.44%
+iter 18440: loss 2.7105, time 2017.11ms, mfu 0.44%
+iter 18450: loss 2.4338, time 1983.27ms, mfu 0.44%
+iter 18460: loss 3.0707, time 1979.33ms, mfu 0.44%
+iter 18470: loss 2.3496, time 1975.95ms, mfu 0.44%
+iter 18480: loss 2.5721, time 1968.63ms, mfu 0.44%
+iter 18490: loss 2.5612, time 1974.84ms, mfu 0.43%
+iter 18500: loss 2.1356, time 2001.64ms, mfu 0.43%
+  === DIAG iter 18500 ===
+  loss: 2.1356
+  grads (preclip): total 0.0557, transformer 0.0000, adapter 0.0557
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0557, transformer 0.0000, adapter 0.0557
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0557, coef 1.0000
+  <NUM> input tokens: 171/1024 (16.7%)
+  lr: base 1.14e-04, adapter 1.14e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 716814784.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.006/0.135
+  output token accuracy: 0.584 (555/951 tokens)
+iter 18510: loss 2.5276, time 2034.84ms, mfu 0.43%
+iter 18520: loss 2.7778, time 2073.22ms, mfu 0.43%
+iter 18530: loss 2.8795, time 2057.48ms, mfu 0.43%
+iter 18540: loss 2.6719, time 2052.68ms, mfu 0.43%
+iter 18550: loss 2.7339, time 2052.54ms, mfu 0.43%
+iter 18560: loss 2.2732, time 1995.26ms, mfu 0.43%
+iter 18570: loss 2.2043, time 1988.22ms, mfu 0.43%
+iter 18580: loss 2.6202, time 1984.73ms, mfu 0.43%
+iter 18590: loss 2.2334, time 1959.01ms, mfu 0.43%
+iter 18600: loss 2.4345, time 2022.09ms, mfu 0.43%
+  === DIAG iter 18600 ===
+  loss: 2.4345
+  grads (preclip): total 0.0728, transformer 0.0000, adapter 0.0728
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0728, transformer 0.0000, adapter 0.0728
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0728, coef 1.0000
+  <NUM> input tokens: 154/1024 (15.0%)
+  lr: base 1.12e-04, adapter 1.12e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 691373120.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.003/0.050
+  output token accuracy: 0.552 (522/945 tokens)
+iter 18610: loss 2.2808, time 1944.08ms, mfu 0.43%
+iter 18620: loss 2.5188, time 2020.99ms, mfu 0.43%
+iter 18630: loss 2.4186, time 2028.20ms, mfu 0.43%
+iter 18640: loss 2.4264, time 2015.50ms, mfu 0.43%
+iter 18650: loss 2.4174, time 2022.99ms, mfu 0.43%
+iter 18660: loss 2.2035, time 2024.11ms, mfu 0.43%
+iter 18670: loss 2.7073, time 2029.23ms, mfu 0.43%
+iter 18680: loss 2.4764, time 2022.38ms, mfu 0.42%
+iter 18690: loss 2.5192, time 2020.38ms, mfu 0.42%
+iter 18700: loss 2.6277, time 2030.72ms, mfu 0.42%
+  === DIAG iter 18700 ===
+  loss: 2.6277
+  grads (preclip): total 0.0505, transformer 0.0000, adapter 0.0505
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0505, transformer 0.0000, adapter 0.0505
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0505, coef 1.0000
+  <NUM> input tokens: 150/1024 (14.6%)
+  lr: base 1.10e-04, adapter 1.10e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 643995648.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.003/0.039
+  output token accuracy: 0.532 (488/918 tokens)
+iter 18710: loss 2.6866, time 2017.15ms, mfu 0.42%
+iter 18720: loss 2.4786, time 2019.81ms, mfu 0.42%
+iter 18730: loss 2.4700, time 2024.14ms, mfu 0.42%
+iter 18740: loss 2.8000, time 2009.67ms, mfu 0.42%
+iter 18750: loss 3.3039, time 2045.46ms, mfu 0.42%
+iter 18760: loss 2.9268, time 2043.28ms, mfu 0.42%
+iter 18770: loss 2.3184, time 2039.69ms, mfu 0.42%
+iter 18780: loss 2.8794, time 2043.45ms, mfu 0.42%
+iter 18790: loss 2.2896, time 2050.99ms, mfu 0.42%
+iter 18800: loss 2.4486, time 2043.01ms, mfu 0.42%
+  === DIAG iter 18800 ===
+  loss: 2.4486
+  grads (preclip): total 0.0504, transformer 0.0000, adapter 0.0504
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0504, transformer 0.0000, adapter 0.0504
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0504, coef 1.0000
+  <NUM> input tokens: 142/1024 (13.9%)
+  lr: base 1.09e-04, adapter 1.09e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 720299520.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.003/0.054
+  output token accuracy: 0.534 (505/946 tokens)
+iter 18810: loss 2.2270, time 2046.67ms, mfu 0.42%
+iter 18820: loss 2.3739, time 2038.57ms, mfu 0.42%
+iter 18830: loss 2.4844, time 2046.17ms, mfu 0.42%
+iter 18840: loss 2.9643, time 2042.56ms, mfu 0.42%
+iter 18850: loss 2.7642, time 2042.05ms, mfu 0.42%
+iter 18860: loss 2.5121, time 1947.63ms, mfu 0.42%
+iter 18870: loss 2.5080, time 1933.29ms, mfu 0.42%
+iter 18880: loss 3.0021, time 2024.90ms, mfu 0.42%
+iter 18890: loss 2.3625, time 2024.67ms, mfu 0.42%
+iter 18900: loss 2.4227, time 2032.74ms, mfu 0.42%
+  === DIAG iter 18900 ===
+  loss: 2.4227
+  grads (preclip): total 0.0494, transformer 0.0000, adapter 0.0494
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0494, transformer 0.0000, adapter 0.0494
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0494, coef 1.0000
+  <NUM> input tokens: 150/1024 (14.6%)
+  lr: base 1.07e-04, adapter 1.07e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 699140288.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.005/0.244
+  output token accuracy: 0.538 (506/940 tokens)
+iter 18910: loss 2.1069, time 2023.48ms, mfu 0.42%
+iter 18920: loss 2.1751, time 2021.20ms, mfu 0.42%
+iter 18930: loss 2.0320, time 2011.66ms, mfu 0.42%
+iter 18940: loss 2.4329, time 2007.06ms, mfu 0.42%
+iter 18950: loss 2.5301, time 2004.68ms, mfu 0.42%
+iter 18960: loss 2.8600, time 1985.71ms, mfu 0.42%
+iter 18970: loss 2.7172, time 1942.05ms, mfu 0.43%
+iter 18980: loss 2.0220, time 1930.93ms, mfu 0.43%
+iter 18990: loss 2.6318, time 1918.24ms, mfu 0.43%
+iter 19000: loss 2.7773, time 1917.87ms, mfu 0.43%
+  === DIAG iter 19000 ===
+  loss: 2.7773
+  grads (preclip): total 0.0459, transformer 0.0000, adapter 0.0459
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0459, transformer 0.0000, adapter 0.0459
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0459, coef 1.0000
+  <NUM> input tokens: 167/1024 (16.3%)
+  lr: base 1.06e-04, adapter 1.06e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 555078144.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.006/0.124
+  output token accuracy: 0.548 (500/913 tokens)
+  --- Sample eval (val) ---
+iter 19010: loss 2.8584, time 1908.65ms, mfu 0.43%
+iter 19020: loss 1.9482, time 1901.64ms, mfu 0.43%
+iter 19030: loss 2.7795, time 1969.22ms, mfu 0.43%
+iter 19040: loss 2.5924, time 2008.91ms, mfu 0.43%
+iter 19050: loss 2.3161, time 2011.83ms, mfu 0.43%
+iter 19060: loss 2.6403, time 1997.81ms, mfu 0.43%
+iter 19070: loss 2.2036, time 2004.86ms, mfu 0.43%
+iter 19080: loss 2.1847, time 2000.50ms, mfu 0.43%
+iter 19090: loss 2.1417, time 2003.70ms, mfu 0.43%
+iter 19100: loss 2.6089, time 2002.93ms, mfu 0.43%
+  === DIAG iter 19100 ===
+  loss: 2.6089
+  grads (preclip): total 0.0418, transformer 0.0000, adapter 0.0418
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0418, transformer 0.0000, adapter 0.0418
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0418, coef 1.0000
+  <NUM> input tokens: 146/1024 (14.3%)
+  lr: base 1.05e-04, adapter 1.05e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 705551168.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.005/0.095
+  output token accuracy: 0.533 (495/929 tokens)
+iter 19110: loss 2.8114, time 1998.77ms, mfu 0.43%
+iter 19120: loss 2.4630, time 1970.46ms, mfu 0.43%
+iter 19130: loss 2.3175, time 2082.43ms, mfu 0.43%
+iter 19140: loss 2.2059, time 2071.29ms, mfu 0.43%
+iter 19150: loss 2.1316, time 2071.14ms, mfu 0.42%
+iter 19160: loss 3.0144, time 2062.84ms, mfu 0.42%
+iter 19170: loss 2.2104, time 2024.78ms, mfu 0.42%
+iter 19180: loss 2.9237, time 2032.88ms, mfu 0.42%
+iter 19190: loss 2.4763, time 2030.71ms, mfu 0.42%
+iter 19200: loss 2.9269, time 2029.53ms, mfu 0.42%
+  === DIAG iter 19200 ===
+  loss: 2.9269
+  grads (preclip): total 0.0467, transformer 0.0000, adapter 0.0467
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0467, transformer 0.0000, adapter 0.0467
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0467, coef 1.0000
+  <NUM> input tokens: 139/1024 (13.6%)
+  lr: base 1.04e-04, adapter 1.04e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 748365952.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.003/0.084
+  output token accuracy: 0.522 (470/901 tokens)
+iter 19210: loss 2.0448, time 2029.07ms, mfu 0.42%
+iter 19220: loss 2.2236, time 1983.79ms, mfu 0.42%
+iter 19230: loss 2.2337, time 2005.88ms, mfu 0.42%
+iter 19240: loss 2.6099, time 1975.27ms, mfu 0.42%
+iter 19250: loss 2.8278, time 2002.91ms, mfu 0.42%
+iter 19260: loss 2.7088, time 1984.32ms, mfu 0.42%
+iter 19270: loss 2.6355, time 1962.40ms, mfu 0.43%
+iter 19280: loss 2.5907, time 1998.36ms, mfu 0.43%
+iter 19290: loss 2.4857, time 2055.23ms, mfu 0.42%
+iter 19300: loss 2.3376, time 2054.69ms, mfu 0.42%
+  === DIAG iter 19300 ===
+  loss: 2.3376
+  grads (preclip): total 0.0492, transformer 0.0000, adapter 0.0492
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0492, transformer 0.0000, adapter 0.0492
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0492, coef 1.0000
+  <NUM> input tokens: 146/1024 (14.3%)
+  lr: base 1.03e-04, adapter 1.03e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 662151808.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.005/0.069
+  output token accuracy: 0.533 (510/956 tokens)
+iter 19310: loss 2.5373, time 2089.64ms, mfu 0.42%
+iter 19320: loss 2.3122, time 2079.34ms, mfu 0.42%
+iter 19330: loss 2.2768, time 2074.65ms, mfu 0.42%
+iter 19340: loss 2.5697, time 2068.38ms, mfu 0.42%
+iter 19350: loss 2.2564, time 2067.96ms, mfu 0.42%
+iter 19360: loss 2.5602, time 2066.20ms, mfu 0.42%
+iter 19370: loss 2.3953, time 2045.99ms, mfu 0.42%
+iter 19380: loss 2.2984, time 2005.86ms, mfu 0.42%
+iter 19390: loss 2.8371, time 1999.94ms, mfu 0.42%
+iter 19400: loss 2.8220, time 1986.81ms, mfu 0.42%
+  === DIAG iter 19400 ===
+  loss: 2.8220
+  grads (preclip): total 0.0480, transformer 0.0000, adapter 0.0480
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0480, transformer 0.0000, adapter 0.0480
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0480, coef 1.0000
+  <NUM> input tokens: 136/1024 (13.3%)
+  lr: base 1.02e-04, adapter 1.02e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 572698048.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.002/0.048
+  output token accuracy: 0.538 (498/926 tokens)
+iter 19410: loss 2.9211, time 1969.29ms, mfu 0.42%
+iter 19420: loss 2.3152, time 1961.40ms, mfu 0.42%
+iter 19430: loss 2.8616, time 2066.74ms, mfu 0.42%
+iter 19440: loss 2.5057, time 2060.52ms, mfu 0.42%
+iter 19450: loss 2.7590, time 2066.20ms, mfu 0.42%
+iter 19460: loss 2.7617, time 2035.96ms, mfu 0.42%
+iter 19470: loss 1.8197, time 2056.48ms, mfu 0.42%
+iter 19480: loss 2.4151, time 2046.98ms, mfu 0.42%
+iter 19490: loss 2.5918, time 2078.52ms, mfu 0.42%
+iter 19500: loss 2.1423, time 2061.61ms, mfu 0.42%
+  === DIAG iter 19500 ===
+  loss: 2.1423
+  grads (preclip): total 0.0479, transformer 0.0000, adapter 0.0479
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0479, transformer 0.0000, adapter 0.0479
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0479, coef 1.0000
+  <NUM> input tokens: 142/1024 (13.9%)
+  lr: base 1.02e-04, adapter 1.02e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 752647360.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.003/0.099
+  output token accuracy: 0.577 (540/936 tokens)
+iter 19510: loss 2.6095, time 2055.65ms, mfu 0.42%
+iter 19520: loss 1.9860, time 2056.55ms, mfu 0.42%
+iter 19530: loss 2.8078, time 1987.89ms, mfu 0.42%
+iter 19540: loss 2.3728, time 1974.61ms, mfu 0.42%
+iter 19550: loss 2.4225, time 1979.19ms, mfu 0.42%
+iter 19560: loss 2.9473, time 2015.87ms, mfu 0.42%
+iter 19570: loss 2.2430, time 2002.78ms, mfu 0.42%
+iter 19580: loss 2.2661, time 2001.74ms, mfu 0.42%
+iter 19590: loss 2.2087, time 1998.12ms, mfu 0.42%
+iter 19600: loss 2.5746, time 1996.47ms, mfu 0.42%
+  === DIAG iter 19600 ===
+  loss: 2.5746
+  grads (preclip): total 0.0422, transformer 0.0000, adapter 0.0422
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0422, transformer 0.0000, adapter 0.0422
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0422, coef 1.0000
+  <NUM> input tokens: 147/1024 (14.4%)
+  lr: base 1.01e-04, adapter 1.01e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 637006272.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.003/0.020
+  output token accuracy: 0.516 (489/947 tokens)
+iter 19610: loss 3.1278, time 2004.30ms, mfu 0.42%
+iter 19620: loss 2.2030, time 1988.31ms, mfu 0.42%
+iter 19630: loss 2.0735, time 1968.30ms, mfu 0.42%
+iter 19640: loss 3.2455, time 2079.20ms, mfu 0.42%
+iter 19650: loss 2.2289, time 2068.50ms, mfu 0.42%
+iter 19660: loss 2.4198, time 2059.17ms, mfu 0.42%
+iter 19670: loss 1.9116, time 2067.24ms, mfu 0.42%
+iter 19680: loss 2.7265, time 2051.57ms, mfu 0.42%
+iter 19690: loss 2.5033, time 2074.30ms, mfu 0.42%
+iter 19700: loss 3.0867, time 2179.19ms, mfu 0.42%
+  === DIAG iter 19700 ===
+  loss: 3.0867
+  grads (preclip): total 0.0441, transformer 0.0000, adapter 0.0441
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0441, transformer 0.0000, adapter 0.0441
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0441, coef 1.0000
+  <NUM> input tokens: 115/1024 (11.2%)
+  lr: base 1.01e-04, adapter 1.01e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 488085568.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.004/0.036
+  output token accuracy: 0.410 (376/917 tokens)
+iter 19710: loss 2.5321, time 2077.93ms, mfu 0.42%
+iter 19720: loss 2.1573, time 2074.85ms, mfu 0.42%
+iter 19730: loss 2.4177, time 2115.49ms, mfu 0.41%
+iter 19740: loss 2.0140, time 2145.31ms, mfu 0.41%
+iter 19750: loss 2.5975, time 2116.66ms, mfu 0.41%
+iter 19760: loss 2.2247, time 2092.53ms, mfu 0.41%
+iter 19770: loss 2.6075, time 2083.43ms, mfu 0.41%
+iter 19780: loss 2.1545, time 2077.25ms, mfu 0.41%
+iter 19790: loss 2.4863, time 2035.75ms, mfu 0.41%
+iter 19800: loss 2.4874, time 2066.20ms, mfu 0.41%
+  === DIAG iter 19800 ===
+  loss: 2.4874
+  grads (preclip): total 0.1348, transformer 0.0000, adapter 0.1348
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.1348, transformer 0.0000, adapter 0.1348
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.1348, coef 1.0000
+  <NUM> input tokens: 146/1024 (14.3%)
+  lr: base 1.00e-04, adapter 1.00e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 550542720.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.003/0.021
+  output token accuracy: 0.523 (491/939 tokens)
+iter 19810: loss 2.7002, time 2061.98ms, mfu 0.41%
+iter 19820: loss 2.6302, time 2064.07ms, mfu 0.41%
+iter 19830: loss 2.3600, time 2060.38ms, mfu 0.41%
+iter 19840: loss 2.7117, time 2058.83ms, mfu 0.41%
+iter 19850: loss 2.0252, time 2056.57ms, mfu 0.41%
+iter 19860: loss 2.3732, time 2058.21ms, mfu 0.41%
+iter 19870: loss 2.4798, time 2086.70ms, mfu 0.41%
+iter 19880: loss 2.0714, time 2083.75ms, mfu 0.41%
+iter 19890: loss 2.3843, time 2079.79ms, mfu 0.41%
+iter 19900: loss 2.3077, time 2052.63ms, mfu 0.41%
+  === DIAG iter 19900 ===
+  loss: 2.3077
+  grads (preclip): total 0.0488, transformer 0.0000, adapter 0.0488
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0488, transformer 0.0000, adapter 0.0488
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0488, coef 1.0000
+  <NUM> input tokens: 165/1024 (16.1%)
+  lr: base 1.00e-04, adapter 1.00e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 492122016.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.004/0.053
+  output token accuracy: 0.599 (550/918 tokens)
+iter 19910: loss 2.2053, time 2040.81ms, mfu 0.41%
+iter 19920: loss 1.9317, time 2026.70ms, mfu 0.41%
+iter 19930: loss 2.4597, time 2030.60ms, mfu 0.41%
+iter 19940: loss 2.4383, time 2096.69ms, mfu 0.41%
+iter 19950: loss 2.4950, time 1915.47ms, mfu 0.42%
+iter 19960: loss 2.2607, time 1883.28ms, mfu 0.42%
+iter 19970: loss 1.8837, time 1889.79ms, mfu 0.42%
+iter 19980: loss 2.7199, time 1887.26ms, mfu 0.43%
+iter 19990: loss 2.1160, time 2087.09ms, mfu 0.42%
+step 20000: train loss 2.4824, val loss 2.5817
+saving checkpoint to /tmpdir/m24047brmn/numbers/model_checkpoints/luciole_fe_adapt/ckpt_iter20000.pt
+iter 20000: loss 2.7585, time 8225.49ms, mfu 0.39%
+  === DIAG iter 20000 ===
+  loss: 2.7585
+  grads (preclip): total 0.0581, transformer 0.0000, adapter 0.0581
+  grad ratio (preclip): transformer 0.0000, adapter 1.0000
+  grads: total 0.0581, transformer 0.0000, adapter 0.0581
+  grad ratio: transformer 0.0000, adapter 1.0000
+  grad clip: max_norm 1.0000, pre_total 0.0581, coef 1.0000
+  <NUM> input tokens: 126/1024 (12.3%)
+  lr: base 1.00e-04, adapter 1.00e-04
+  num inject: beta 1.0000, norm_match true, base_norm 0.5602, delta_raw_norm 496310208.0000, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.004/0.022
+  output token accuracy: 0.456 (425/931 tokens)
+  --- Sample eval (val) ---
+==========================================
+Training finished with status 0
+==========================================
