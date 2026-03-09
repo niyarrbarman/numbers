@@ -1,0 +1,126 @@
+==========================================
+Baby Luciole + NumberEncoder Adapter Training
+  Converted checkpoint: /tmpdir/m24047brmn/numbers/checkpoints/baby_luciole_converted.pt
+  Encoder checkpoint:   /tmpdir/m24047brmn/numbers/checkpoints/np_emb_v10_2000k_model.pt
+  Data dir:             /tmpdir/m24047brmn/numbers/data/numtasks_124M_fe
+  Output dir:           /tmpdir/m24047brmn/numbers/model_checkpoints/luciole_fe_adapt
+==========================================
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+tokens per iteration will be: 81,920
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks_124M_fe
+found vocab_size = 50304 (inside /tmpdir/m24047brmn/numbers/data/numtasks_124M_fe/meta.pkl)
+Initializing from pretrained Baby Luciole checkpoint
+Loaded NumberEncoder (v10_high_fidelity_1B) from /tmpdir/m24047brmn/numbers/checkpoints/np_emb_v10_2000k_model.pt
+number of parameters: 114.87M
+  partial: transformer.wte.weight (50256→50304)
+Loaded 123 tensors from /tmpdir/m24047brmn/numbers/checkpoints/baby_luciole_converted.pt (skipped 0)
+Stage 1: Freezing base model, training adapter only
+  Trainable: 695,910 / 114,865,254 (0.6%)
+/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/train.py:268: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+optimizer parameter groups:
+  adapter_decay: 3 tensors, 694,180 params, weight_decay=0.1, lr_scale=1.0
+  adapter_nodecay: 5 tensors, 1,730 params, weight_decay=0.0, lr_scale=1.0
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+step 0: train loss 16.2792, val loss 16.4655
+iter 0: loss 16.2901, time 65208.88ms, mfu -100.00%
+  === DIAG iter 0 ===
+  loss: 16.2901
+  grads (preclip): total 0.0000, transformer 0.0000, adapter 0.0000
+  grad ratio (preclip): transformer 0.0000, adapter 0.0000
+  grads: total 0.0000, transformer 0.0000, adapter 0.0000
+  grad ratio: transformer 0.0000, adapter 0.0000
+  grad clip: max_norm 1.0000, pre_total 0.0000, coef 1.0000
+  <NUM> input tokens: 218/1024 (21.3%)
+  lr: base 9.99e-07, adapter 9.99e-07
+  num inject: beta 0.0000, norm_match true, base_norm 0.5397, delta_raw_norm 14287.3506, delta_eff_norm 0.5397, blend_norm 0.5397, scale mean/max 0.026/0.070
+  output token accuracy: 0.001 (1/923 tokens)
+iter 10: loss 15.9808, time 1443.92ms, mfu 0.59%
+iter 20: loss 16.9167, time 1441.54ms, mfu 0.59%
+iter 30: loss 16.9284, time 1402.21ms, mfu 0.59%
+iter 40: loss 16.5106, time 1430.59ms, mfu 0.59%
+iter 50: loss 16.5660, time 1478.18ms, mfu 0.59%
+iter 60: loss 15.4479, time 1508.09ms, mfu 0.59%
+iter 70: loss 15.9056, time 1459.92ms, mfu 0.59%
+iter 80: loss 16.6392, time 1517.89ms, mfu 0.59%
+iter 90: loss 15.5179, time 1493.86ms, mfu 0.58%
+iter 100: loss 16.2668, time 1518.59ms, mfu 0.58%
+  === DIAG iter 100 ===
+  loss: 16.2668
+  grads (preclip): total 0.0000, transformer 0.0000, adapter 0.0000
+  grad ratio (preclip): transformer 0.0000, adapter 0.0000
+  grads: total 0.0000, transformer 0.0000, adapter 0.0000
+  grad ratio: transformer 0.0000, adapter 0.0000
+  grad clip: max_norm 1.0000, pre_total 0.0000, coef 1.0000
+  <NUM> input tokens: 219/1024 (21.4%)
+  lr: base 1.01e-04, adapter 1.01e-04
+  num inject: beta 0.0000, norm_match true, base_norm 0.5397, delta_raw_norm 15743.2939, delta_eff_norm 0.5397, blend_norm 0.5397, scale mean/max 0.025/0.064
+  output token accuracy: 0.001 (1/931 tokens)
+iter 110: loss 16.1233, time 1493.68ms, mfu 0.58%
+iter 120: loss 16.1848, time 1435.48ms, mfu 0.58%
+iter 130: loss 16.0991, time 1492.27ms, mfu 0.58%
+iter 140: loss 15.8819, time 1562.73ms, mfu 0.58%
+iter 150: loss 16.0324, time 1514.54ms, mfu 0.58%
+iter 160: loss 15.8480, time 1500.22ms, mfu 0.58%
+iter 170: loss 15.9585, time 1503.39ms, mfu 0.57%
+iter 180: loss 16.7313, time 1501.02ms, mfu 0.57%
+iter 190: loss 16.8532, time 1495.03ms, mfu 0.57%
+iter 200: loss 15.6689, time 1497.08ms, mfu 0.57%
+  === DIAG iter 200 ===
+  loss: 15.6689
+  grads (preclip): total 0.0000, transformer 0.0000, adapter 0.0000
+  grad ratio (preclip): transformer 0.0000, adapter 0.0000
+  grads: total 0.0000, transformer 0.0000, adapter 0.0000
+  grad ratio: transformer 0.0000, adapter 0.0000
+  grad clip: max_norm 1.0000, pre_total 0.0000, coef 1.0000
+  <NUM> input tokens: 223/1024 (21.8%)
+  lr: base 2.01e-04, adapter 2.01e-04
+  num inject: beta 0.0000, norm_match true, base_norm 0.5397, delta_raw_norm 15047.8369, delta_eff_norm 0.5397, blend_norm 0.5397, scale mean/max 0.024/0.065
+  output token accuracy: 0.000 (0/911 tokens)
+iter 210: loss 16.1175, time 1454.99ms, mfu 0.57%
+iter 220: loss 16.5713, time 1472.08ms, mfu 0.58%
+iter 230: loss 16.2903, time 1467.40ms, mfu 0.58%
+iter 240: loss 16.3921, time 1492.42ms, mfu 0.58%
+iter 250: loss 16.1544, time 1430.09ms, mfu 0.58%
+iter 260: loss 16.3155, time 1427.27ms, mfu 0.58%
+iter 270: loss 16.5548, time 1487.42ms, mfu 0.58%
+iter 280: loss 15.9957, time 1488.82ms, mfu 0.58%
+iter 290: loss 16.4902, time 1479.57ms, mfu 0.58%
+iter 300: loss 15.8616, time 1483.24ms, mfu 0.58%
+  === DIAG iter 300 ===
+  loss: 15.8616
+  grads (preclip): total 0.0000, transformer 0.0000, adapter 0.0000
+  grad ratio (preclip): transformer 0.0000, adapter 0.0000
+  grads: total 0.0000, transformer 0.0000, adapter 0.0000
+  grad ratio: transformer 0.0000, adapter 0.0000
+  grad clip: max_norm 1.0000, pre_total 0.0000, coef 1.0000
+  <NUM> input tokens: 220/1024 (21.5%)
+  lr: base 3.01e-04, adapter 3.01e-04
+  num inject: beta 0.0000, norm_match true, base_norm 0.5397, delta_raw_norm 13088.8135, delta_eff_norm 0.5397, blend_norm 0.5397, scale mean/max 0.026/0.068
+  output token accuracy: 0.003 (3/916 tokens)
+iter 310: loss 16.6251, time 1420.89ms, mfu 0.58%
+iter 320: loss 16.3077, time 1488.11ms, mfu 0.58%
+iter 330: loss 16.3110, time 1482.45ms, mfu 0.58%
+iter 340: loss 16.8629, time 1481.99ms, mfu 0.58%
+iter 350: loss 16.2803, time 1441.33ms, mfu 0.58%
+iter 360: loss 15.9457, time 1511.65ms, mfu 0.58%
+iter 370: loss 16.3472, time 1509.60ms, mfu 0.58%
+iter 380: loss 16.3317, time 1438.55ms, mfu 0.58%
+iter 390: loss 16.2303, time 1538.76ms, mfu 0.58%
+iter 400: loss 16.2687, time 1517.60ms, mfu 0.57%
+  === DIAG iter 400 ===
+  loss: 16.2687
+  grads (preclip): total 0.0000, transformer 0.0000, adapter 0.0000
+  grad ratio (preclip): transformer 0.0000, adapter 0.0000
+  grads: total 0.0000, transformer 0.0000, adapter 0.0000
+  grad ratio: transformer 0.0000, adapter 0.0000
+  grad clip: max_norm 1.0000, pre_total 0.0000, coef 1.0000
+  <NUM> input tokens: 233/1024 (22.8%)
+  lr: base 4.01e-04, adapter 4.01e-04
+  num inject: beta 0.0000, norm_match true, base_norm 0.5397, delta_raw_norm 14723.9961, delta_eff_norm 0.5397, blend_norm 0.5397, scale mean/max 0.027/0.072
+  output token accuracy: 0.002 (2/936 tokens)
+slurmstepd: error: *** JOB 79213 ON turpancomp0 CANCELLED AT 2026-03-09T02:43:47 ***

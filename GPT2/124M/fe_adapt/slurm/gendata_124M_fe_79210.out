@@ -1,0 +1,14 @@
+==========================================
+Generating training data for 124M FE adapt
+  Script dir: /work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt
+  Output dir: /tmpdir/m24047brmn/numbers/data/numtasks_124M_fe
+==========================================
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+Traceback (most recent call last):
+  File "generate_data.py", line 23, in <module>
+    import numpy as np
+ModuleNotFoundError: No module named 'numpy'
+==========================================
+Data generation finished with status 1
+==========================================

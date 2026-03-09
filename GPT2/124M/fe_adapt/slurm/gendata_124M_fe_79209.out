@@ -1,0 +1,11 @@
+==========================================
+Generating training data for 124M FE adapt
+  Script dir: /var/spool/slurmd/job79209
+  Output dir: /tmpdir/m24047brmn/numbers/data/numtasks_124M_fe
+==========================================
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+python: can't open file 'generate_data.py': [Errno 2] No such file or directory
+==========================================
+Data generation finished with status 2
+==========================================

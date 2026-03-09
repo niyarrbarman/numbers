@@ -1,0 +1,29 @@
+==========================================
+Baby Luciole + NumberEncoder Adapter Training
+  Converted checkpoint: /tmpdir/m24047brmn/numbers/checkpoints/baby_luciole_converted.pt
+  Encoder checkpoint:   /tmpdir/m24047brmn/numbers/checkpoints/np_emb_v10_2000k_model.pt
+  Data dir:             /tmpdir/m24047brmn/numbers/data/numtasks_124M_fe
+  Output dir:           /tmpdir/m24047brmn/numbers/model_checkpoints/luciole_fe_adapt
+==========================================
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+tokens per iteration will be: 81,920
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks_124M_fe
+found vocab_size = 50258 (inside /tmpdir/m24047brmn/numbers/data/numtasks_124M_fe/meta.pkl)
+Initializing from pretrained Baby Luciole checkpoint
+Loaded NumberEncoder (v10_high_fidelity_1B) from /tmpdir/m24047brmn/numbers/checkpoints/np_emb_v10_2000k_model.pt
+number of parameters: 114.83M
+  partial: transformer.wte.weight (50256→50258)
+Loaded 123 tensors from /tmpdir/m24047brmn/numbers/checkpoints/baby_luciole_converted.pt (skipped 0)
+Stage 1: Freezing base model, training adapter only
+  Trainable: 695,910 / 114,829,926 (0.6%)
+/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/train.py:268: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+optimizer parameter groups:
+  adapter_decay: 3 tensors, 694,180 params, weight_decay=0.1, lr_scale=1.0
+  adapter_nodecay: 5 tensors, 1,730 params, weight_decay=0.0, lr_scale=1.0
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+slurmstepd: error: *** JOB 79215 ON turpancomp0 CANCELLED AT 2026-03-09T02:53:44 ***

@@ -1,0 +1,64 @@
+==========================================
+Baby Luciole + NumberEncoder Adapter Training
+  Converted checkpoint: /tmpdir/m24047brmn/numbers/checkpoints/baby_luciole_converted.pt
+  Encoder checkpoint:   /tmpdir/m24047brmn/numbers/checkpoints/np_emb_v10_2000k_model.pt
+  Data dir:             /tmpdir/m24047brmn/numbers/data/numtasks_124M_fe
+  Output dir:           /tmpdir/m24047brmn/numbers/model_checkpoints/luciole_fe_adapt
+==========================================
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+tokens per iteration will be: 81,920
+data directory: /tmpdir/m24047brmn/numbers/data/numtasks_124M_fe
+found vocab_size = 50258 (inside /tmpdir/m24047brmn/numbers/data/numtasks_124M_fe/meta.pkl)
+Initializing from pretrained Baby Luciole checkpoint
+Loaded NumberEncoder (v10_high_fidelity_1B) from /tmpdir/m24047brmn/numbers/checkpoints/np_emb_v10_2000k_model.pt
+number of parameters: 114.83M
+  partial: transformer.wte.weight (50256→50258)
+Loaded 123 tensors from /tmpdir/m24047brmn/numbers/checkpoints/baby_luciole_converted.pt (skipped 0)
+Stage 1: Freezing base model, training adapter only
+  Trainable: 695,910 / 114,829,926 (0.6%)
+/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/train.py:268: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+optimizer parameter groups:
+  adapter_decay: 3 tensors, 694,180 params, weight_decay=0.1, lr_scale=1.0
+  adapter_nodecay: 5 tensors, 1,730 params, weight_decay=0.0, lr_scale=1.0
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+step 0: train loss 15.6136, val loss 15.3878
+iter 0: loss 16.0432, time 66269.51ms, mfu -100.00%
+  === DIAG iter 0 ===
+  loss: 16.0432
+  grads (preclip): total 0.0000, transformer 0.0000, adapter 0.0000
+  grad ratio (preclip): transformer 0.0000, adapter 0.0000
+  grads: total 0.0000, transformer 0.0000, adapter 0.0000
+  grad ratio: transformer 0.0000, adapter 0.0000
+  grad clip: max_norm 1.0000, pre_total 0.0000, coef 1.0000
+  <NUM> input tokens: 140/1024 (13.7%)
+  lr: base 9.99e-07, adapter 9.99e-07
+  num inject: beta 0.0000, norm_match true, base_norm 0.5602, delta_raw_norm 14603.6826, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.023/0.060
+  output token accuracy: 0.104 (99/956 tokens)
+iter 10: loss 15.4113, time 1383.25ms, mfu 0.62%
+iter 20: loss 15.4427, time 1515.62ms, mfu 0.61%
+iter 30: loss 15.4589, time 1530.23ms, mfu 0.61%
+iter 40: loss 15.2326, time 1497.35ms, mfu 0.60%
+iter 50: loss 15.7203, time 1527.08ms, mfu 0.60%
+iter 60: loss 15.6299, time 1520.57ms, mfu 0.59%
+iter 70: loss 15.5969, time 1497.67ms, mfu 0.59%
+iter 80: loss 15.7548, time 1515.90ms, mfu 0.59%
+iter 90: loss 15.2642, time 1551.82ms, mfu 0.58%
+iter 100: loss 15.7540, time 1547.14ms, mfu 0.58%
+  === DIAG iter 100 ===
+  loss: 15.7540
+  grads (preclip): total 0.0000, transformer 0.0000, adapter 0.0000
+  grad ratio (preclip): transformer 0.0000, adapter 0.0000
+  grads: total 0.0000, transformer 0.0000, adapter 0.0000
+  grad ratio: transformer 0.0000, adapter 0.0000
+  grad clip: max_norm 1.0000, pre_total 0.0000, coef 1.0000
+  <NUM> input tokens: 141/1024 (13.8%)
+  lr: base 1.01e-04, adapter 1.01e-04
+  num inject: beta 0.0000, norm_match true, base_norm 0.5602, delta_raw_norm 18653.0605, delta_eff_norm 0.5602, blend_norm 0.5602, scale mean/max 0.022/0.059
+  output token accuracy: 0.115 (109/951 tokens)
+iter 110: loss 15.0650, time 1530.37ms, mfu 0.58%
+iter 120: loss 15.4288, time 1511.57ms, mfu 0.58%
