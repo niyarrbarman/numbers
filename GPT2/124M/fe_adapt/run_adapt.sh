@@ -31,6 +31,7 @@ apptainer exec \
   --nv \
   --env "PYTHONUSERBASE=${MYENVS}/numbers" \
   --env "TIKTOKEN_CACHE_DIR=/tmpdir/m24047brmn/tiktoken_cache" \
+  --env "PYTHONUNBUFFERED=1" \
   --bind /tmpdir,/work \
   "${IMAGE}" \
   python3 "${SCRIPT_DIR}/train.py" \
