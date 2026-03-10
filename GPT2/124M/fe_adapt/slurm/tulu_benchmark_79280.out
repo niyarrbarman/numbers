@@ -1,0 +1,46 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+======================================================================
+TULU-3 MATH BENCHMARK: Base LoRA vs Adapted LoRA
+======================================================================
+Loaded 2998 test examples from /tmpdir/m24047brmn/numbers/data/tulu3_math_grade/base/test_examples.json
+
+==================================================
+Evaluating: Base LoRA
+  Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/tulu_base_lora/ckpt_merged.pt
+  Data: /tmpdir/m24047brmn/numbers/data/tulu3_math_grade/base
+==================================================
+Loading /tmpdir/m24047brmn/numbers/model_checkpoints/tulu_base_lora/ckpt_merged.pt...
+number of parameters: 114.83M
+  Loaded (135 keys), use_adapter=False
+
+--- Forward-pass metrics (200 batches) ---
+  Loss:       1.0347
+  Perplexity: 2.81
+  Accuracy:   0.7510
+
+--- Generation metrics (100 samples, greedy) ---
+  [0] ref: To solve the problem, we need to determine the number of day beetles with partial eyesight that Dr. 
+       gen: To solve this problem, we need to determine how many day beetles with partial eyesight Dr. Alex will
+       match: False
+
+  [1] ref: To solve the given problem, we need to determine two things:
+
+1. The total hours Maria will spend wa
+       gen: To solve the problem, we need to calculate the total time Maria will spend watching "Eat Bulaga!" an
+       match: False
+
+  [2] ref: To solve this problem, we need to determine how many minerals Dr. Rivera needs to analyze in total a
+       gen: To solve this problem, we need to determine how many hours it will take Dr. Rivera to analyze all th
+       match: False
+
+  [3] ref: To solve the problem, let's break it down step-by-step:
+
+1. **Determine the total number of apartmen
+       gen: To solve this problem, we need to determine how many weeks it will take for the apartment to complet
+       match: False
+
+  [4] ref: To solve this problem, we need to calculate the expected number of items sold online after three mon
+       gen: To solve the problem, we need to calculate the new number of items sold each month and then find the
+       match: False
+
