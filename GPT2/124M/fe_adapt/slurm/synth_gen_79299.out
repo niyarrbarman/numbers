@@ -1,0 +1,18 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+Generating 56000 problems (train=50000, val=3000, test=3000)
+  train: 50000 problems
+    base:     2,238,768 tokens,      0 <NUM>
+    adapted:  2,049,704 tokens, 105155 <NUM>
+  val: 3000 problems
+    base:       135,720 tokens,      0 <NUM>
+    adapted:    124,313 tokens,   6328 <NUM>
+  test: 3000 problems
+    base:       134,195 tokens,      0 <NUM>
+    adapted:    122,945 tokens,   6298 <NUM>
+
+Done! Data saved to:
+  base:    /tmpdir/m24047brmn/numbers/data/synth_arith/base
+  adapted: /tmpdir/m24047brmn/numbers/data/synth_arith/adapted
+  test_examples.json: 3000 examples
+Data generation complete.

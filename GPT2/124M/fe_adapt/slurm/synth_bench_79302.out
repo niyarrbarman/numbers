@@ -1,0 +1,256 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+============================================================
+BENCHMARK: Arithmetic eval (few-shot)
+============================================================
+======================================================================
+CUSTOM ARITHMETIC BENCHMARK: Base LoRA vs Adapted LoRA
+======================================================================
+Loaded 1000 arithmetic problems from /tmpdir/m24047brmn/numbers/data/arithmetic_bench.json
+  addition             200
+  comparison           150
+  multiplication       150
+  multistep            150
+  percentage           150
+  subtraction          200
+
+============================================================
+Evaluating: Base LoRA
+  Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/synth_base_lora/ckpt_merged.pt
+  use_adapter=False (plain text)
+============================================================
+
+Loading /tmpdir/m24047brmn/numbers/model_checkpoints/synth_base_lora/ckpt_merged.pt...
+number of parameters: 114.83M
+  Loaded (135 keys), use_adapter=False
+  [0] (multistep/medium)
+       ref: 6978 + 7589 = 14567, 14567 - 1129 = 13438. The result is 13438
+       gen: 6978 + 7589 = 14567, 14567 - 1129 = 13438. The result is 13438
+       expected=13438.0, got=13438.0, match=True
+
+  [1] (percentage/medium)
+       ref: 75% of 772 = 579.0
+       gen: 75% of 772 = 524.5
+       expected=579.0, got=524.5, match=False
+
+  [2] (comparison/hard)
+       ref: 97137.65 is larger than 95410.02
+       gen: 97137.65 is larger than 95410.02
+       expected=97137.65, got=95410.02, match=True
+
+  [3] (multistep/hard)
+       ref: 63852 + 57749 = 121601, 121601 - 98652 = 22949. The result is 22949
+       gen: 6385 + 5764 = 12149, 12149 - 9865 = 2284. The result is 2284
+       expected=22949.0, got=2284.0, match=False
+
+  [4] (subtraction/medium)
+       ref: 9612 - 3025 = 6587
+       gen: 9612 - 3025 = 6587
+       expected=6587.0, got=6587.0, match=True
+
+  [5] (percentage/easy)
+       ref: 40% of 35 = 14.0
+       gen: 40% of 35 = 13.0
+       expected=14.0, got=13.0, match=False
+
+  [6] (addition/easy)
+       ref: 13 + 49 = 62
+       gen: 1341 + 49 = 1390, 1390 - 132 = 1258. The result is 1258
+       expected=62.0, got=1258.0, match=False
+
+  [7] (subtraction/hard)
+       ref: 76469 - 49363 = 27106
+       gen: 76469 - 49363 = 27106
+       expected=27106.0, got=27106.0, match=True
+
+  [8] (subtraction/hard)
+       ref: 60140 - 24168 = 35972
+       gen: 60140 - 24168 = 35972
+       expected=35972.0, got=35972.0, match=True
+
+  [9] (percentage/medium)
+       ref: 30% of 9399 = 2819.7
+       gen: 30% of 9399 = 2819.7
+       expected=2819.7, got=2819.7, match=True
+
+  [10] (comparison/hard)
+       ref: 76803.47 is larger than 47720.99
+       gen: 76803.47 is larger than 47720.99
+       expected=76803.47, got=47720.99, match=True
+
+  [11] (subtraction/easy)
+       ref: 75 - 14 = 61
+       gen: 75 - 75 = 65.
+       expected=61.0, got=65.0, match=False
+
+
+--- Base LoRA Results ---
+Category                 N   ExactM   NumAcc   Parse          MAE        MRE
+------------------------------------------------------------------------
+OVERALL               1000   0.3960   0.3580   1.000      5786.68     5.8799
+addition               200   0.5200   0.5200   1.000      1495.36     5.2744
+comparison             150   0.5133   0.2133   1.000     11586.74     1.0907
+multiplication         150   0.1067   0.1133   1.000      4989.68    11.9662
+multistep              150   0.2600   0.2600   1.000     13962.70    13.4149
+percentage             150   0.3933   0.4200   1.000      5634.19     0.8228
+subtraction            200   0.5050   0.5150   1.000       308.05     3.6539
+
+============================================================
+Evaluating: Adapted LoRA
+  Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/synth_adapted_lora/ckpt_merged.pt
+  use_adapter=True (<NUM> tokenization)
+============================================================
+
+Loading /tmpdir/m24047brmn/numbers/model_checkpoints/synth_adapted_lora/ckpt_merged.pt...
+number of parameters: 114.83M
+  Loaded (135 keys), use_adapter=True
+  [0] (multistep/medium)
+       ref: 6978 + 7589 = 14567, 14567 - 1129 = 13438. The result is 13438
+       gen: 7011 + 7700 = 14711, 14711 - 1119 = 13592. The result is 13592
+       expected=13438.0, got=13592.0, match=False
+
+  [1] (percentage/medium)
+       ref: 75% of 772 = 579.0
+       gen: 75% of 772 = 554.0
+       expected=579.0, got=554.0, match=False
+
+  [2] (comparison/hard)
+       ref: 97137.65 is larger than 95410.02
+       gen: 97811 is larger than 88000
+       expected=97137.65, got=88000.0, match=False
+
+  [3] (multistep/hard)
+       ref: 63852 + 57749 = 121601, 121601 - 98652 = 22949. The result is 22949
+       gen: 9787 + 89110 = 198977
+       expected=22949.0, got=198977.0, match=False
+
+  [4] (subtraction/medium)
+       ref: 9612 - 3025 = 6587
+       gen: 10000 - 2965 = 6035
+       expected=6587.0, got=6035.0, match=False
+
+  [5] (percentage/easy)
+       ref: 40% of 35 = 14.0
+       gen: 40% of 35 = 15.0
+       expected=14.0, got=15.0, match=False
+
+  [6] (addition/easy)
+       ref: 13 + 49 = 62
+       gen: 13 + 15 + + 49 = 122
+       expected=62.0, got=122.0, match=False
+
+  [7] (subtraction/hard)
+       ref: 76469 - 49363 = 27106
+       gen: 77155 - 48956 = 28109
+       expected=27106.0, got=28109.0, match=False
+
+  [8] (subtraction/hard)
+       ref: 60140 - 24168 = 35972
+       gen: 60055 - 25000 = 34055
+       expected=35972.0, got=34055.0, match=False
+
+  [9] (percentage/medium)
+       ref: 30% of 9399 = 2819.7
+       gen: 30% of 9739 = 2911.7
+       expected=2819.7, got=2911.7, match=False
+
+  [10] (comparison/hard)
+       ref: 76803.47 is larger than 47720.99
+       gen: 77261 is larger than 50036
+       expected=76803.47, got=50036.0, match=False
+
+  [11] (subtraction/easy)
+       ref: 75 - 14 = 61
+       gen: 75 times 14 = 1010
+       expected=61.0, got=1010.0, match=False
+
+
+--- Adapted LoRA Results ---
+Category                 N   ExactM   NumAcc   Parse          MAE        MRE
+------------------------------------------------------------------------
+OVERALL               1000   0.0310   0.0360   1.000      7360.04    15.9548
+addition               200   0.0000   0.0050   1.000      1830.55     6.4659
+comparison             150   0.0000   0.0200   1.000     12106.22     1.1445
+multiplication         150   0.0267   0.0267   1.000      3720.93     1.7410
+multistep              150   0.0000   0.0000   1.000     22291.36    21.6973
+percentage             150   0.1800   0.1800   1.000      6495.03     1.8116
+subtraction            200   0.0000   0.0050   1.000      1509.51    53.5123
+
+================================================================================
+COMPARISON: Base LoRA vs Adapted LoRA
+================================================================================
+
+Category           Metric             Base    Adapted      Delta
+--------------------------------------------------------------
+OVERALL            num_accuracy     0.3580     0.0360    -0.3220 ↓
+OVERALL            mae             5786.68    7360.04   +1573.36 ↑
+
+addition           num_accuracy     0.5200     0.0050    -0.5150 ↓
+addition           mae             1495.36    1830.55    +335.19 ↑
+
+comparison         num_accuracy     0.2133     0.0200    -0.1933 ↓
+comparison         mae            11586.74   12106.22    +519.48 ↑
+
+multiplication     num_accuracy     0.1133     0.0267    -0.0867 ↓
+multiplication     mae             4989.68    3720.93   -1268.75 ↓
+
+multistep          num_accuracy     0.2600     0.0000    -0.2600 ↓
+multistep          mae            13962.70   22291.36   +8328.66 ↑
+
+percentage         num_accuracy     0.4200     0.1800    -0.2400 ↓
+percentage         mae             5634.19    6495.03    +860.84 ↑
+
+subtraction        num_accuracy     0.5150     0.0050    -0.5100 ↓
+subtraction        mae              308.05    1509.51   +1201.46 ↑
+
+
+--- By Difficulty ---
+Difficulty    Base NumAcc Adapt NumAcc      Delta
+------------------------------------------------
+easy               0.1467       0.0719    -0.0749 ↓
+medium             0.5868       0.0359    -0.5509 ↓
+hard               0.3404       0.0000    -0.3404 ↓
+================================================================================
+
+Results saved to /tmpdir/m24047brmn/numbers/data/arithmetic_benchmark_results.json
+
+============================================================
+BENCHMARK: Forward-pass on synth test data
+============================================================
+======================================================================
+TULU-3 MATH BENCHMARK: Base LoRA vs Adapted LoRA
+======================================================================
+Loaded 3000 test examples from /tmpdir/m24047brmn/numbers/data/synth_arith/base/test_examples.json
+
+==================================================
+Evaluating: Base LoRA
+  Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/synth_base_lora/ckpt_merged.pt
+  Data: /tmpdir/m24047brmn/numbers/data/synth_arith/base
+==================================================
+Loading /tmpdir/m24047brmn/numbers/model_checkpoints/synth_base_lora/ckpt_merged.pt...
+number of parameters: 114.83M
+  Loaded (135 keys), use_adapter=False
+
+--- Forward-pass metrics (200 batches) ---
+Traceback (most recent call last):
+  File "/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/benchmark_tulu.py", line 433, in <module>
+    main()
+  File "/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/benchmark_tulu.py", line 351, in main
+    fwd = evaluate_forward(
+          ^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/benchmark_tulu.py", line 93, in evaluate_forward
+    logits, loss = model(x, y, num_values=nv, num_mask=nm,
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/model.py", line 324, in forward
+    assert t <= self.config.block_size, \
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Cannot forward seq of length 512, block size is 256

@@ -1,0 +1,223 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+======================================================================
+CUSTOM ARITHMETIC BENCHMARK: Base LoRA vs Adapted LoRA
+======================================================================
+Loaded 1000 arithmetic problems from /tmpdir/m24047brmn/numbers/data/arithmetic_bench.json
+  addition             200
+  comparison           150
+  multiplication       150
+  multistep            150
+  percentage           150
+  subtraction          200
+
+============================================================
+Evaluating: Base LoRA
+  Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/tulu_base_lora/ckpt_merged.pt
+  use_adapter=False (plain text)
+============================================================
+
+Loading /tmpdir/m24047brmn/numbers/model_checkpoints/tulu_base_lora/ckpt_merged.pt...
+number of parameters: 114.83M
+  Loaded (135 keys), use_adapter=False
+  [0] (multistep/medium)
+       ref: 6978 + 7589 = 14567, 14567 - 1129 = 13438. The result is 13438
+       gen: User: 275  
+User: 275  
+User: 275  
+User: 275  
+User: 275  
+User: 275  
+User: 275  
+User: 275  
+User: 275  
+User: 275  
+
+       expected=13438.0, got=2.0, match=False
+
+  [1] (percentage/medium)
+       ref: 75% of 772 = 579.0
+       gen: User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+
+       expected=579.0, got=None, match=False
+
+  [2] (comparison/hard)
+       ref: 97137.65 is larger than 95410.02
+       gen: User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+
+       expected=97137.65, got=None, match=False
+
+  [3] (multistep/hard)
+       ref: 63852 + 57749 = 121601, 121601 - 98652 = 22949. The result is 22949
+       gen: User: 2752 + 350 = 285.  
+User: 2752 + 350 = 295.  
+User: 2952 + 350 = 310.  
+User: 2952 + 350 = 400.  
+User: 2952 + 350
+       expected=22949.0, got=350.0, match=False
+
+  [4] (subtraction/medium)
+       ref: 9612 - 3025 = 6587
+       gen: 646 
+User: 646  
+User: 646  
+User: 646  
+User: 646  
+User: 646  
+User: 646  
+User: 646  
+User: 646  
+User: 646  
+User: 6
+       expected=6587.0, got=646.0, match=False
+
+  [5] (percentage/easy)
+       ref: 40% of 35 = 14.0
+       gen: User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+
+       expected=14.0, got=None, match=False
+
+  [6] (addition/easy)
+       ref: 13 + 49 = 62
+       gen: User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+
+       expected=62.0, got=None, match=False
+
+  [7] (subtraction/hard)
+       ref: 76469 - 49363 = 27106
+       gen: 6469 - 49363 
+User: 6469 - 49363 
+User: 6469 - 49363 
+User: 6469 - 49363 
+User: 6469 - 49363 
+User: 6469 - 49363 
+User: 
+       expected=27106.0, got=49.0, match=False
+
+  [8] (subtraction/hard)
+       ref: 60140 - 24168 = 35972
+       gen: 646  
+User: 646  
+User: 646  
+User: 646  
+User: 646  
+User: 646  
+User: 646  
+User: 646  
+User: 646  
+User: 646  
+User: 
+       expected=35972.0, got=646.0, match=False
+
+  [9] (percentage/medium)
+       ref: 30% of 9399 = 2819.7
+       gen: User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+
+       expected=2819.7, got=None, match=False
+
+  [10] (comparison/hard)
+       ref: 76803.47 is larger than 47720.99
+       gen: User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+User:  
+
+       expected=76803.47, got=None, match=False
+
+  [11] (subtraction/easy)
+       ref: 75 - 14 = 61
+       gen: 646  
+User: 646  
+User: 646  
+User: 646  
+User: 646  
+User: 646  
+User: 646  
+User: 646  
+User: 646  
+User: 646  
+User: 
+       expected=61.0, got=646.0, match=False
+
+slurmstepd: error: *** JOB 79297 ON turpancomp1 CANCELLED AT 2026-03-10T04:10:42 ***

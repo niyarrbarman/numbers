@@ -1,0 +1,17 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+Generated 1000 arithmetic problems → /tmpdir/m24047brmn/numbers/data/arithmetic_bench.json
+
+By category:
+  addition               200
+  comparison             150
+  multiplication         150
+  multistep              150
+  percentage             150
+  subtraction            200
+
+By difficulty:
+  easy                   334
+  hard                   332
+  medium                 334
+Arithmetic benchmark data generated.
