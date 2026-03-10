@@ -62,6 +62,40 @@ def load_merged_model(ckpt_path, device='cpu'):
 
 
 # =============================================================================
+# Few-shot examples (2 per category) to steer output format
+# =============================================================================
+
+FEW_SHOT_EXAMPLES = {
+    'addition': [
+        {'user': 'What is 12 + 5?', 'assistant': '12 + 5 = 17'},
+        {'user': 'What is 248 + 193?', 'assistant': '248 + 193 = 441'},
+    ],
+    'subtraction': [
+        {'user': 'What is 50 - 23?', 'assistant': '50 - 23 = 27'},
+        {'user': 'What is 1024 - 378?', 'assistant': '1024 - 378 = 646'},
+    ],
+    'multiplication': [
+        {'user': 'What is 7 times 8?', 'assistant': '7 times 8 = 56'},
+        {'user': 'What is 23 times 17?', 'assistant': '23 times 17 = 391'},
+    ],
+    'comparison': [
+        {'user': 'Which is larger, 15 or 9?', 'assistant': '15 is larger than 9'},
+        {'user': 'Which is larger, 3.8 or 4.2?', 'assistant': '4.2 is larger than 3.8'},
+    ],
+    'percentage': [
+        {'user': 'What is 10% of 200?', 'assistant': '10% of 200 = 20.0'},
+        {'user': 'What is 25% of 480?', 'assistant': '25% of 480 = 120.0'},
+    ],
+    'multistep': [
+        {'user': 'If you have 30 and add 15, then subtract 10, what is the result?',
+         'assistant': '30 + 15 = 45, 45 - 10 = 35. The result is 35'},
+        {'user': 'If you have 100 and add 250, then subtract 75, what is the result?',
+         'assistant': '100 + 250 = 350, 350 - 75 = 275. The result is 275'},
+    ],
+}
+
+
+# =============================================================================
 # Tokenization — handles base vs adapted differently
 # =============================================================================
 
@@ -101,11 +135,44 @@ def process_content_with_numbers(text):
     return ids, nums
 
 
-def format_prompt(messages, use_adapter=False):
-    """Format conversation prompt for generation.
+def _tokenize_turn(role, content, use_adapter, is_first, tokenizer):
+    """Tokenize a single user/assistant turn.
+
+    Returns (token_ids, num_values) for this turn.
+    """
+    ids = []
+    nums = []
+
+    # Role prefix
+    if not is_first:
+        prefix = f"\n{role.capitalize()}: "
+    else:
+        prefix = f"{role.capitalize()}: "
+    prefix_ids = tokenizer.encode(prefix, add_special_tokens=False)
+    ids.extend(prefix_ids)
+    nums.extend([0.0] * len(prefix_ids))
+
+    # Content
+    if use_adapter and role == 'user':
+        c_ids, c_nums = process_content_with_numbers(content)
+        ids.extend(c_ids)
+        nums.extend(c_nums)
+    else:
+        c_ids = tokenizer.encode(content, add_special_tokens=False)
+        ids.extend(c_ids)
+        nums.extend([0.0] * len(c_ids))
+
+    return ids, nums
+
+
+def format_prompt(messages, use_adapter=False, category=None):
+    """Format conversation prompt for generation, with few-shot examples.
 
     For the base model:  plain text tokenization.
     For the adapted model: numbers in user content are replaced with <NUM>.
+
+    If category is provided, prepends 2 few-shot examples of the same
+    category so the model sees the expected concise answer format.
 
     Returns (token_ids, num_values) ready for model input.
     The prompt ends after "Assistant:" so the model generates the answer.
@@ -113,7 +180,26 @@ def format_prompt(messages, use_adapter=False):
     tokenizer = _get_tokenizer()
     ids = []
     nums = []
+    turn_idx = 0
 
+    # --- Prepend few-shot examples ---
+    if category and category in FEW_SHOT_EXAMPLES:
+        for ex in FEW_SHOT_EXAMPLES[category]:
+            # User turn
+            t_ids, t_nums = _tokenize_turn(
+                'user', ex['user'], use_adapter, turn_idx == 0, tokenizer)
+            ids.extend(t_ids)
+            nums.extend(t_nums)
+            turn_idx += 1
+
+            # Assistant turn (always plain text — it's the answer)
+            t_ids, t_nums = _tokenize_turn(
+                'assistant', ex['assistant'], False, False, tokenizer)
+            ids.extend(t_ids)
+            nums.extend(t_nums)
+            turn_idx += 1
+
+    # --- Actual problem ---
     for i, msg in enumerate(messages):
         if msg['role'] == 'assistant' and i == len(messages) - 1:
             # Last assistant message = reference answer → just add prefix
@@ -123,27 +209,12 @@ def format_prompt(messages, use_adapter=False):
             nums.extend([0.0] * len(prefix_ids))
             break
 
-        role = msg['role']
-        content = msg['content'].strip()
-
-        if i > 0:
-            prefix = f"\n{role.capitalize()}: "
-        else:
-            prefix = f"{role.capitalize()}: "
-        prefix_ids = tokenizer.encode(prefix, add_special_tokens=False)
-        ids.extend(prefix_ids)
-        nums.extend([0.0] * len(prefix_ids))
-
-        if use_adapter and role == 'user':
-            # Adapted: replace numbers with <NUM> + float value
-            c_ids, c_nums = process_content_with_numbers(content)
-            ids.extend(c_ids)
-            nums.extend(c_nums)
-        else:
-            # Base: plain text tokenization
-            c_ids = tokenizer.encode(content, add_special_tokens=False)
-            ids.extend(c_ids)
-            nums.extend([0.0] * len(c_ids))
+        t_ids, t_nums = _tokenize_turn(
+            msg['role'], msg['content'].strip(), use_adapter,
+            turn_idx == 0, tokenizer)
+        ids.extend(t_ids)
+        nums.extend(t_nums)
+        turn_idx += 1
 
     return ids, nums
 
@@ -204,7 +275,8 @@ def evaluate_model(model, problems, device, use_adapter=False,
         ref_text = messages[-1]['content'].strip()
 
         # Tokenize prompt (stops before assistant answer)
-        ids, num_vals = format_prompt(messages, use_adapter=use_adapter)
+        ids, num_vals = format_prompt(messages, use_adapter=use_adapter,
+                                       category=category)
 
         x = torch.tensor([ids], dtype=torch.long, device=device)
         nv = torch.tensor([num_vals], dtype=torch.float32, device=device)
