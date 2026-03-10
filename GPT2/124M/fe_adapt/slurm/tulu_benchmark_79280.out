@@ -44,3 +44,65 @@ number of parameters: 114.83M
        gen: To solve the problem, we need to calculate the new number of items sold each month and then find the
        match: False
 
+  Exact match:    0.0000
+  Number accuracy:0.1365
+  Number MAE:     106.4047
+
+==================================================
+Evaluating: Adapted LoRA
+  Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/tulu_adapted_lora/ckpt_merged.pt
+  Data: /tmpdir/m24047brmn/numbers/data/tulu3_math_grade/adapted
+==================================================
+Loading /tmpdir/m24047brmn/numbers/model_checkpoints/tulu_adapted_lora/ckpt_merged.pt...
+number of parameters: 114.83M
+  Loaded (135 keys), use_adapter=True
+
+--- Forward-pass metrics (200 batches) ---
+  Loss:       1.0079
+  Perplexity: 2.74
+  Accuracy:   0.7597
+
+--- Generation metrics (100 samples, greedy) ---
+  [0] ref: To solve the problem, we need to determine the number of day beetles with partial eyesight that Dr. 
+       gen: To solve this problem, we need to determine how many day beetles Dr. Alex will be showcasing in her 
+       match: False
+
+  [1] ref: To solve the given problem, we need to determine two things:
+
+1. The total hours Maria will spend wa
+       gen: To solve this problem, we need to calculate the total time Maria spends watching "Eat Bulaga" and "E
+       match: False
+
+  [2] ref: To solve this problem, we need to determine how many minerals Dr. Rivera needs to analyze in total a
+       gen: To solve this problem, we need to determine how many minerals Dr. Rivera can analyze in total and th
+       match: False
+
+  [3] ref: To solve the problem, let's break it down step-by-step:
+
+1. **Determine the total number of apartmen
+       gen: To solve this problem, we need to determine how many weeks it will take for the construction company
+       match: False
+
+  [4] ref: To solve this problem, we need to calculate the expected number of items sold online after three mon
+       gen: To solve this problem, we need to determine how many items the store will sell in three months, give
+       match: False
+
+  Exact match:    0.0000
+  Number accuracy:0.1458
+  Number MAE:     141.8572
+
+======================================================================
+SUMMARY
+======================================================================
+Metric                          Base LoRA    Adapted LoRA      Delta
+-----------------------------------------------------------------
+Loss                               1.0347          1.0079   -0.0268 v
+Perplexity                         2.8142          2.7398   -0.0744 v
+Token Accuracy                     0.7510          0.7597   +0.0087 ^
+Exact Match                        0.0000          0.0000   +0.0000 v
+Number Accuracy                    0.1365          0.1458   +0.0092 ^
+Number MAE                       106.4047        141.8572  +35.4525 ^
+======================================================================
+
+Results saved to /tmpdir/m24047brmn/numbers/model_checkpoints/tulu_base_lora/../benchmark_results.json
+Benchmark complete.
