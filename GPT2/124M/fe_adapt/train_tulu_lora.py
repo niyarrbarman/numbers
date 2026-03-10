@@ -683,8 +683,10 @@ while True:
             if losses['val'] < best_val_loss or always_save_checkpoint:
                 if iter_num > 0:
                     is_best = losses['val'] < best_val_loss
+                    best_val_loss = min(best_val_loss, losses['val'])
                     save_checkpoint(iter_num, best_val_loss, is_best)
-                best_val_loss = min(best_val_loss, losses['val'])
+                else:
+                    best_val_loss = min(best_val_loss, losses['val'])
         if ddp:
             barrier()
         if iter_num == 0 and eval_only:
@@ -757,15 +759,20 @@ while True:
 
         print(f"  === DIAG iter {iter_num} ===")
         print(f"  loss: {loss.item() * gradient_accumulation_steps:.4f}")
-        print(f"  grads (pre): total {g_pre.get('total', 0):.4f}, "
-              f"lora {g_pre.get('lora', 0):.4f}, "
-              f"adapter {g_pre.get('adapter', 0):.4f}")
-        print(f"  grads (post): total {g.get('total', 0):.4f}, "
-              f"lora {g.get('lora', 0):.4f}, "
-              f"adapter {g.get('adapter', 0):.4f}")
-        print(f"  <NUM> tokens: {num_count}/{total_tokens} "
-              f"({num_count / total_tokens * 100:.1f}%)")
-        print(f"  lr: base {lr:.2e}, lora {lora_lr:.2e}, adapter {adapt_lr:.2e}")
+        if use_adapter:
+            print(f"  grads (pre): total {g_pre.get('total', 0):.4f}, "
+                  f"lora {g_pre.get('lora', 0):.4f}, "
+                  f"adapter {g_pre.get('adapter', 0):.4f}")
+            print(f"  grads (post): total {g.get('total', 0):.4f}, "
+                  f"lora {g.get('lora', 0):.4f}, "
+                  f"adapter {g.get('adapter', 0):.4f}")
+            print(f"  <NUM> tokens: {num_count}/{total_tokens} "
+                  f"({num_count / total_tokens * 100:.1f}%)")
+            print(f"  lr: base {lr:.2e}, lora {lora_lr:.2e}, adapter {adapt_lr:.2e}")
+        else:
+            print(f"  grads: total {g_pre.get('total', 0):.4f}, "
+                  f"lora {g_pre.get('lora', 0):.4f}")
+            print(f"  lr: base {lr:.2e}, lora {lora_lr:.2e}")
 
         if use_adapter and _num_inj is not None:
             print(f"  num inject: base_norm {_num_inj['base_norm']:.4f}, "
