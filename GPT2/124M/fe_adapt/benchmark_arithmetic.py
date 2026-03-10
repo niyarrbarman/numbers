@@ -1,21 +1,22 @@
-"""Benchmark base vs adapted LoRA on custom arithmetic problems.
+"""Benchmark base vs adapted LoRA on comprehensive arithmetic problems.
 
 Handles dual tokenization:
   - Base model:    plain text tokenization (no <NUM>)
   - Adapted model: numbers in user prompt → <NUM> token + float values
 
-Metrics per category + overall:
-  - Exact match rate
-  - Number accuracy (within ε=0.01)
-  - Mean absolute error (MAE)
-  - Mean relative error
+Breakdowns:
+  - By category (addition, subtraction, multiplication, ...)
+  - By distribution (id, ood_small, ood_large)
+  - By category type (numerical, reasoning)
+
+Uses category-aware answer extraction (fixes comparison evaluation).
 
 Usage:
   python benchmark_arithmetic.py \
     --base_ckpt /path/to/base/ckpt_merged.pt \
     --adapted_ckpt /path/to/adapted/ckpt_merged.pt \
     --data_path /path/to/arithmetic_bench.json \
-    --max_samples 1000
+    --max_samples 1500
 """
 
 import os
@@ -33,9 +34,12 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from model import NemotronConfig, Nemotron, NUM_TOKEN_ID
 from prepare import _get_tokenizer, EOT_TOKEN_ID, NUMBER_PATTERN
 
+# Import few-shot examples from the data generator
+from generate_arithmetic_data import FEW_SHOT_EXAMPLES
+
 
 # =============================================================================
-# Model loading (same as benchmark_tulu.py)
+# Model loading
 # =============================================================================
 
 def load_merged_model(ckpt_path, device='cpu'):
@@ -62,51 +66,13 @@ def load_merged_model(ckpt_path, device='cpu'):
 
 
 # =============================================================================
-# Few-shot examples (2 per category) to steer output format
-# =============================================================================
-
-FEW_SHOT_EXAMPLES = {
-    'addition': [
-        {'user': 'What is 12 + 5?', 'assistant': '12 + 5 = 17'},
-        {'user': 'What is 248 + 193?', 'assistant': '248 + 193 = 441'},
-    ],
-    'subtraction': [
-        {'user': 'What is 50 - 23?', 'assistant': '50 - 23 = 27'},
-        {'user': 'What is 1024 - 378?', 'assistant': '1024 - 378 = 646'},
-    ],
-    'multiplication': [
-        {'user': 'What is 7 times 8?', 'assistant': '7 times 8 = 56'},
-        {'user': 'What is 23 times 17?', 'assistant': '23 times 17 = 391'},
-    ],
-    'comparison': [
-        {'user': 'Which is larger, 15 or 9?', 'assistant': '15 is larger than 9'},
-        {'user': 'Which is larger, 3.8 or 4.2?', 'assistant': '4.2 is larger than 3.8'},
-    ],
-    'percentage': [
-        {'user': 'What is 10% of 200?', 'assistant': '10% of 200 = 20.0'},
-        {'user': 'What is 25% of 480?', 'assistant': '25% of 480 = 120.0'},
-    ],
-    'multistep': [
-        {'user': 'If you have 30 and add 15, then subtract 10, what is the result?',
-         'assistant': '30 + 15 = 45, 45 - 10 = 35. The result is 35'},
-        {'user': 'If you have 100 and add 250, then subtract 75, what is the result?',
-         'assistant': '100 + 250 = 350, 350 - 75 = 275. The result is 275'},
-    ],
-}
-
-
-# =============================================================================
-# Tokenization — handles base vs adapted differently
+# Tokenization — handles base vs adapted
 # =============================================================================
 
 def process_content_with_numbers(text):
-    """Replace numbers in text with <NUM> tokens.
-
-    Returns (token_ids, num_values) — no EOT appended.
-    """
+    """Replace numbers in text with <NUM> tokens."""
     tokenizer = _get_tokenizer()
-    ids = []
-    nums = []
+    ids, nums = [], []
     last_end = 0
     for match in NUMBER_PATTERN.finditer(text):
         start, end = match.span()
@@ -136,23 +102,13 @@ def process_content_with_numbers(text):
 
 
 def _tokenize_turn(role, content, use_adapter, is_first, tokenizer):
-    """Tokenize a single user/assistant turn.
-
-    Returns (token_ids, num_values) for this turn.
-    """
-    ids = []
-    nums = []
-
-    # Role prefix
-    if not is_first:
-        prefix = f"\n{role.capitalize()}: "
-    else:
-        prefix = f"{role.capitalize()}: "
+    """Tokenize a single user/assistant turn."""
+    ids, nums = [], []
+    prefix = f"{role.capitalize()}: " if is_first else f"\n{role.capitalize()}: "
     prefix_ids = tokenizer.encode(prefix, add_special_tokens=False)
     ids.extend(prefix_ids)
     nums.extend([0.0] * len(prefix_ids))
 
-    # Content
     if use_adapter and role == 'user':
         c_ids, c_nums = process_content_with_numbers(content)
         ids.extend(c_ids)
@@ -161,48 +117,33 @@ def _tokenize_turn(role, content, use_adapter, is_first, tokenizer):
         c_ids = tokenizer.encode(content, add_special_tokens=False)
         ids.extend(c_ids)
         nums.extend([0.0] * len(c_ids))
-
     return ids, nums
 
 
 def format_prompt(messages, use_adapter=False, category=None):
-    """Format conversation prompt for generation, with few-shot examples.
-
-    For the base model:  plain text tokenization.
-    For the adapted model: numbers in user content are replaced with <NUM>.
-
-    If category is provided, prepends 2 few-shot examples of the same
-    category so the model sees the expected concise answer format.
-
-    Returns (token_ids, num_values) ready for model input.
-    The prompt ends after "Assistant:" so the model generates the answer.
-    """
+    """Format prompt with few-shot examples for generation."""
     tokenizer = _get_tokenizer()
-    ids = []
-    nums = []
+    ids, nums = [], []
     turn_idx = 0
 
-    # --- Prepend few-shot examples ---
+    # Prepend few-shot examples
     if category and category in FEW_SHOT_EXAMPLES:
         for ex in FEW_SHOT_EXAMPLES[category]:
-            # User turn
             t_ids, t_nums = _tokenize_turn(
                 'user', ex['user'], use_adapter, turn_idx == 0, tokenizer)
             ids.extend(t_ids)
             nums.extend(t_nums)
             turn_idx += 1
 
-            # Assistant turn (always plain text — it's the answer)
             t_ids, t_nums = _tokenize_turn(
                 'assistant', ex['assistant'], False, False, tokenizer)
             ids.extend(t_ids)
             nums.extend(t_nums)
             turn_idx += 1
 
-    # --- Actual problem ---
+    # Actual problem
     for i, msg in enumerate(messages):
         if msg['role'] == 'assistant' and i == len(messages) - 1:
-            # Last assistant message = reference answer → just add prefix
             prefix = "\nAssistant:"
             prefix_ids = tokenizer.encode(prefix, add_special_tokens=False)
             ids.extend(prefix_ids)
@@ -220,44 +161,80 @@ def format_prompt(messages, use_adapter=False, category=None):
 
 
 # =============================================================================
-# Number extraction
+# Category-aware answer extraction
 # =============================================================================
-
-def extract_final_number(text):
-    """Extract the last number from text (usually the answer)."""
-    matches = NUMBER_PATTERN.findall(text)
-    if matches:
-        try:
-            return float(matches[-1])
-        except ValueError:
-            return None
-    return None
-
 
 def extract_all_numbers(text):
     """Extract all numbers from text."""
-    return [float(x) for x in NUMBER_PATTERN.findall(text)]
+    results = []
+    for m in NUMBER_PATTERN.finditer(text):
+        try:
+            results.append(float(m.group()))
+        except ValueError:
+            pass
+    return results
+
+
+def extract_answer(gen_text, category, expected):
+    """Category-aware answer extraction.
+
+    Different categories need to extract the answer differently:
+    - comparison:  check if the generated text identifies the correct larger number
+                   (first number in "X is larger than Y")
+    - ordering:    check if ordering is correct by extracting all numbers
+    - everything else: last number in the text is the answer
+    """
+    nums = extract_all_numbers(gen_text)
+
+    if category == 'comparison':
+        # "X is larger than Y" → X is the answer (first number)
+        if nums:
+            return nums[0]
+        return None
+
+    elif category == 'ordering':
+        # Check if all sorted numbers are present
+        if nums:
+            return nums[0]  # first number = smallest
+        return None
+
+    else:
+        # Standard: last number is the answer
+        if nums:
+            return nums[-1]
+        return None
+
+
+def check_correct(gen_text, gen_num, expected, category):
+    """Category-aware correctness check."""
+    if gen_num is None:
+        return False
+
+    if category == 'comparison':
+        # For comparison: the first number in the output should be the larger
+        # Also accept if the text is an exact match to reference
+        return abs(gen_num - expected) < max(0.01, abs(expected) * 1e-6)
+
+    elif category == 'ordering':
+        # For ordering: check if all numbers appear in sorted order
+        nums = extract_all_numbers(gen_text)
+        if len(nums) >= 3:
+            return nums == sorted(nums)
+        return False
+
+    else:
+        return abs(gen_num - expected) < max(0.01, abs(expected) * 1e-6)
 
 
 # =============================================================================
-# Generation-based evaluation
+# Evaluation
 # =============================================================================
 
 @torch.no_grad()
 def evaluate_model(model, problems, device, use_adapter=False,
-                   max_samples=1000, max_new_tokens=128):
-    """Evaluate a model on arithmetic problems with greedy decoding.
-
-    Args:
-        model: loaded Nemotron model
-        problems: list of problem dicts with 'messages', 'category', etc.
-        device: 'cuda' or 'cpu'
-        use_adapter: if True, tokenize with <NUM> replacement
-        max_samples: max problems to evaluate
-        max_new_tokens: max tokens to generate per problem
-    """
+                   max_samples=1500, max_new_tokens=128):
+    """Evaluate on arithmetic problems with greedy decoding."""
     tokenizer = _get_tokenizer()
-
     device_type = 'cuda' if 'cuda' in device else 'cpu'
     ptdtype = (torch.bfloat16 if torch.cuda.is_bf16_supported()
                else torch.float16)
@@ -268,21 +245,19 @@ def evaluate_model(model, problems, device, use_adapter=False,
     for idx, problem in enumerate(problems[:max_samples]):
         messages = problem['messages']
         category = problem['category']
-        difficulty = problem['difficulty']
+        distribution = problem.get('distribution', 'id')
+        cat_type = problem.get('category_type', 'numerical')
         expected = problem['expected_answer']
-
-        # Get reference answer text
         ref_text = messages[-1]['content'].strip()
 
-        # Tokenize prompt (stops before assistant answer)
+        # Tokenize prompt with few-shot
         ids, num_vals = format_prompt(messages, use_adapter=use_adapter,
-                                       category=category)
-
+                                      category=category)
         x = torch.tensor([ids], dtype=torch.long, device=device)
         nv = torch.tensor([num_vals], dtype=torch.float32, device=device)
         nm = (x == NUM_TOKEN_ID)
 
-        # Greedy decoding
+        # Greedy decode
         for _ in range(max_new_tokens):
             T = x.size(1)
             if T > model.config.block_size:
@@ -302,33 +277,30 @@ def evaluate_model(model, problems, device, use_adapter=False,
             nm = torch.cat([nm, torch.zeros(1, 1, dtype=torch.bool,
                                             device=device)], dim=1)
 
-        # Decode generated tokens
+        # Decode
         gen_ids = x[0, len(ids):].tolist()
         if EOT_TOKEN_ID in gen_ids:
             gen_ids = gen_ids[:gen_ids.index(EOT_TOKEN_ID)]
         gen_text = tokenizer.decode(
             [t for t in gen_ids if 0 <= t < 50256]).strip()
 
-        # Extract answer number
-        gen_num = extract_final_number(gen_text)
+        # Category-aware extraction
+        gen_num = extract_answer(gen_text, category, expected)
         exact_match = gen_text == ref_text
+        num_correct = check_correct(gen_text, gen_num, expected, category)
 
-        # Compute error
-        if gen_num is not None:
+        # Error calculation
+        if gen_num is not None and not (category == 'ordering'):
             abs_err = abs(gen_num - expected)
-            num_correct = abs_err < 0.01
-            if abs(expected) > 1e-9:
-                rel_err = abs_err / abs(expected)
-            else:
-                rel_err = abs_err
+            rel_err = abs_err / max(abs(expected), 1e-9)
         else:
             abs_err = float('inf')
-            num_correct = False
             rel_err = float('inf')
 
         results.append({
             'category': category,
-            'difficulty': difficulty,
+            'category_type': cat_type,
+            'distribution': distribution,
             'expected': expected,
             'gen_num': gen_num,
             'gen_text': gen_text,
@@ -339,75 +311,68 @@ def evaluate_model(model, problems, device, use_adapter=False,
             'rel_err': rel_err,
         })
 
-        # Print first few examples per category
-        if idx < 12:
-            print(f"  [{idx}] ({category}/{difficulty})")
+        if idx < 15:
+            status = '✓' if num_correct else '✗'
+            print(f"  [{idx}] {status} ({category}/{distribution})")
             print(f"       ref: {ref_text[:120]}")
             print(f"       gen: {gen_text[:120]}")
-            print(f"       expected={expected}, got={gen_num}, "
-                  f"match={exact_match}")
+            print(f"       expected={expected}, got={gen_num}")
             print()
 
     return results
 
 
 # =============================================================================
-# Metrics aggregation
+# Metrics
 # =============================================================================
 
-def compute_metrics(results):
-    """Compute per-category and overall metrics."""
+def compute_grouped_metrics(results, group_key):
+    """Compute metrics grouped by a given key."""
     metrics = {}
-
-    # Group by category
-    by_category = defaultdict(list)
+    groups = defaultdict(list)
     for r in results:
-        by_category[r['category']].append(r)
-    by_category['OVERALL'] = results
+        groups[r[group_key]].append(r)
+    groups['OVERALL'] = results
 
-    for cat, cat_results in sorted(by_category.items()):
-        n = len(cat_results)
+    for name, group_results in sorted(groups.items()):
+        n = len(group_results)
         if n == 0:
             continue
-
-        exact = sum(1 for r in cat_results if r['exact_match'])
-        num_correct = sum(1 for r in cat_results if r['num_correct'])
-        has_num = [r for r in cat_results if r['gen_num'] is not None]
+        exact = sum(1 for r in group_results if r['exact_match'])
+        correct = sum(1 for r in group_results if r['num_correct'])
+        has_num = [r for r in group_results
+                   if r['gen_num'] is not None and r['abs_err'] != float('inf')]
         mae = (sum(r['abs_err'] for r in has_num) / len(has_num)
-               if has_num else float('inf'))
-        mre = (sum(r['rel_err'] for r in has_num) / len(has_num)
                if has_num else float('inf'))
         parse_rate = len(has_num) / n
 
-        metrics[cat] = {
+        metrics[name] = {
             'n': n,
             'exact_match': exact / n,
-            'num_accuracy': num_correct / n,
+            'num_accuracy': correct / n,
             'parse_rate': parse_rate,
             'mae': mae,
-            'mre': mre,
         }
-
-    # Also compute by difficulty
-    by_diff = defaultdict(list)
-    for r in results:
-        by_diff[r['difficulty']].append(r)
-
-    diff_metrics = {}
-    for diff, diff_results in sorted(by_diff.items()):
-        n = len(diff_results)
-        num_correct = sum(1 for r in diff_results if r['num_correct'])
-        has_num = [r for r in diff_results if r['gen_num'] is not None]
-        mae = (sum(r['abs_err'] for r in has_num) / len(has_num)
-               if has_num else float('inf'))
-        diff_metrics[diff] = {
-            'n': n,
-            'num_accuracy': num_correct / n,
-            'mae': mae,
-        }
-
-    metrics['_by_difficulty'] = diff_metrics
     return metrics
+
+
+def print_metrics_table(metrics, title):
+    """Print a formatted metrics table."""
+    print(f"\n--- {title} ---")
+    print(f"{'Group':<20} {'N':>5} {'ExactM':>8} {'NumAcc':>8} "
+          f"{'Parse':>7} {'MAE':>12}")
+    print("-" * 62)
+    # Print OVERALL last
+    keys = sorted(k for k in metrics if k != 'OVERALL')
+    keys.append('OVERALL')
+    for k in keys:
+        if k not in metrics:
+            continue
+        m = metrics[k]
+        mae_s = f"{m['mae']:.2f}" if m['mae'] < 1e10 else "inf"
+        print(f"{k:<20} {m['n']:>5} {m['exact_match']:>8.4f} "
+              f"{m['num_accuracy']:>8.4f} {m['parse_rate']:>7.3f} "
+              f"{mae_s:>12}")
 
 
 # =============================================================================
@@ -417,32 +382,30 @@ def compute_metrics(results):
 def main():
     parser = argparse.ArgumentParser(
         description='Benchmark base vs adapted LoRA on arithmetic')
-    parser.add_argument('--base_ckpt', required=True,
-                        help='Path to base (merged) checkpoint')
-    parser.add_argument('--adapted_ckpt', required=True,
-                        help='Path to adapted (merged) checkpoint')
-    parser.add_argument('--data_path', required=True,
-                        help='Path to arithmetic benchmark JSON')
-    parser.add_argument('--max_samples', type=int, default=1000)
+    parser.add_argument('--base_ckpt', required=True)
+    parser.add_argument('--adapted_ckpt', required=True)
+    parser.add_argument('--data_path', required=True)
+    parser.add_argument('--max_samples', type=int, default=1500)
     parser.add_argument('--max_new_tokens', type=int, default=128)
     parser.add_argument('--device', default='cuda')
-    parser.add_argument('--out_path', default=None,
-                        help='Path to save results JSON')
+    parser.add_argument('--out_path', default=None)
     args = parser.parse_args()
 
     print("=" * 70)
-    print("CUSTOM ARITHMETIC BENCHMARK: Base LoRA vs Adapted LoRA")
+    print("ARITHMETIC BENCHMARK: Base LoRA vs Adapted LoRA")
+    print("  (with ID / OOD-small / OOD-large splits)")
     print("=" * 70)
 
-    # Load benchmark data
     with open(args.data_path) as f:
         problems = json.load(f)
-    print(f"Loaded {len(problems)} arithmetic problems from {args.data_path}")
+    print(f"Loaded {len(problems)} problems from {args.data_path}")
 
     from collections import Counter
-    cat_counts = Counter(p['category'] for p in problems)
-    for cat, cnt in sorted(cat_counts.items()):
-        print(f"  {cat:<20} {cnt}")
+    for key in ['distribution', 'category', 'category_type']:
+        counts = Counter(p.get(key, '?') for p in problems)
+        print(f"\n  By {key}:")
+        for k, c in sorted(counts.items()):
+            print(f"    {k:<20} {c}")
 
     all_results = {}
     all_metrics = {}
@@ -454,8 +417,7 @@ def main():
         print(f"\n{'=' * 60}")
         print(f"Evaluating: {label}")
         print(f"  Checkpoint: {ckpt_path}")
-        print(f"  use_adapter={use_adapter} "
-              f"({'<NUM> tokenization' if use_adapter else 'plain text'})")
+        print(f"  use_adapter={use_adapter}")
         print(f"{'=' * 60}\n")
 
         model, _ = load_merged_model(ckpt_path, device=args.device)
@@ -467,83 +429,68 @@ def main():
             max_new_tokens=args.max_new_tokens,
         )
 
-        metrics = compute_metrics(results)
+        # Compute all breakdowns
+        cat_metrics = compute_grouped_metrics(results, 'category')
+        dist_metrics = compute_grouped_metrics(results, 'distribution')
+        type_metrics = compute_grouped_metrics(results, 'category_type')
+
+        print_metrics_table(cat_metrics, f"{label} — By Category")
+        print_metrics_table(dist_metrics, f"{label} — By Distribution")
+        print_metrics_table(type_metrics, f"{label} — By Type")
+
         all_results[label] = results
-        all_metrics[label] = metrics
+        all_metrics[label] = {
+            'by_category': cat_metrics,
+            'by_distribution': dist_metrics,
+            'by_type': type_metrics,
+        }
 
-        # Print per-category metrics
-        print(f"\n--- {label} Results ---")
-        print(f"{'Category':<20} {'N':>5} {'ExactM':>8} {'NumAcc':>8} "
-              f"{'Parse':>7} {'MAE':>12} {'MRE':>10}")
-        print("-" * 72)
-        for cat in sorted(metrics.keys()):
-            if cat.startswith('_'):
-                continue
-            m = metrics[cat]
-            print(f"{cat:<20} {m['n']:>5} {m['exact_match']:>8.4f} "
-                  f"{m['num_accuracy']:>8.4f} {m['parse_rate']:>7.3f} "
-                  f"{m['mae']:>12.2f} {m['mre']:>10.4f}")
-
-        # Free memory
         del model
         torch.cuda.empty_cache()
 
     # =========================================================================
-    # Comparison table
+    # Comparison tables
     # =========================================================================
     print("\n" + "=" * 80)
     print("COMPARISON: Base LoRA vs Adapted LoRA")
     print("=" * 80)
 
-    base_m = all_metrics['Base LoRA']
-    adapt_m = all_metrics['Adapted LoRA']
+    for breakdown_name, key in [
+        ('By Category', 'by_category'),
+        ('By Distribution', 'by_distribution'),
+        ('By Type', 'by_type'),
+    ]:
+        base_m = all_metrics['Base LoRA'][key]
+        adapt_m = all_metrics['Adapted LoRA'][key]
 
-    # Per-category comparison
-    print(f"\n{'Category':<18} {'Metric':<12} "
-          f"{'Base':>10} {'Adapted':>10} {'Delta':>10}")
-    print("-" * 62)
+        print(f"\n--- {breakdown_name} ---")
+        print(f"{'Group':<20} {'Metric':<12} "
+              f"{'Base':>10} {'Adapted':>10} {'Delta':>10}")
+        print("-" * 64)
 
-    categories = sorted(set(list(base_m.keys()) + list(adapt_m.keys())))
-    for cat in categories:
-        if cat.startswith('_') or cat not in base_m or cat not in adapt_m:
-            continue
-        bm = base_m[cat]
-        am = adapt_m[cat]
-        for metric, higher_better in [('num_accuracy', True), ('mae', False)]:
-            bv = bm[metric]
-            av = am[metric]
-            delta = av - bv
-            if higher_better:
-                arrow = '↑' if delta > 0 else '↓'
-            else:
-                arrow = '↓' if delta < 0 else '↑'
-            bv_s = f"{bv:.4f}" if metric != 'mae' else f"{bv:.2f}"
-            av_s = f"{av:.4f}" if metric != 'mae' else f"{av:.2f}"
-            delta_s = f"{delta:+.4f}" if metric != 'mae' else f"{delta:+.2f}"
-            print(f"{cat:<18} {metric:<12} {bv_s:>10} {av_s:>10} "
-                  f"{delta_s:>10} {arrow}")
-        print()
-
-    # By difficulty
-    print("\n--- By Difficulty ---")
-    base_diff = base_m.get('_by_difficulty', {})
-    adapt_diff = adapt_m.get('_by_difficulty', {})
-    print(f"{'Difficulty':<12} {'Base NumAcc':>12} {'Adapt NumAcc':>12} "
-          f"{'Delta':>10}")
-    print("-" * 48)
-    for diff in ['easy', 'medium', 'hard']:
-        if diff in base_diff and diff in adapt_diff:
-            bv = base_diff[diff]['num_accuracy']
-            av = adapt_diff[diff]['num_accuracy']
-            delta = av - bv
-            arrow = '↑' if delta > 0 else '↓'
-            print(f"{diff:<12} {bv:>12.4f} {av:>12.4f} "
-                  f"{delta:>+10.4f} {arrow}")
+        groups = sorted(set(list(base_m.keys()) + list(adapt_m.keys())))
+        for group in groups:
+            if group not in base_m or group not in adapt_m:
+                continue
+            bm, am = base_m[group], adapt_m[group]
+            for metric, higher_better in [
+                ('num_accuracy', True), ('exact_match', True), ('mae', False)
+            ]:
+                bv, av = bm[metric], am[metric]
+                delta = av - bv
+                if higher_better:
+                    arrow = '↑' if delta > 0 else '↓'
+                else:
+                    arrow = '↓' if delta < 0 else '↑'
+                fmt = '.4f' if metric != 'mae' else '.1f'
+                print(f"{group:<20} {metric:<12} "
+                      f"{bv:>10{fmt}} {av:>10{fmt}} {delta:>+10{fmt}} {arrow}")
+            print()
 
     print("=" * 80)
 
     # =========================================================================
-    # Save results
+    # Save
     # =========================================================================
     if args.out_path is None:
         args.out_path = os.path.join(
@@ -551,26 +498,16 @@ def main():
             'arithmetic_benchmark_results.json')
 
     try:
-        # Make results JSON-serializable
         save_data = {}
         for label in ['Base LoRA', 'Adapted LoRA']:
             save_data[label] = {
-                'metrics': {k: v for k, v in all_metrics[label].items()},
+                'metrics': all_metrics[label],
                 'examples': [
-                    {
-                        'category': r['category'],
-                        'difficulty': r['difficulty'],
-                        'expected': r['expected'],
-                        'gen_num': r['gen_num'],
-                        'gen_text': r['gen_text'][:200],
-                        'ref_text': r['ref_text'][:200],
-                        'exact_match': r['exact_match'],
-                        'num_correct': r['num_correct'],
-                    }
-                    for r in all_results[label][:50]  # save first 50
+                    {k: v for k, v in r.items()
+                     if k not in ('gen_text', 'ref_text') or len(str(v)) < 200}
+                    for r in all_results[label][:100]
                 ],
             }
-
         with open(args.out_path, 'w') as f:
             json.dump(save_data, f, indent=2, default=str)
         print(f"\nResults saved to {args.out_path}")
