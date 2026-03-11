@@ -2,7 +2,9 @@
 
 Produces two directories (like prepare_tulu.py) with binary files:
   base/     - plain text (no <NUM>)
-  adapted/  - <NUM> in user messages, plain text in assistant messages
+  adapted/  - default: <NUM> in user messages, plain text in assistant messages
+              analytic mode: <NUM> in both user and assistant messages, plus
+              numeric component labels for analytic stage-2 training
 
 Format: User/Assistant conversations with simple arithmetic:
   - Addition, subtraction, multiplication, division
@@ -16,6 +18,7 @@ NumberEncoder, not from data differences.
 
 Usage:
   python generate_synth_math.py --out_dir /path/to/synth_data --n_train 50000
+  python generate_synth_math.py --out_dir /path/to/synth_data --analytic_adapted
 """
 
 import os
@@ -26,8 +29,10 @@ import argparse
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..'))
 from prepare import (_get_tokenizer, NUM_TOKEN_ID, EOT_TOKEN_ID,
                       NUMBER_PATTERN)
+from num_analytic import AnalyticNumberCodec
 
 
 # =============================================================================
@@ -239,6 +244,63 @@ def tokenize_adapted(problem):
     return ids, nums
 
 
+def tokenize_adapted_analytic(problem):
+    """Tokenize with <NUM> in both user and assistant turns.
+
+    This is the format required by the analytic stage-2 trainer, which applies
+    structured numeric supervision at target <NUM> positions.
+    """
+    tokenizer = _get_tokenizer()
+    ids = []
+    nums = []
+
+    # User turn
+    prefix = "User: "
+    prefix_ids = tokenizer.encode(prefix, add_special_tokens=False)
+    ids.extend(prefix_ids)
+    nums.extend([0.0] * len(prefix_ids))
+
+    c_ids, c_nums = process_content_with_numbers(problem['user'])
+    ids.extend(c_ids)
+    nums.extend(c_nums)
+
+    # Assistant turn
+    prefix = "\nAssistant: "
+    prefix_ids = tokenizer.encode(prefix, add_special_tokens=False)
+    ids.extend(prefix_ids)
+    nums.extend([0.0] * len(prefix_ids))
+
+    c_ids, c_nums = process_content_with_numbers(problem['assistant'])
+    ids.extend(c_ids)
+    nums.extend(c_nums)
+
+    ids.append(EOT_TOKEN_ID)
+    nums.append(0.0)
+    return ids, nums
+
+
+def encode_num_components(codec, value):
+    """Encode a scalar into [sign_class, exp_class, d0..dK-1] as uint8."""
+    comps = codec.to_components(value)
+    sign_class = 0 if comps.sign >= 0 else 1
+    exp_class = comps.exponent - codec.exp_min
+    exp_class = max(0, min(codec.exp_max - codec.exp_min, exp_class))
+    digits = list(comps.digits[:codec.K])
+    while len(digits) < codec.K:
+        digits.append(0)
+    return [sign_class, exp_class] + digits
+
+
+def build_components_array(ids, nums, codec):
+    """Build per-token analytic component labels aligned with token IDs."""
+    components = np.zeros((len(ids), 2 + codec.K), dtype=np.uint8)
+    for i, tok in enumerate(ids):
+        if tok != NUM_TOKEN_ID:
+            continue
+        components[i] = encode_num_components(codec, float(nums[i]))
+    return components
+
+
 # =============================================================================
 # Main
 # =============================================================================
@@ -251,6 +313,13 @@ def main():
     parser.add_argument('--n_val', type=int, default=3000)
     parser.add_argument('--n_test', type=int, default=3000)
     parser.add_argument('--seed', type=int, default=42)
+    parser.add_argument('--analytic_adapted', action='store_true',
+                        help='write adapted data for analytic stage 2: '
+                             'replace assistant numbers with <NUM> and save '
+                             '*_components.bin labels')
+    parser.add_argument('--analytic_K', type=int, default=32)
+    parser.add_argument('--analytic_exp_min', type=int, default=-32)
+    parser.add_argument('--analytic_exp_max', type=int, default=32)
     args = parser.parse_args()
 
     base_dir = os.path.join(args.out_dir, 'base')
@@ -262,6 +331,15 @@ def main():
     print(f"Generating {total} problems (train={args.n_train}, "
           f"val={args.n_val}, test={args.n_test})")
     all_problems = generate_problems(total, seed=args.seed)
+    codec = None
+    if args.analytic_adapted:
+        codec = AnalyticNumberCodec(
+            K=args.analytic_K,
+            exp_min=args.analytic_exp_min,
+            exp_max=args.analytic_exp_max,
+        )
+        print(f"Analytic adapted mode enabled: K={codec.K}, "
+              f"exp=[{codec.exp_min},{codec.exp_max}]")
 
     splits = {
         'train': all_problems[:args.n_train],
@@ -272,13 +350,19 @@ def main():
     for split_name, problems in splits.items():
         all_base_ids, all_base_nums = [], []
         all_adapted_ids, all_adapted_nums = [], []
+        all_adapted_components = []
 
         for p in problems:
             b_ids, b_nums = tokenize_base(p)
             all_base_ids.extend(b_ids)
             all_base_nums.extend(b_nums)
 
-            a_ids, a_nums = tokenize_adapted(p)
+            if args.analytic_adapted:
+                a_ids, a_nums = tokenize_adapted_analytic(p)
+                all_adapted_components.append(
+                    build_components_array(a_ids, a_nums, codec))
+            else:
+                a_ids, a_nums = tokenize_adapted(p)
             all_adapted_ids.extend(a_ids)
             all_adapted_nums.extend(a_nums)
 
@@ -293,6 +377,9 @@ def main():
             os.path.join(adapted_dir, f'{split_name}.bin'))
         np.array(all_adapted_nums, dtype=np.float32).tofile(
             os.path.join(adapted_dir, f'{split_name}_nums.bin'))
+        if args.analytic_adapted:
+            np.concatenate(all_adapted_components, axis=0).tofile(
+                os.path.join(adapted_dir, f'{split_name}_components.bin'))
 
         n_base_num = sum(1 for x in all_base_ids if x == NUM_TOKEN_ID)
         n_adapted_num = sum(1 for x in all_adapted_ids if x == NUM_TOKEN_ID)
@@ -319,6 +406,8 @@ def main():
     print(f"\nDone! Data saved to:")
     print(f"  base:    {base_dir}")
     print(f"  adapted: {adapted_dir}")
+    if args.analytic_adapted:
+        print("  adapted components: train/val/test_components.bin")
     print(f"  test_examples.json: {len(test_json)} examples")
 
 

@@ -300,7 +300,8 @@ ${APPTAINER} python3 ${SCRIPT_DIR}/generate_synth_math.py \
   --out_dir ${S2_DATA_DIR} \
   --n_train 50000 \
   --n_val 3000 \
-  --n_test 3000
+  --n_test 3000 \
+  --analytic_adapted
 
 if [ ! -f ${ARITH_BENCH} ]; then
   ${APPTAINER} python3 ${SCRIPT_DIR}/generate_arithmetic_data.py \

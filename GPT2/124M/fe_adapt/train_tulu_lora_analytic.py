@@ -213,6 +213,7 @@ ctx = (nullcontext() if device_type == 'cpu'
 
 assert data_dir, "data_dir is required"
 print(f"data directory: {data_dir}")
+component_cols = None
 
 
 def get_batch(split):
@@ -229,19 +230,24 @@ def get_batch(split):
                       for i in ix])
     nm = (x == NUM_TOKEN_ID)
 
-    # Load components if available (for numeric decoder loss)
+    # Load analytic component labels aligned with target <NUM> positions.
     comp_path = os.path.join(data_dir, f'{split}_components.bin')
-    if os.path.exists(comp_path):
-        comps = np.memmap(comp_path, dtype=np.uint8, mode='r')
-        n_tokens = len(data)
-        # Components: (n_tokens, 34) stored flat
-        comps = comps.reshape(n_tokens, 34)
-        nc = torch.stack([
-            torch.from_numpy(comps[i + 1:i + 1 + block_size].copy())
-            for i in ix
-        ])  # (B, T, 34) — aligned with y (shifted +1)
-    else:
-        nc = torch.zeros(batch_size, block_size, 34, dtype=torch.uint8)
+    if not os.path.exists(comp_path):
+        raise FileNotFoundError(
+            f"Missing numeric supervision file: {comp_path}\n"
+            "Analytic stage-2 training requires adapted data generated with "
+            "generate_synth_math.py --analytic_adapted."
+        )
+    if component_cols is None:
+        raise RuntimeError("component_cols not initialized before get_batch()")
+    comps = np.memmap(comp_path, dtype=np.uint8, mode='r')
+    n_tokens = len(data)
+    # Components: (n_tokens, 2 + analytic_K) stored flat
+    comps = comps.reshape(n_tokens, component_cols)
+    nc = torch.stack([
+        torch.from_numpy(comps[i + 1:i + 1 + block_size].copy())
+        for i in ix
+    ])  # (B, T, 2 + analytic_K) — aligned with y (shifted +1)
 
     if device_type == 'cuda':
         x = x.pin_memory().to(device, non_blocking=True)
@@ -350,6 +356,7 @@ print(f"  Frozen:    {frozen_p:>10,} params")
 print(f"  Trainable: {trainable_p:>10,} / {total_p:,} ({trainable_p / total_p * 100:.2f}%)")
 
 model.to(device)
+component_cols = 2 + model.config.analytic_K
 
 scaler = torch.amp.GradScaler('cuda', enabled=(dtype == 'float16'))
 
@@ -429,6 +436,75 @@ raw_model = model.module if ddp else model
 # =============================================================================
 # Helpers
 # =============================================================================
+
+def encode_num_components(codec, value):
+    """Encode a scalar into [sign_class, exp_class, d0..dK-1] as uint8."""
+    comps = codec.to_components(value)
+    sign_class = 0 if comps.sign >= 0 else 1
+    exp_class = comps.exponent - codec.exp_min
+    exp_class = max(0, min(codec.exp_max - codec.exp_min, exp_class))
+    digits = list(comps.digits[:codec.K])
+    while len(digits) < codec.K:
+        digits.append(0)
+    return np.asarray([sign_class, exp_class] + digits, dtype=np.uint8)
+
+
+def validate_numeric_supervision(split, codec, max_checks=2048):
+    """Fail fast if analytic numeric labels are missing or inconsistent."""
+    data_path = os.path.join(data_dir, f'{split}.bin')
+    nums_path = os.path.join(data_dir, f'{split}_nums.bin')
+    comp_path = os.path.join(data_dir, f'{split}_components.bin')
+    if not os.path.exists(comp_path):
+        raise FileNotFoundError(
+            f"Missing numeric supervision file: {comp_path}\n"
+            "Analytic stage-2 training requires generate_synth_math.py "
+            "--analytic_adapted."
+        )
+
+    data = np.memmap(data_path, dtype=np.uint16, mode='r')
+    nums = np.memmap(nums_path, dtype=np.float32, mode='r')
+    expected_cols = 2 + codec.K
+    comps = np.memmap(comp_path, dtype=np.uint8, mode='r')
+    if comps.size != len(data) * expected_cols:
+        raise ValueError(
+            f"{comp_path} has {comps.size} values but expected "
+            f"{len(data) * expected_cols} ({len(data)} x {expected_cols})."
+        )
+    comps = comps.reshape(len(data), expected_cols)
+
+    num_positions = np.flatnonzero(data == NUM_TOKEN_ID)
+    if num_positions.size == 0:
+        raise ValueError(f"No <NUM> tokens found in {data_path}.")
+
+    sample_positions = num_positions[:max_checks]
+    mismatches = []
+    for pos in sample_positions:
+        got = comps[pos]
+        want = encode_num_components(codec, float(nums[pos]))
+        if not np.array_equal(got, want):
+            mismatches.append((int(pos), float(nums[pos]), got.tolist(), want.tolist()))
+            if len(mismatches) >= 3:
+                break
+
+    if mismatches:
+        details = []
+        for pos, value, got, want in mismatches:
+            details.append(
+                f"pos={pos} value={value:g} got={got[:6]}... want={want[:6]}..."
+            )
+        raise ValueError(
+            f"Invalid numeric supervision in {comp_path}. Sample mismatches: "
+            + "; ".join(details)
+        )
+
+    if master_process:
+        print(f"Validated numeric supervision for {split}: "
+              f"{len(sample_positions)} sampled <NUM> labels in sync")
+
+
+validate_numeric_supervision('train', base_model.analytic_codec)
+validate_numeric_supervision('val', base_model.analytic_codec)
+
 
 @torch.no_grad()
 def estimate_loss():
