@@ -60,7 +60,7 @@ wandb_run_name = 'luciole-analytic-s1'
 # data
 dataset = 'analytic_stage1'
 data_dir = ''
-gradient_accumulation_steps = 10 * 8
+gradient_accumulation_steps = 5 * 8
 batch_size = 4
 block_size = 256
 # model
@@ -617,7 +617,10 @@ while True:
             _diag_num_loss = num_loss_dict['total'].item() if num_loss_dict else 0.0
             _diag_sign_loss = num_loss_dict['sign_loss'].item() if num_loss_dict else 0.0
             _diag_exp_loss = num_loss_dict['exp_loss'].item() if num_loss_dict else 0.0
+            _diag_exp_ce = num_loss_dict.get('exp_ce', num_loss_dict.get('exp_loss', torch.tensor(0.0))).item() if num_loss_dict else 0.0
+            _diag_exp_mse = num_loss_dict.get('exp_mse', torch.tensor(0.0)).item() if num_loss_dict else 0.0
             _diag_digit_loss = num_loss_dict['digit_loss'].item() if num_loss_dict else 0.0
+            _diag_mantissa_mse = num_loss_dict.get('mantissa_mse', torch.tensor(0.0)).item() if num_loss_dict else 0.0
 
         X, Y, NV, NM, NC = get_batch('train')
         scaler.scale(loss).backward()
@@ -663,7 +666,9 @@ while True:
         print(f"  text_loss: {_diag_text_loss:.4f}, "
               f"num_loss: {_diag_num_loss:.4f} "
               f"(sign={_diag_sign_loss:.4f} exp={_diag_exp_loss:.4f} "
-              f"digit={_diag_digit_loss:.4f})")
+              f"[ce={_diag_exp_ce:.4f} mse={_diag_exp_mse:.4f}] "
+              f"digit={_diag_digit_loss:.4f} "
+              f"mantissa_mse={_diag_mantissa_mse:.4f})")
         print(f"  grads: total {grad_norm_total:.4f}, "
               f"transformer {grad_norm_transformer:.4f}, "
               f"adapter {grad_norm_adapter:.4f}")

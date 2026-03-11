@@ -200,6 +200,9 @@ class NemotronAnalyticConfig:
     # Loss weights
     num_loss_lambda: float = 1.0
     digit_loss_lambda: float = 1.0 / 32.0
+    digit_decay: float = 0.85         # positional weight decay for digit positions
+    exp_ordinal_weight: float = 0.1   # weight for ordinal MSE on exponent
+    mantissa_weight: float = 0.5      # weight for mantissa regression MSE
 
 
 class NemotronAnalytic(nn.Module):
@@ -388,22 +391,66 @@ class NemotronAnalytic(nn.Module):
                 digit_logits = digit_logits.view(-1, self.config.analytic_K, 10)  # (M, 32, 10)
 
                 sign_loss = F.cross_entropy(sign_logits, sign_targets)
-                exp_loss = F.cross_entropy(exp_logits, exp_targets)
-                # Mean over all M*K digit entries = equivalent to λ_d * Σ L_digit_i
-                digit_loss = F.cross_entropy(
+
+                # --- Ordinal exponent loss: CE + MSE on expected exponent ---
+                exp_ce = F.cross_entropy(exp_logits, exp_targets)
+                n_exp_classes = self.config.analytic_exp_max - self.config.analytic_exp_min + 1
+                exp_class_values = torch.arange(n_exp_classes, device=device, dtype=torch.float32)
+                exp_probs = F.softmax(exp_logits, dim=-1)  # (M, 65)
+                expected_exp = (exp_probs * exp_class_values.unsqueeze(0)).sum(dim=-1)  # (M,)
+                exp_mse = F.mse_loss(expected_exp, exp_targets.float())
+                exp_loss = exp_ce + self.config.exp_ordinal_weight * exp_mse
+
+                # --- Positional digit weighting: leading digits matter more ---
+                K = self.config.analytic_K
+                decay = self.config.digit_decay
+                digit_weights = torch.tensor(
+                    [decay ** i for i in range(K)],
+                    device=device, dtype=torch.float32,
+                )  # (K,) e.g. [1.0, 0.85, 0.72, 0.61, ...]
+                # Per-position CE: (M, K)
+                digit_ce_per_pos = F.cross_entropy(
                     digit_logits.reshape(-1, 10),
                     digit_targets.reshape(-1),
-                )
+                    reduction='none',
+                ).reshape(-1, K)  # (M, K)
+                # Weighted mean over positions, then mean over samples
+                digit_loss = (digit_ce_per_pos * digit_weights.unsqueeze(0)).sum(dim=-1)
+                digit_loss = digit_loss / digit_weights.sum()
+                digit_loss = digit_loss.mean()
+
+                # --- Mantissa regression: cooperative gradient across digit heads ---
+                # Mantissa = d0 × 10^0 + d1 × 10^{-1} + d2 × 10^{-2} + ...
+                # e.g. digits [8,0,5,2,...] → mantissa = 8.052...
+                digit_values = torch.arange(10, device=device, dtype=torch.float32)  # [0..9]
+                digit_probs = F.softmax(digit_logits, dim=-1)  # (M, K, 10)
+                expected_digits = (digit_probs * digit_values).sum(dim=-1)  # (M, K)
+
+                # Powers: [10^0, 10^{-1}, 10^{-2}, ...] = [1, 0.1, 0.01, ...]
+                # In float32, 10^{-8} and beyond contribute negligibly — that's OK,
+                # those trailing digits are trained by per-position CE instead.
+                mantissa_powers = torch.tensor(
+                    [10.0 ** (-i) for i in range(K)],
+                    device=device, dtype=torch.float32,
+                )  # (K,)
+
+                expected_mantissa = (expected_digits * mantissa_powers).sum(dim=-1)  # (M,)
+                target_mantissa = (digit_targets.float() * mantissa_powers).sum(dim=-1)  # (M,)
+                mantissa_mse = F.mse_loss(expected_mantissa, target_mantissa)
 
                 total_num_loss = (
                     sign_loss + exp_loss +
-                    self.config.digit_loss_lambda * self.config.analytic_K * digit_loss
+                    self.config.digit_loss_lambda * self.config.analytic_K * digit_loss +
+                    self.config.mantissa_weight * mantissa_mse
                 )
 
                 num_loss_dict = {
                     'sign_loss': sign_loss,
                     'exp_loss': exp_loss,
+                    'exp_ce': exp_ce,
+                    'exp_mse': exp_mse,
                     'digit_loss': digit_loss,
+                    'mantissa_mse': mantissa_mse,
                     'total': total_num_loss,
                 }
         else:

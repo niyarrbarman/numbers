@@ -39,7 +39,7 @@ apptainer exec \
     out_dir="$OUT_DIR" \
     block_size=256 \
     batch_size=4 \
-    gradient_accumulation_steps=80 \
+    gradient_accumulation_steps=40 \
     max_iters=20000 \
     learning_rate=1e-3 \
     adapter_lr_scale=1.0 \
