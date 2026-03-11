@@ -26,6 +26,7 @@ from torch.nn import functional as F
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from model import NemotronConfig, Nemotron, NUM_TOKEN_ID
+from model_analytic import NemotronAnalyticConfig, NemotronAnalytic
 from prepare import _get_tokenizer, EOT_TOKEN_ID, NUMBER_PATTERN
 
 
@@ -33,22 +34,26 @@ def load_merged_model(ckpt_path, device='cpu'):
     """Load a merged (LoRA-folded) checkpoint."""
     print(f"Loading {ckpt_path}...")
     ckpt = torch.load(ckpt_path, map_location='cpu', weights_only=False)
-    model_args = ckpt['model_args']
-    model_args['num_emb_checkpoint'] = ''
-
-    nemconf = NemotronConfig(**model_args)
-    model = Nemotron(nemconf)
-
     state_dict = ckpt['model']
     for k in list(state_dict.keys()):
         if k.startswith('_orig_mod.'):
             state_dict[k[len('_orig_mod.'):]] = state_dict.pop(k)
+
+    model_args = ckpt['model_args']
+    if 'analytic_K' in model_args:
+        from model_analytic import NemotronAnalyticConfig, NemotronAnalytic
+        nemconf = NemotronAnalyticConfig(**model_args)
+        model = NemotronAnalytic(nemconf)
+    else:
+        nemconf = NemotronConfig(**model_args)
+        model = Nemotron(nemconf)
+
     model.load_state_dict(state_dict)
     model.eval()
     model.to(device)
 
     use_adapter = ckpt.get('config', {}).get('use_adapter', True)
-    print(f"  Loaded ({len(state_dict)} keys), use_adapter={use_adapter}")
+    print(f"  Loaded {model.__class__.__name__} ({len(state_dict)} keys), use_adapter={use_adapter}")
     return model, use_adapter
 
 
@@ -90,9 +95,16 @@ def evaluate_forward(model, data_dir, device, block_size=512, batch_size=4,
         nm = (x == NUM_TOKEN_ID)
 
         with ctx:
-            logits, loss = model(x, y, num_values=nv, num_mask=nm,
-                                 num_blend_beta=1.0,
-                                 num_norm_match=num_norm_match)
+            if isinstance(model, NemotronAnalytic):
+                logits, _, _ = model(x, y, num_values=nv, num_mask=nm)
+            else:
+                logits, loss = model(x, y, num_values=nv, num_mask=nm,
+                                     num_blend_beta=1.0,
+                                     num_norm_match=num_norm_match)
+        
+        if isinstance(model, NemotronAnalytic):
+            # Compute cross entropy for perplexity
+            loss = F.cross_entropy(logits.view(-1, logits.size(-1)), y.view(-1), ignore_index=-1)
 
         total_loss += loss.item()
         preds = logits.argmax(dim=-1)
@@ -233,7 +245,10 @@ def evaluate_generation(model, test_examples, device, use_adapter=False,
                     x_cond, nv_cond, nm_cond = x, nv, nm
 
                 with ctx:
-                    logits, _ = model(x_cond, num_values=nv_cond, num_mask=nm_cond)
+                    if isinstance(model, NemotronAnalytic):
+                        logits, _, _ = model(x_cond, num_values=nv_cond, num_mask=nm_cond)
+                    else:
+                        logits, _ = model(x_cond, num_values=nv_cond, num_mask=nm_cond)
                 next_tok = logits[:, -1, :].argmax(dim=-1, keepdim=True)
                 if next_tok.item() == EOT_TOKEN_ID:
                     break

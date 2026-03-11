@@ -8,26 +8,28 @@
 #     2. S1 Train (GPU)                  — train_analytic.py         (afterok:1)
 #     3. S2 Data Gen (CPU)               — generate_synth_math.py    (parallel with 1+2)
 #     4a. S2 Base LoRA (GPU)             — train_tulu_lora.py        (afterok:3)
-#     4b. S2 Analytic-Adapter LoRA (GPU) — train_tulu_lora.py        (afterok:2,3)
-#     5. Benchmark (GPU)                 — benchmark_arithmetic.py   (afterok:4a,4b)
-#
-#   --resume  (skip completed steps):
-#     2. S1 Train (GPU)                  — train_analytic.py
-#     4b. S2 Analytic-Adapter LoRA (GPU) — train_tulu_lora.py        (afterok:2)
+#     4b. S2 Analytic-Adapter LoRA (GPU) — train_tulu_lora_analytic.py (afterok:2)
 #     5. Benchmark (GPU)                 — benchmark_arithmetic.py   (afterok:4b)
 #         Uses already-trained base LoRA checkpoint for comparison.
+#
+#   --depend-on <JOBID>  (resume after an existing job):
+#     Submit remaining steps with dependency on <JOBID>.
 #
 # Usage:
 #   bash run_pipeline_analytic.sh          # full pipeline
 #   bash run_pipeline_analytic.sh --resume # skip data gen + base LoRA
+#   bash run_pipeline_analytic.sh --resume --depend-on 79358 # resume after S1 job 79358
 #
 set -euo pipefail
 mkdir -p slurm
 
 RESUME=false
-for arg in "$@"; do
-    case "$arg" in
-        --resume) RESUME=true ;;
+DEPEND_ON=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --resume) RESUME=true; shift ;;
+        --depend-on) DEPEND_ON="$2"; shift 2 ;;
+        *) shift ;;
     esac
 done
 
@@ -64,7 +66,11 @@ if [ "$RESUME" = true ]; then
     echo "=========================================================="
 
     # --- Step 2: S1 Training (GPU) ---
-    JOB_S1_TRAIN=$(sbatch --parsable <<EOF
+    if [ -n "$DEPEND_ON" ]; then
+        JOB_S1_TRAIN=$DEPEND_ON
+        echo "  [2] S1 Training (EXISTING): ${JOB_S1_TRAIN}"
+    else
+        JOB_S1_TRAIN=$(sbatch --parsable <<EOF
 #!/bin/bash
 #SBATCH -J anl_s1_train
 #SBATCH -N 1
@@ -100,7 +106,8 @@ ${APPTAINER} python3 ${SCRIPT_DIR}/train_analytic.py \
 echo "Stage 1 training complete."
 EOF
 )
-    echo "  [2] S1 Training: ${JOB_S1_TRAIN}"
+        echo "  [2] S1 Training: ${JOB_S1_TRAIN}"
+    fi
 
     # --- Step 4b: S2 Analytic-Adapter LoRA (GPU, afterok:S1) ---
     JOB_S2_ADAPT=$(sbatch --parsable --dependency=afterok:${JOB_S1_TRAIN} <<EOF
@@ -116,8 +123,7 @@ EOF
 set -euo pipefail
 module load gnu/11.2.0
 
-${APPTAINER} python3 ${SCRIPT_DIR}/train_tulu_lora.py \
-  use_adapter=True \
+${APPTAINER} python3 ${SCRIPT_DIR}/train_tulu_lora_analytic.py \
   stage1_ckpt=${S1_OUT_DIR}/ckpt.pt \
   data_dir=${S2_ADAPTED_DATA} \
   out_dir=${S2_ADAPTED_OUT} \
@@ -132,10 +138,10 @@ ${APPTAINER} python3 ${SCRIPT_DIR}/train_tulu_lora.py \
   learning_rate=3e-4 \
   lora_lr_scale=1.0 \
   adapter_lr_scale=0.3 \
+  decoder_lr_scale=0.3 \
   warmup_iters=500 \
   lr_decay_iters=10000 \
   min_lr=3e-5 \
-  num_norm_match=True \
   eval_interval=1000 \
   diag_interval=100 \
   sample_interval=500 \
@@ -365,8 +371,7 @@ EOF
 set -euo pipefail
 module load gnu/11.2.0
 
-${APPTAINER} python3 ${SCRIPT_DIR}/train_tulu_lora.py \
-  use_adapter=True \
+${APPTAINER} python3 ${SCRIPT_DIR}/train_tulu_lora_analytic.py \
   stage1_ckpt=${S1_OUT_DIR}/ckpt.pt \
   data_dir=${S2_ADAPTED_DATA} \
   out_dir=${S2_ADAPTED_OUT} \
@@ -381,10 +386,10 @@ ${APPTAINER} python3 ${SCRIPT_DIR}/train_tulu_lora.py \
   learning_rate=3e-4 \
   lora_lr_scale=1.0 \
   adapter_lr_scale=0.3 \
+  decoder_lr_scale=0.3 \
   warmup_iters=500 \
   lr_decay_iters=10000 \
   min_lr=3e-5 \
-  num_norm_match=True \
   eval_interval=1000 \
   diag_interval=100 \
   sample_interval=500 \
