@@ -8,3 +8,4 @@ latex/_markdown_report/*
 !slurm_logs/**
 checkpoints/
 plots/
+__pycache__/*
