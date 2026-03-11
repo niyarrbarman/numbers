@@ -1,0 +1,32 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Mode: ANALYTIC ADAPTED (Stage1 Analytic + LoRA)
+tokens per iteration will be: 40,960
+data directory: /tmpdir/m24047brmn/numbers/data/synth_arith_analytic/adapted
+Loading Stage 1 analytic checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/luciole_analytic_s1/ckpt.pt
+number of parameters: 115.12M
+  Loaded Stage 1 weights (134 keys)
+  Applied LoRA (rank=16, alpha=32, dropout=0.05) to 48 layers
+  Target modules: ['q_proj', 'v_proj', 'k_proj', 'o_proj']
+Parameter budget (ANALYTIC ADAPTED):
+  LoRA:         983,040 params (0.85%)
+  Adapter:      652,800 params (0.56%)
+  Decoder:      297,603 params (0.26%)
+  Frozen:    114,169,344 params
+  Trainable:  1,933,443 / 116,102,787 (1.67%)
+optimizer parameter groups:
+  lora_decay: 96 tensors, 983,040 params, weight_decay=0.1, lr_scale=1.0
+  adapter_decay: 2 tensors, 651,264 params, weight_decay=0.1, lr_scale=0.3
+  adapter_nodecay: 2 tensors, 1,536 params, weight_decay=0.0, lr_scale=0.3
+  decoder_decay: 3 tensors, 297,216 params, weight_decay=0.1, lr_scale=0.3
+  decoder_nodecay: 3 tensors, 387 params, weight_decay=0.0, lr_scale=0.3
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Traceback (most recent call last):
+  File "/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/train_tulu_lora_analytic.py", line 505, in <module>
+    validate_numeric_supervision('train', base_model.analytic_codec)
+  File "/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/train_tulu_lora_analytic.py", line 495, in validate_numeric_supervision
+    raise ValueError(
+ValueError: Invalid numeric supervision in /tmpdir/m24047brmn/numbers/data/synth_arith_analytic/adapted/train_components.bin. Sample mismatches: pos=11 value=22321.2 got=[0, 36, 2, 2, 3, 2]... want=[0, 36, 2, 2, 3, 2]...; pos=24 value=22321.2 got=[0, 36, 2, 2, 3, 2]... want=[0, 36, 2, 2, 3, 2]...; pos=61 value=9369.61 got=[0, 35, 9, 3, 6, 9]... want=[0, 35, 9, 3, 6, 9]...

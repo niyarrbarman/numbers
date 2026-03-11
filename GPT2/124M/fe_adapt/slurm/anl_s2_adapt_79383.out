@@ -475,3 +475,67 @@ iter 2660: loss 0.1595, time 1217.34ms, mfu 0.43%
 iter 2670: loss 0.1562, time 1206.72ms, mfu 0.43%
 iter 2680: loss 0.1617, time 1203.29ms, mfu 0.43%
 iter 2690: loss 0.1841, time 1183.99ms, mfu 0.43%
+iter 2700: loss 0.1394, time 1186.52ms, mfu 0.44%
+  === DIAG iter 2700 ===
+  text_loss: 0.1394, num_loss: 0.0000 (sign=0.0000 exp=0.0000 digit=0.0000 mantissa_mse=0.0000)
+  grads: total 1.4197, lora 1.3978, adapter 0.2481, decoder 0.0000
+  <NUM> tokens: 106/2048 (5.2%)
+  lr: lora 2.66e-04, adapter 7.97e-05, decoder 7.97e-05
+  token accuracy: 0.897 (1791/1997)
+iter 2710: loss 0.1807, time 1172.75ms, mfu 0.44%
+iter 2720: loss 0.1703, time 1188.77ms, mfu 0.44%
+iter 2730: loss 0.1681, time 1187.18ms, mfu 0.44%
+iter 2740: loss 0.1309, time 1184.44ms, mfu 0.44%
+iter 2750: loss 0.1492, time 1194.64ms, mfu 0.44%
+iter 2760: loss 0.1715, time 1180.62ms, mfu 0.44%
+iter 2770: loss 0.1356, time 1187.42ms, mfu 0.44%
+iter 2780: loss 0.1569, time 1186.09ms, mfu 0.44%
+iter 2790: loss 0.1791, time 1184.91ms, mfu 0.44%
+iter 2800: loss 0.1874, time 1182.37ms, mfu 0.44%
+  === DIAG iter 2800 ===
+  text_loss: 0.1874, num_loss: 0.0000 (sign=0.0000 exp=0.0000 digit=0.0000 mantissa_mse=0.0000)
+  grads: total 1.0873, lora 1.0690, adapter 0.1987, decoder 0.0000
+  <NUM> tokens: 100/2048 (4.9%)
+  lr: lora 2.63e-04, adapter 7.88e-05, decoder 7.88e-05
+  token accuracy: 0.888 (1777/2000)
+iter 2810: loss 0.1486, time 1188.87ms, mfu 0.44%
+iter 2820: loss 0.1830, time 1199.72ms, mfu 0.44%
+iter 2830: loss 0.1773, time 1248.47ms, mfu 0.44%
+iter 2840: loss 0.1762, time 1229.51ms, mfu 0.44%
+iter 2850: loss 0.1491, time 1221.44ms, mfu 0.44%
+iter 2860: loss 0.1577, time 1220.84ms, mfu 0.44%
+iter 2870: loss 0.1755, time 1216.92ms, mfu 0.43%
+iter 2880: loss 0.1877, time 1220.65ms, mfu 0.43%
+iter 2890: loss 0.1721, time 1218.07ms, mfu 0.43%
+iter 2900: loss 0.1782, time 1222.33ms, mfu 0.43%
+  === DIAG iter 2900 ===
+  text_loss: 0.1782, num_loss: 0.0000 (sign=0.0000 exp=0.0000 digit=0.0000 mantissa_mse=0.0000)
+  grads: total 1.1536, lora 1.1442, adapter 0.1471, decoder 0.0000
+  <NUM> tokens: 103/2048 (5.0%)
+  lr: lora 2.60e-04, adapter 7.79e-05, decoder 7.79e-05
+  token accuracy: 0.889 (1779/2000)
+iter 2910: loss 0.1294, time 1218.65ms, mfu 0.43%
+iter 2920: loss 0.1370, time 1231.32ms, mfu 0.43%
+iter 2930: loss 0.1432, time 1239.41ms, mfu 0.43%
+iter 2940: loss 0.1505, time 1231.59ms, mfu 0.43%
+iter 2950: loss 0.1543, time 1196.68ms, mfu 0.43%
+iter 2960: loss 0.1876, time 1191.50ms, mfu 0.43%
+iter 2970: loss 0.1725, time 1195.89ms, mfu 0.43%
+iter 2980: loss 0.1626, time 1194.64ms, mfu 0.43%
+iter 2990: loss 0.1492, time 1194.96ms, mfu 0.43%
+step 3000: train text=0.1509 num=0.0000 total=0.1509 | val text=0.1617 num=0.0000 total=0.1617
+  saved checkpoint to /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_s2_adapted_lora/ckpt_iter3000.pt
+  new best val loss: 0.1617
+iter 3000: loss 0.1673, time 26020.70ms, mfu 0.39%
+  === DIAG iter 3000 ===
+  text_loss: 0.1673, num_loss: 0.0000 (sign=0.0000 exp=0.0000 digit=0.0000 mantissa_mse=0.0000)
+  grads: total 0.9727, lora 0.9615, adapter 0.1474, decoder 0.0000
+  <NUM> tokens: 99/2048 (4.8%)
+  lr: lora 2.56e-04, adapter 7.69e-05, decoder 7.69e-05
+  token accuracy: 0.889 (1778/1999)
+  --- Sample eval (val) ---
+  numeric loss: total=0.0000 (sign=0.0000 exp=0.0000 digit=0.0000 mant=0.0000)
+iter 3010: loss 0.1754, time 1183.26ms, mfu 0.40%
+iter 3020: loss 0.1528, time 1198.48ms, mfu 0.40%
+iter 3030: loss 0.1848, time 1192.48ms, mfu 0.41%
+slurmstepd: error: *** JOB 79383 ON turpancomp0 CANCELLED AT 2026-03-11T23:59:00 ***
