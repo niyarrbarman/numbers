@@ -1254,3 +1254,107 @@ iter 6600: loss 2.6335, time 3898.61ms, mfu 0.23%
   <NUM> token prediction: 0/132 (0.000)
 iter 6610: loss 2.7623, time 3941.89ms, mfu 0.23%
 iter 6620: loss 2.7955, time 3941.84ms, mfu 0.23%
+iter 6630: loss 2.5784, time 3947.30ms, mfu 0.23%
+iter 6640: loss 2.7318, time 3909.11ms, mfu 0.23%
+iter 6650: loss 2.6691, time 3936.23ms, mfu 0.23%
+iter 6660: loss 2.6122, time 3903.07ms, mfu 0.23%
+iter 6670: loss 2.6019, time 3908.65ms, mfu 0.23%
+iter 6680: loss 2.6741, time 3912.74ms, mfu 0.23%
+iter 6690: loss 2.7606, time 3926.81ms, mfu 0.23%
+iter 6700: loss 2.9367, time 3923.34ms, mfu 0.23%
+  === DIAG iter 6700 ===
+  text_loss: 2.0009, num_loss: 0.9359 (sign=0.0113 exp=0.5993 digit=0.3253)
+  grads: total 1.7635, transformer 0.0000, adapter 1.7635
+  <NUM> input: 128/1024, <NUM> target: 128/1024
+  lr: 8.15e-04, adapter_lr: 8.15e-04
+  text token accuracy: 0.671 (568/846)
+  <NUM> token prediction: 0/128 (0.000)
+iter 6710: loss 2.6812, time 3914.98ms, mfu 0.23%
+iter 6720: loss 2.8270, time 3913.68ms, mfu 0.23%
+iter 6730: loss 2.6769, time 3909.11ms, mfu 0.23%
+iter 6740: loss 2.5834, time 3903.23ms, mfu 0.23%
+iter 6750: loss 2.9194, time 3940.56ms, mfu 0.23%
+iter 6760: loss 2.6836, time 3953.61ms, mfu 0.23%
+iter 6770: loss 2.8792, time 3936.89ms, mfu 0.23%
+iter 6780: loss 2.4802, time 3921.29ms, mfu 0.23%
+iter 6790: loss 3.1720, time 3942.30ms, mfu 0.23%
+iter 6800: loss 2.6059, time 3911.61ms, mfu 0.23%
+  === DIAG iter 6800 ===
+  text_loss: 1.7698, num_loss: 0.8361 (sign=0.0507 exp=0.4455 digit=0.3399)
+  grads: total 2.8151, transformer 0.0000, adapter 2.8151
+  <NUM> input: 134/1024, <NUM> target: 133/1024
+  lr: 8.08e-04, adapter_lr: 8.08e-04
+  text token accuracy: 0.701 (590/842)
+  <NUM> token prediction: 0/133 (0.000)
+iter 6810: loss 2.8141, time 3943.98ms, mfu 0.23%
+iter 6820: loss 2.5528, time 3941.74ms, mfu 0.23%
+iter 6830: loss 2.6878, time 3935.93ms, mfu 0.23%
+iter 6840: loss 2.6353, time 3885.15ms, mfu 0.23%
+iter 6850: loss 2.8984, time 3912.70ms, mfu 0.23%
+iter 6860: loss 2.7200, time 3931.00ms, mfu 0.23%
+iter 6870: loss 2.8205, time 3877.76ms, mfu 0.23%
+iter 6880: loss 3.1150, time 3889.74ms, mfu 0.23%
+iter 6890: loss 2.6270, time 3897.07ms, mfu 0.23%
+iter 6900: loss 2.3503, time 3956.25ms, mfu 0.23%
+  === DIAG iter 6900 ===
+  text_loss: 1.4514, num_loss: 0.8989 (sign=0.0188 exp=0.5471 digit=0.3331)
+  grads: total 2.9351, transformer 0.0000, adapter 2.9351
+  <NUM> input: 141/1024, <NUM> target: 141/1024
+  lr: 8.02e-04, adapter_lr: 8.02e-04
+  text token accuracy: 0.741 (617/833)
+  <NUM> token prediction: 0/141 (0.000)
+iter 6910: loss 2.5389, time 4003.64ms, mfu 0.23%
+iter 6920: loss 2.8348, time 3993.45ms, mfu 0.23%
+iter 6930: loss 2.6040, time 3971.24ms, mfu 0.23%
+iter 6940: loss 2.4434, time 3980.39ms, mfu 0.23%
+iter 6950: loss 2.7601, time 3953.80ms, mfu 0.23%
+iter 6960: loss 2.6610, time 3905.08ms, mfu 0.23%
+iter 6970: loss 2.5595, time 3930.31ms, mfu 0.23%
+iter 6980: loss 2.9107, time 3913.95ms, mfu 0.23%
+iter 6990: loss 2.5498, time 3889.01ms, mfu 0.23%
+iter 7000: loss 2.5520, time 3912.68ms, mfu 0.23%
+  === DIAG iter 7000 ===
+  text_loss: 1.6255, num_loss: 0.9264 (sign=0.0425 exp=0.5616 digit=0.3222)
+  grads: total 2.3044, transformer 0.0000, adapter 2.3044
+  <NUM> input: 138/1024, <NUM> target: 138/1024
+  lr: 7.96e-04, adapter_lr: 7.96e-04
+  text token accuracy: 0.739 (616/834)
+  <NUM> token prediction: 0/138 (0.000)
+  --- Sample eval (val) ---
+  :Theweightofthepackageis<71453>kilograms.
+Assistant:<71453>
+    NUM@8: predicted=81419, target_val=0 (s=+ e=4 d=714530...)
+    NUM@17: predicted=66549, target_val=0 (s=+ e=4 d=714530...)
+
+  studentsintheclass.
+Assistant:
+    NUM@10: predicted=91330, target_val=0 (s=+ e=4 d=353040...)
+
+  <98174>,<41363>,<1659>?
+Assistant:
+    NUM@2: predicted=98415, target_val=0 (s=+ e=4 d=413630...)
+    NUM@5: predicted=81764, target_val=0 (s=+ e=3 d=165900...)
+    NUM@13: predicted=94000, target_val=0 (s=+ e=3 d=165900...)
+
+iter 7010: loss 2.7146, time 3916.54ms, mfu 0.23%
+iter 7020: loss 2.8126, time 3906.49ms, mfu 0.23%
+iter 7030: loss 2.7194, time 3888.22ms, mfu 0.23%
+iter 7040: loss 2.6498, time 3917.20ms, mfu 0.23%
+iter 7050: loss 2.9122, time 3900.82ms, mfu 0.23%
+iter 7060: loss 2.5500, time 3882.69ms, mfu 0.23%
+iter 7070: loss 2.6510, time 3969.33ms, mfu 0.23%
+iter 7080: loss 2.9812, time 3970.05ms, mfu 0.23%
+iter 7090: loss 2.3405, time 3951.51ms, mfu 0.23%
+iter 7100: loss 2.7558, time 3920.00ms, mfu 0.23%
+  === DIAG iter 7100 ===
+  text_loss: 1.7644, num_loss: 0.9914 (sign=0.0095 exp=0.6550 digit=0.3269)
+  grads: total 1.7815, transformer 0.0000, adapter 1.7815
+  <NUM> input: 131/1024, <NUM> target: 131/1024
+  lr: 7.90e-04, adapter_lr: 7.90e-04
+  text token accuracy: 0.711 (599/843)
+  <NUM> token prediction: 0/131 (0.000)
+iter 7110: loss 2.7673, time 4018.00ms, mfu 0.23%
+iter 7120: loss 2.6828, time 3882.77ms, mfu 0.23%
+iter 7130: loss 2.4761, time 3870.92ms, mfu 0.23%
+iter 7140: loss 2.5113, time 3999.46ms, mfu 0.23%
+slurmstepd: error: *** JOB 79344 ON turpancomp0 CANCELLED AT 2026-03-11T11:40:34 ***
