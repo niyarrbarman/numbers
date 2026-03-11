@@ -269,7 +269,7 @@ elif init_from == 'resume':
 model.to(device)
 
 # GradScaler
-scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+scaler = torch.amp.GradScaler('cuda', enabled=(dtype == 'float16'))
 
 # optimizer
 optimizer = model.configure_optimizers(
@@ -432,8 +432,14 @@ def eval_samples(eval_model, raw_model_ref, max_samples=5):
     B, T, _ = logits.shape
     preds = logits.argmax(dim=-1)
 
-    # Also get hidden states for numeric decoding
-    with torch.no_grad():
+    # Get hidden states for numeric decoding by running a clean forward
+    with torch.no_grad(), ctx:
+        # Run forward without targets to avoid loss computation
+        logits_h, _, _ = raw_model_ref(
+            X, num_values=NV, num_mask=NM,
+        )
+        # Re-run to get hidden states: we need the pre-lm_head output.
+        # Simplest: re-forward and grab x before lm_head.
         tok_emb = raw_model_ref.transformer.wte(X)
         if NM.any():
             vals_flat = NV[NM]
@@ -665,29 +671,8 @@ while True:
               f"<NUM> target: {target_num_count}/{total_tokens}")
         print(f"  lr: {lr:.2e}, adapter_lr: {adapter_lr:.2e}")
 
-        # Numeric accuracy
+        # Text and <NUM> token accuracy from cached logits
         with torch.no_grad():
-            tok_emb = raw_model.transformer.wte(_diag_targets.roll(shifts=1, dims=1))
-            # Approximate: we already have cached _diag_logits but need hidden states
-            # Re-run a quick forward to get hidden states for accuracy
-            try:
-                with ctx:
-                    logits_diag, _, _ = raw_model(
-                        _diag_targets.roll(shifts=1, dims=1), _diag_targets,
-                        num_values=_diag_NV, num_mask=_diag_NM,
-                        num_target_components=_diag_NC,
-                    )
-                # Get hidden states by re-forwarding
-                tok_emb = raw_model.transformer.wte(_diag_targets.roll(shifts=1, dims=1))
-                # Actually, let's use the cleaner approach: forward X with NV/NM
-                tok_emb_x = raw_model.transformer.wte(
-                    torch.stack([_diag_targets.roll(shifts=1, dims=1)[b] for b in range(batch_size)]))
-                # This is getting complex. Simpler: just compute accuracy from a fresh batch.
-            except Exception:
-                pass
-
-            # Simpler approach: use raw logits from the last micro-step
-            # and compute text token accuracy
             preds = _diag_logits.argmax(dim=-1)
             valid_mask = (_diag_targets >= 0) & (_diag_targets != EOT_TOKEN_ID)
             # Exclude <NUM> targets from text accuracy

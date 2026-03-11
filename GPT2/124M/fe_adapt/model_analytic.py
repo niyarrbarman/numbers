@@ -30,7 +30,7 @@ from torch.nn import functional as F
 
 # Add project root so we can import AnalyticNumberCodec
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..'))
-from num_analytic import AnalyticNumberCodec
+from num_analytic import AnalyticNumberCodec, NumberComponents
 
 NUM_TOKEN_ID = 50256  # luciole_50k vocab is 0..50255; 50256 = <NUM>
 
@@ -304,6 +304,7 @@ class NemotronAnalytic(nn.Module):
 
         print(f"Loaded {loaded} tensors from {ckpt_path} (skipped {skipped})")
 
+    @torch.compiler.disable
     def _batch_encode_analytic(self, values):
         """Encode a batch of number values using the analytic codec.
 
@@ -410,6 +411,7 @@ class NemotronAnalytic(nn.Module):
 
         return logits, text_loss, num_loss_dict
 
+    @torch.compiler.disable
     def decode_numeric_output(self, hidden_states):
         """Decode numeric values from hidden states at <NUM> output positions.
 
@@ -433,7 +435,6 @@ class NemotronAnalytic(nn.Module):
             exponent = exps[i].item() + self.config.analytic_exp_min
             digs = [digits[i, j].item() for j in range(self.config.analytic_K)]
 
-            from num_analytic import NumberComponents
             comps = NumberComponents(sign=sign, exponent=exponent, digits=digs)
             try:
                 dec_val = self.analytic_codec.components_to_decimal(comps)
