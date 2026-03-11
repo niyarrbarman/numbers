@@ -297,7 +297,10 @@ def build_components_array(ids, nums, codec):
     for i, tok in enumerate(ids):
         if tok != NUM_TOKEN_ID:
             continue
-        components[i] = encode_num_components(codec, float(nums[i]))
+        # Match the exact float32 values persisted in *_nums.bin so later
+        # validation/training sees identical numeric targets.
+        value_f32 = float(np.float32(nums[i]))
+        components[i] = encode_num_components(codec, value_f32)
     return components
 
 

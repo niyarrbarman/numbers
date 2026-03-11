@@ -9,6 +9,8 @@
 # Usage:
 #   bash run_analytic_s2_adapt_bench.sh
 #   bash run_analytic_s2_adapt_bench.sh --base-ckpt /path/to/base/ckpt_merged.pt
+#   bash run_analytic_s2_adapt_bench.sh --resume-from-data <JOBID>
+#   bash run_analytic_s2_adapt_bench.sh --resume-from-adapt <JOBID>
 #
 set -euo pipefail
 mkdir -p slurm
@@ -29,11 +31,21 @@ S2_ADAPTED_OUT="/tmpdir/m24047brmn/numbers/model_checkpoints/analytic_s2_adapted
 
 # Benchmark
 ARITH_BENCH="/tmpdir/m24047brmn/numbers/data/arithmetic_bench.json"
+RESUME_FROM_DATA=""
+RESUME_FROM_ADAPT=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --base-ckpt)
             BASE_CKPT="$2"
+            shift 2
+            ;;
+        --resume-from-data)
+            RESUME_FROM_DATA="$2"
+            shift 2
+            ;;
+        --resume-from-adapt)
+            RESUME_FROM_ADAPT="$2"
             shift 2
             ;;
         *)
@@ -42,6 +54,11 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+if [[ -n "${RESUME_FROM_DATA}" && -n "${RESUME_FROM_ADAPT}" ]]; then
+    echo "Use only one of --resume-from-data or --resume-from-adapt." >&2
+    exit 1
+fi
 
 if [[ ! -f "${S1_CKPT}" ]]; then
     echo "Missing Stage 1 checkpoint: ${S1_CKPT}" >&2
@@ -67,42 +84,16 @@ echo "  Stage 1 ckpt: ${S1_CKPT}"
 echo "  Base ckpt:    ${BASE_CKPT}"
 echo "  Stage 2 data: ${S2_DATA_DIR}"
 echo "  Adapt output: ${S2_ADAPTED_OUT}"
+if [[ -n "${RESUME_FROM_DATA}" ]]; then
+    echo "  Resume mode:  from data job ${RESUME_FROM_DATA}"
+elif [[ -n "${RESUME_FROM_ADAPT}" ]]; then
+    echo "  Resume mode:  from adapt job ${RESUME_FROM_ADAPT}"
+fi
 echo "=========================================================="
 
-# --- Step 1: S2 Data Gen (CPU) ---
-JOB_S2_DATA=$(sbatch --parsable <<EOF
-#!/bin/bash
-#SBATCH -J anl_s2_data
-#SBATCH -N 1
-#SBATCH -n 1
-#SBATCH -p small
-#SBATCH --time=01:00:00
-#SBATCH --output=slurm/%x_%j.out
-
-set -euo pipefail
-module load gnu/11.2.0
-
-${APPTAINER} python3 ${SCRIPT_DIR}/generate_synth_math.py \
-  --out_dir ${S2_DATA_DIR} \
-  --n_train 50000 \
-  --n_val 3000 \
-  --n_test 3000 \
-  --analytic_adapted
-
-if [ ! -f ${ARITH_BENCH} ]; then
-  ${APPTAINER} python3 ${SCRIPT_DIR}/generate_arithmetic_data.py \
-    --out_path ${ARITH_BENCH} \
-    --n_problems 1000 \
-    --seed 42
-fi
-
-echo "Stage 2 data generation complete."
-EOF
-)
-echo "  [1] S2 Data Gen: ${JOB_S2_DATA}"
-
-# --- Step 2: S2 Analytic-Adapter LoRA (GPU, afterok:1) ---
-JOB_S2_ADAPT=$(sbatch --parsable --dependency=afterok:${JOB_S2_DATA} <<EOF
+submit_adapt_job() {
+    local dependency="$1"
+    sbatch --parsable ${dependency} <<EOF
 #!/bin/bash
 #SBATCH -J anl_s2_adapt
 #SBATCH -N 1
@@ -141,11 +132,11 @@ ${APPTAINER} python3 ${SCRIPT_DIR}/train_tulu_lora_analytic.py \
 
 echo "Analytic-adapter LoRA training complete."
 EOF
-)
-echo "  [2] S2 Analytic LoRA: ${JOB_S2_ADAPT} (afterok:${JOB_S2_DATA})"
+}
 
-# --- Step 3: Benchmark (GPU, afterok:2) ---
-JOB_BENCH=$(sbatch --parsable --dependency=afterok:${JOB_S2_ADAPT} <<EOF
+submit_bench_job() {
+    local dependency="$1"
+    sbatch --parsable ${dependency} <<EOF
 #!/bin/bash
 #SBATCH -J anl_bench
 #SBATCH -N 1
@@ -184,18 +175,74 @@ ${APPTAINER} python3 ${SCRIPT_DIR}/benchmark_tulu.py \
 
 echo "All benchmarks complete."
 EOF
+}
+
+if [[ -n "${RESUME_FROM_ADAPT}" ]]; then
+    JOB_S2_ADAPT="${RESUME_FROM_ADAPT}"
+    JOB_BENCH=$(submit_bench_job "--dependency=afterok:${JOB_S2_ADAPT}")
+    echo "  [2] S2 Analytic LoRA (EXISTING): ${JOB_S2_ADAPT}"
+    echo "  [3] Benchmark: ${JOB_BENCH} (afterok:${JOB_S2_ADAPT})"
+elif [[ -n "${RESUME_FROM_DATA}" ]]; then
+    JOB_S2_DATA="${RESUME_FROM_DATA}"
+    JOB_S2_ADAPT=$(submit_adapt_job "--dependency=afterok:${JOB_S2_DATA}")
+    JOB_BENCH=$(submit_bench_job "--dependency=afterok:${JOB_S2_ADAPT}")
+    echo "  [1] S2 Data Gen (EXISTING): ${JOB_S2_DATA}"
+    echo "  [2] S2 Analytic LoRA: ${JOB_S2_ADAPT} (afterok:${JOB_S2_DATA})"
+    echo "  [3] Benchmark: ${JOB_BENCH} (afterok:${JOB_S2_ADAPT})"
+else
+    # --- Step 1: S2 Data Gen (CPU) ---
+    JOB_S2_DATA=$(sbatch --parsable <<EOF
+#!/bin/bash
+#SBATCH -J anl_s2_data
+#SBATCH -N 1
+#SBATCH -n 1
+#SBATCH -p small
+#SBATCH --time=01:00:00
+#SBATCH --output=slurm/%x_%j.out
+
+set -euo pipefail
+module load gnu/11.2.0
+
+${APPTAINER} python3 ${SCRIPT_DIR}/generate_synth_math.py \
+  --out_dir ${S2_DATA_DIR} \
+  --n_train 50000 \
+  --n_val 3000 \
+  --n_test 3000 \
+  --analytic_adapted
+
+if [ ! -f ${ARITH_BENCH} ]; then
+  ${APPTAINER} python3 ${SCRIPT_DIR}/generate_arithmetic_data.py \
+    --out_path ${ARITH_BENCH} \
+    --n_problems 1000 \
+    --seed 42
+fi
+
+echo "Stage 2 data generation complete."
+EOF
 )
-echo "  [3] Benchmark: ${JOB_BENCH} (afterok:${JOB_S2_ADAPT})"
+
+    JOB_S2_ADAPT=$(submit_adapt_job "--dependency=afterok:${JOB_S2_DATA}")
+    JOB_BENCH=$(submit_bench_job "--dependency=afterok:${JOB_S2_ADAPT}")
+    echo "  [1] S2 Data Gen: ${JOB_S2_DATA}"
+    echo "  [2] S2 Analytic LoRA: ${JOB_S2_ADAPT} (afterok:${JOB_S2_DATA})"
+    echo "  [3] Benchmark: ${JOB_BENCH} (afterok:${JOB_S2_ADAPT})"
+fi
 
 echo ""
 echo "=========================================================="
 echo "Jobs submitted:"
-echo "  [1] S2 Data Gen:      ${JOB_S2_DATA}"
+if [[ -n "${JOB_S2_DATA:-}" ]]; then
+    echo "  [1] S2 Data Gen:      ${JOB_S2_DATA}"
+fi
 echo "  [2] S2 Analytic LoRA: ${JOB_S2_ADAPT}"
 echo "  [3] Benchmark:        ${JOB_BENCH}"
 echo ""
 echo "Dependency graph:"
-echo "  [1] ──→ [2] ──→ [3]"
+if [[ -n "${JOB_S2_DATA:-}" ]]; then
+    echo "  [1] ──→ [2] ──→ [3]"
+else
+    echo "  [2] ──→ [3]"
+fi
 echo ""
 echo "Using existing base LoRA: ${BASE_CKPT}"
 echo "Monitor: squeue -u \$USER"

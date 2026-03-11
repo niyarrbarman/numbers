@@ -344,7 +344,9 @@ def build_components_array(ids, nums, codec):
     components = np.zeros((n, 2 + codec.K), dtype=np.uint8)
     for i in range(n):
         if ids[i] == NUM_TOKEN_ID and nums[i] != 0.0:
-            components[i] = encode_num_components(codec, nums[i])
+            # Match the exact float32 values persisted in *_nums.bin.
+            value_f32 = float(np.float32(nums[i]))
+            components[i] = encode_num_components(codec, value_f32)
         elif ids[i] == NUM_TOKEN_ID and nums[i] == 0.0:
             # <NUM> for the value 0.0 — encode it
             components[i] = encode_num_components(codec, 0.0)
