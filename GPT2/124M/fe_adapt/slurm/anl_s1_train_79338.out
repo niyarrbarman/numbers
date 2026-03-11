@@ -1,0 +1,71 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+tokens per iteration will be: 81,920
+data directory: /tmpdir/m24047brmn/numbers/data/analytic_stage1
+Initializing from pretrained Baby Luciole checkpoint
+number of parameters: 115.12M
+  partial: transformer.wte.weight (50256→50304)
+Loaded 123 tensors from /tmpdir/m24047brmn/numbers/checkpoints/baby_luciole_converted.pt (skipped 0)
+Stage 1: Freezing base model, training adapter + decoder only
+  Trainable: 950,403 / 115,119,747 (0.8%)
+/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/train_analytic.py:272: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
+optimizer parameter groups:
+  adapter_decay: 5 tensors, 948,480 params, weight_decay=0.1, lr_scale=1.0
+  adapter_nodecay: 5 tensors, 1,923 params, weight_decay=0.0, lr_scale=1.0
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Traceback (most recent call last):
+  File "/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/train_analytic.py", line 540, in <module>
+    losses = estimate_loss(raw_model)
+  File "/usr/local/lib/python3.10/dist-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+    return func(*args, **kwargs)
+  File "/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/train_analytic.py", line 309, in estimate_loss
+    logits, text_loss, num_loss_dict = eval_model(
+  File "/usr/local/lib/python3.10/dist-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/torch/_dynamo/eval_frame.py", line 465, in _fn
+    return fn(*args, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/model_analytic.py", line 319, in forward
+    def forward(self, idx, targets=None, num_values=None, num_mask=None,
+  File "/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/model_analytic.py", line 345, in torch_dynamo_resume_in_forward_at_344
+    num_vals_flat = num_values[num_mask]                     # (K,)
+  File "/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/model_analytic.py", line 346, in torch_dynamo_resume_in_forward_at_345
+    analytic_emb = self._batch_encode_analytic(num_vals_flat)  # (K, 80)
+  File "/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/model_analytic.py", line 316, in _batch_encode_analytic
+    embeddings = np.stack([self.analytic_codec.encode(float(v)) for v in vals_np])
+  File "/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/model_analytic.py", line 316, in <listcomp>
+    embeddings = np.stack([self.analytic_codec.encode(float(v)) for v in vals_np])
+  File "/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/../../../num_analytic.py", line 94, in encode
+    comps = self.to_components(value)
+  File "/usr/local/lib/python3.10/dist-packages/torch/_dynamo/convert_frame.py", line 1251, in __call__
+    return self._torchdynamo_orig_callable(
+  File "/usr/local/lib/python3.10/dist-packages/torch/_dynamo/convert_frame.py", line 1052, in __call__
+    result = self._inner_convert(
+  File "/usr/local/lib/python3.10/dist-packages/torch/_dynamo/convert_frame.py", line 523, in __call__
+    return _compile(
+  File "/usr/local/lib/python3.10/dist-packages/torch/_dynamo/convert_frame.py", line 915, in _compile
+    guarded_code = compile_inner(code, one_graph, hooks, transform)
+  File "/usr/local/lib/python3.10/dist-packages/torch/_dynamo/convert_frame.py", line 663, in compile_inner
+    return _compile_inner(code, one_graph, hooks, transform)
+  File "/usr/local/lib/python3.10/dist-packages/torch/_utils_internal.py", line 87, in wrapper_function
+    return function(*args, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/torch/_dynamo/convert_frame.py", line 793, in _compile_inner
+    check_fn = CheckFunctionManager(
+  File "/usr/local/lib/python3.10/dist-packages/torch/_dynamo/guards.py", line 2288, in __init__
+    raise AssertionError(f"Guard check failed: {reasons}")
+AssertionError: Guard check failed: 6/1: name 'OpaqueUnaryFn_cos' is not defined
+
+
+You can suppress this exception and fall back to eager by setting:
+    import torch._dynamo
+    torch._dynamo.config.suppress_errors = True
+

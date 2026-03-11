@@ -1,0 +1,116 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Mode: BASE (LoRA only)
+tokens per iteration will be: 40,960
+data directory: /tmpdir/m24047brmn/numbers/data/synth_arith_analytic/base
+Loading pretrained checkpoint: /tmpdir/m24047brmn/numbers/checkpoints/baby_luciole_converted.pt
+number of parameters: 114.83M
+  partial: transformer.wte.weight (50256→50258)
+Loaded 123 tensors from /tmpdir/m24047brmn/numbers/checkpoints/baby_luciole_converted.pt (skipped 0)
+  Applied LoRA (rank=16, alpha=32, dropout=0.05) to 48 layers
+  Target modules: ['q_proj', 'v_proj', 'k_proj', 'o_proj']
+Parameter budget (BASE (LoRA only)):
+  LoRA:         983,040 params (0.85%)
+  Frozen:    114,140,262 params
+  Trainable:    983,040 / 115,812,966 (0.85%)
+optimizer parameter groups:
+  lora_decay: 96 tensors, 983,040 params, weight_decay=0.1, lr_scale=1.0
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+
+Starting training from iter 0 (max_iters=10000)
+step 0: train loss 3.7297, val loss 3.7283
+iter 0: loss 3.7453, time 56623.40ms, mfu -100.00%
+  === DIAG iter 0 ===
+  loss: 3.7453
+  grads: total 28.2524, lora 28.2524
+  lr: base 5.99e-07, lora 5.99e-07
+  token accuracy: 0.172 (345/2001)
+iter 10: loss 3.5486, time 720.58ms, mfu 0.62%
+iter 20: loss 3.1035, time 779.24ms, mfu 0.62%
+iter 30: loss 2.6887, time 783.17ms, mfu 0.61%
+iter 40: loss 2.2721, time 772.54ms, mfu 0.61%
+iter 50: loss 2.0448, time 759.53ms, mfu 0.61%
+iter 60: loss 1.8608, time 762.89ms, mfu 0.61%
+iter 70: loss 1.7408, time 755.95ms, mfu 0.61%
+iter 80: loss 1.6671, time 752.22ms, mfu 0.60%
+iter 90: loss 1.5156, time 732.97ms, mfu 0.61%
+iter 100: loss 1.5220, time 724.94ms, mfu 0.61%
+  === DIAG iter 100 ===
+  loss: 1.5220
+  grads: total 21.5981, lora 21.5981
+  lr: base 6.05e-05, lora 6.05e-05
+  token accuracy: 0.470 (941/2003)
+iter 110: loss 1.4660, time 727.29ms, mfu 0.61%
+iter 120: loss 1.3979, time 723.86ms, mfu 0.61%
+iter 130: loss 1.3502, time 719.46ms, mfu 0.61%
+iter 140: loss 1.3158, time 720.74ms, mfu 0.61%
+iter 150: loss 1.2148, time 715.62ms, mfu 0.61%
+iter 160: loss 1.2485, time 740.57ms, mfu 0.61%
+iter 170: loss 1.1240, time 738.11ms, mfu 0.61%
+iter 180: loss 0.9519, time 761.86ms, mfu 0.61%
+iter 190: loss 0.9279, time 761.41ms, mfu 0.61%
+iter 200: loss 0.9165, time 756.81ms, mfu 0.61%
+  === DIAG iter 200 ===
+  loss: 0.9165
+  grads: total 3.5314, lora 3.5314
+  lr: base 1.20e-04, lora 1.20e-04
+  token accuracy: 0.660 (1321/2001)
+iter 210: loss 0.8759, time 757.56ms, mfu 0.61%
+iter 220: loss 0.8271, time 755.73ms, mfu 0.60%
+iter 230: loss 0.8487, time 743.84ms, mfu 0.60%
+iter 240: loss 0.8287, time 749.11ms, mfu 0.60%
+iter 250: loss 0.8502, time 762.96ms, mfu 0.60%
+iter 260: loss 0.8220, time 752.34ms, mfu 0.60%
+iter 270: loss 0.8345, time 729.51ms, mfu 0.60%
+iter 280: loss 0.7886, time 765.36ms, mfu 0.60%
+iter 290: loss 0.7898, time 751.77ms, mfu 0.60%
+iter 300: loss 0.7737, time 750.85ms, mfu 0.60%
+  === DIAG iter 300 ===
+  loss: 0.7737
+  grads: total 1.5126, lora 1.5126
+  lr: base 1.80e-04, lora 1.80e-04
+  token accuracy: 0.712 (1428/2007)
+iter 310: loss 0.8022, time 754.03ms, mfu 0.60%
+iter 320: loss 0.7939, time 774.62ms, mfu 0.60%
+iter 330: loss 0.7592, time 775.37ms, mfu 0.60%
+iter 340: loss 0.7987, time 751.68ms, mfu 0.60%
+iter 350: loss 0.7906, time 756.31ms, mfu 0.60%
+iter 360: loss 0.8064, time 769.81ms, mfu 0.59%
+iter 370: loss 0.7792, time 769.74ms, mfu 0.59%
+iter 380: loss 0.7608, time 753.97ms, mfu 0.59%
+iter 390: loss 0.8320, time 770.70ms, mfu 0.59%
+iter 400: loss 0.7667, time 768.38ms, mfu 0.59%
+  === DIAG iter 400 ===
+  loss: 0.7667
+  grads: total 1.9175, lora 1.9175
+  lr: base 2.40e-04, lora 2.40e-04
+  token accuracy: 0.704 (1408/2000)
+iter 410: loss 0.7780, time 745.38ms, mfu 0.59%
+iter 420: loss 0.7865, time 766.90ms, mfu 0.59%
+iter 430: loss 0.7859, time 756.73ms, mfu 0.59%
+iter 440: loss 0.7578, time 755.36ms, mfu 0.59%
+iter 450: loss 0.7594, time 753.56ms, mfu 0.59%
+iter 460: loss 0.7867, time 748.89ms, mfu 0.59%
+iter 470: loss 0.7783, time 740.63ms, mfu 0.59%
+iter 480: loss 0.7814, time 771.91ms, mfu 0.59%
+iter 490: loss 0.7718, time 732.94ms, mfu 0.60%
+iter 500: loss 0.7532, time 793.57ms, mfu 0.59%
+  === DIAG iter 500 ===
+  loss: 0.7532
+  grads: total 2.2384, lora 2.2384
+  lr: base 3.00e-04, lora 3.00e-04
+  token accuracy: 0.714 (1430/2003)
+  --- Sample eval (val) ---
+iter 510: loss 0.7789, time 750.02ms, mfu 0.59%
+iter 520: loss 0.7606, time 746.30ms, mfu 0.59%
+iter 530: loss 0.7778, time 759.45ms, mfu 0.59%
+iter 540: loss 0.7430, time 742.76ms, mfu 0.59%
+iter 550: loss 0.7525, time 748.23ms, mfu 0.60%
+iter 560: loss 0.7136, time 755.52ms, mfu 0.60%
+iter 570: loss 0.7462, time 750.49ms, mfu 0.60%
+iter 580: loss 0.7360, time 742.80ms, mfu 0.60%
+iter 590: loss 0.7511, time 749.94ms, mfu 0.60%
+slurmstepd: error: *** JOB 79340 ON turpancomp1 CANCELLED AT 2026-03-11T03:43:35 ***
