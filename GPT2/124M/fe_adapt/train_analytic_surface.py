@@ -86,7 +86,7 @@ digit_loss_lambda = 1.0 / 32.0
 # adamw optimizer
 learning_rate = 6e-4
 adapter_lr_scale = 1.0
-max_iters = 40000
+max_iters = 15000
 weight_decay = 1e-1
 beta1 = 0.9
 beta2 = 0.95
@@ -94,7 +94,7 @@ grad_clip = 1.0
 # learning rate decay settings
 decay_lr = True
 warmup_iters = 2000
-lr_decay_iters = 40000
+lr_decay_iters = 15000
 min_lr = 6e-5
 # DDP settings
 backend = 'nccl'

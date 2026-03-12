@@ -134,11 +134,11 @@ ${APPTAINER} python3 ${SCRIPT_DIR}/train_analytic_surface.py \
   block_size=256 \
   batch_size=4 \
   gradient_accumulation_steps=40 \
-  max_iters=20000 \
+  max_iters=15000 \
   learning_rate=1e-3 \
   adapter_lr_scale=1.0 \
   warmup_iters=1000 \
-  lr_decay_iters=20000 \
+  lr_decay_iters=15000 \
   min_lr=1e-4 \
   num_loss_lambda=1.0 \
   eval_interval=2000 \
@@ -189,7 +189,7 @@ set -euo pipefail
 module load gnu/11.2.0
 
 ${APPTAINER} python3 ${SCRIPT_DIR}/train_tulu_lora_surface.py \
-  stage1_ckpt=${S1_OUT_DIR}/ckpt.pt \
+  stage1_ckpt=${S1_OUT_DIR}/ckpt_best.pt \
   data_dir=${S2_ADAPTED_DATA} \
   out_dir=${S2_OUT_DIR} \
   numeric_output_mode=surface \
