@@ -349,10 +349,12 @@ def evaluate_model(model, problems, device, use_adapter=False,
             rel_err = float('inf')
 
         results.append({
+            'example_index': idx,
             'category': category,
             'category_type': cat_type,
             'distribution': distribution,
             'expected': expected,
+            'messages': messages,
             'gen_num': gen_num,
             'gen_text': gen_text,
             'ref_text': ref_text,
@@ -424,6 +426,38 @@ def print_metrics_table(metrics, title):
         print(f"{k:<20} {m['n']:>5} {m['exact_match']:>8.4f} "
               f"{m['num_accuracy']:>8.4f} {m['parse_rate']:>7.3f} "
               f"{mae_s:>12}")
+
+
+def build_paired_examples(base_results, adapted_results):
+    """Align base/adapted outputs example-by-example for detailed inspection."""
+    paired = []
+    for base_r, adapt_r in zip(base_results, adapted_results):
+        paired.append({
+            'example_index': base_r['example_index'],
+            'category': base_r['category'],
+            'category_type': base_r['category_type'],
+            'distribution': base_r['distribution'],
+            'expected': base_r['expected'],
+            'messages': base_r['messages'],
+            'ref_text': base_r['ref_text'],
+            'base': {
+                'gen_text': base_r['gen_text'],
+                'gen_num': base_r['gen_num'],
+                'exact_match': base_r['exact_match'],
+                'num_correct': base_r['num_correct'],
+                'abs_err': base_r['abs_err'],
+                'rel_err': base_r['rel_err'],
+            },
+            'adapted': {
+                'gen_text': adapt_r['gen_text'],
+                'gen_num': adapt_r['gen_num'],
+                'exact_match': adapt_r['exact_match'],
+                'num_correct': adapt_r['num_correct'],
+                'abs_err': adapt_r['abs_err'],
+                'rel_err': adapt_r['rel_err'],
+            },
+        })
+    return paired
 
 
 # =============================================================================
@@ -553,12 +587,15 @@ def main():
         for label in ['Base LoRA', 'Adapted LoRA']:
             save_data[label] = {
                 'metrics': all_metrics[label],
-                'examples': [
-                    {k: v for k, v in r.items()
-                     if k not in ('gen_text', 'ref_text') or len(str(v)) < 200}
-                    for r in all_results[label][:100]
-                ],
+                'examples': all_results[label],
             }
+        save_data['paired_examples'] = build_paired_examples(
+            all_results['Base LoRA'],
+            all_results['Adapted LoRA'],
+        )
+        out_dir = os.path.dirname(args.out_path)
+        if out_dir:
+            os.makedirs(out_dir, exist_ok=True)
         with open(args.out_path, 'w') as f:
             json.dump(save_data, f, indent=2, default=str)
         print(f"\nResults saved to {args.out_path}")

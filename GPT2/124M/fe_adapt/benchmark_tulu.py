@@ -317,11 +317,13 @@ def evaluate_generation(model, test_examples, device, use_adapter=False,
         ref_nums = extract_numbers(ref_text)
 
         results.append({
+            'example_index': idx,
             'exact_match': exact_match,
             'gen_text': gen_text,
             'ref_text': ref_text,
             'gen_nums': gen_nums,
             'ref_nums': ref_nums,
+            'messages': messages,
         })
 
         if idx < 5:
@@ -359,7 +361,31 @@ def evaluate_generation(model, test_examples, device, use_adapter=False,
         'num_accuracy': total_correct_nums / max(total_ref_nums, 1),
         'mae': total_abs_err / max(n_matched, 1),
         'n_samples': n,
+        'results': results,
     }
+
+
+def build_generation_comparisons(base_results, adapted_results):
+    """Align generation outputs example-by-example for detailed diffing."""
+    comparisons = []
+    for base_r, adapt_r in zip(base_results, adapted_results):
+        comparisons.append({
+            'example_index': base_r['example_index'],
+            'messages': base_r['messages'],
+            'ref_text': base_r['ref_text'],
+            'ref_nums': base_r['ref_nums'],
+            'base': {
+                'gen_text': base_r['gen_text'],
+                'gen_nums': base_r['gen_nums'],
+                'exact_match': base_r['exact_match'],
+            },
+            'adapted': {
+                'gen_text': adapt_r['gen_text'],
+                'gen_nums': adapt_r['gen_nums'],
+                'exact_match': adapt_r['exact_match'],
+            },
+        })
+    return comparisons
 
 
 # =============================================================================
@@ -377,6 +403,7 @@ def main():
     parser.add_argument('--block_size', type=int, default=512)
     parser.add_argument('--batch_size', type=int, default=4)
     parser.add_argument('--device', default='cuda')
+    parser.add_argument('--out_path', default=None)
     args = parser.parse_args()
 
     print("=" * 70)
@@ -473,19 +500,29 @@ def main():
     print("=" * 70)
 
     # Save results
-    out_path = os.path.join(os.path.dirname(args.base_ckpt), '..', 'benchmark_results.json')
+    if args.out_path is None:
+        args.out_path = os.path.join(
+            os.path.dirname(args.adapted_ckpt),
+            'benchmark_results.json',
+        )
     try:
-        # Convert to serializable
         serializable = {}
         for k, v in results.items():
             serializable[k] = {
                 'forward': v['forward'],
-                'generation': {kk: vv for kk, vv in v['generation'].items()
-                               if kk != 'results'},
+                'generation': v['generation'],
             }
-        with open(out_path, 'w') as f:
+        if test_examples:
+            serializable['paired_generation_examples'] = build_generation_comparisons(
+                results['Base LoRA']['generation']['results'],
+                results['Adapted LoRA']['generation']['results'],
+            )
+        out_dir = os.path.dirname(args.out_path)
+        if out_dir:
+            os.makedirs(out_dir, exist_ok=True)
+        with open(args.out_path, 'w') as f:
             json.dump(serializable, f, indent=2)
-        print(f"\nResults saved to {out_path}")
+        print(f"\nResults saved to {args.out_path}")
     except Exception as e:
         print(f"\nCould not save results: {e}")
 
