@@ -1,0 +1,107 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+number of parameters: 115.12M
+Merged checkpoint written to /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_iter2000_synth_zeroshot_bench/ckpt_iter2000_merged.pt
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+======================================================================
+TULU-3 MATH BENCHMARK: Base LoRA vs Adapted LoRA
+======================================================================
+Loaded 3000 test examples from /tmpdir/m24047brmn/numbers/data/synth_arith_analytic/base/test_examples.json
+
+==================================================
+Evaluating: Base LoRA
+  Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_s2_base_lora/ckpt_merged.pt
+  Data: /tmpdir/m24047brmn/numbers/data/synth_arith_analytic/base
+==================================================
+Loading /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_s2_base_lora/ckpt_merged.pt...
+number of parameters: 114.83M
+  Loaded Nemotron (135 keys), use_adapter=False
+
+--- Forward-pass metrics (200 batches) ---
+  NOTE: clamping block_size from 512 to 256 for this checkpoint
+  Loss:       0.6097
+  Perplexity: 1.84
+  Accuracy:   0.7716
+
+--- Generation metrics (3000 samples, greedy) ---
+  [0] ref: 57711 + 27644 = 85355
+       gen: 57711 + 27644 = 85355
+       match: True
+
+  [1] ref: 99204 + 54011 = 153215
+       gen: 99204 + 54011 = 153215
+       match: True
+
+  [2] ref: 9843 + 8943 = 18786, 18786 - 7010 = 11776. The result is 11776
+       gen: 9843 + 8943 = 18786, 18786 - 7010 = 11776. The result is 11776
+       match: True
+
+  [3] ref: 6714 + 9923 = 16637, 16637 - 9904 = 6733. The result is 6733
+       gen: 6714 + 9923 = 16637, 16637 - 9904 = 6733. The result is 6733
+       match: True
+
+  [4] ref: 618 times 696 = 430128
+       gen: 618 times 696 = 429048
+       match: False
+
+  Exact match:    0.5873
+  Number accuracy:0.8416
+  Number MAE:     1208.5401
+
+==================================================
+Evaluating: Adapted LoRA
+  Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_iter2000_synth_zeroshot_bench/ckpt_iter2000_merged.pt
+  Data: /tmpdir/m24047brmn/numbers/data/synth_arith_analytic/adapted
+==================================================
+Loading /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_iter2000_synth_zeroshot_bench/ckpt_iter2000_merged.pt...
+number of parameters: 115.12M
+  Loaded NemotronAnalytic (134 keys), use_adapter=True
+
+--- Forward-pass metrics (200 batches) ---
+  NOTE: clamping block_size from 512 to 256 for this checkpoint
+  Loss:       0.0673
+  Perplexity: 1.07
+  Accuracy:   0.9775
+
+--- Generation metrics (3000 samples, greedy) ---
+  [0] ref: 57711 + 27644 = 85355
+       gen: 57711+ 27644= 82167
+       match: False
+
+  [1] ref: 99204 + 54011 = 153215
+       gen: 99204+ 54011= 144193
+       match: False
+
+  [2] ref: 9843 + 8943 = 18786, 18786 - 7010 = 11776. The result is 11776
+       gen: 9843+ 8943= 17630, 17630- 7010= 10432The result is 10432
+       match: False
+
+  [3] ref: 6714 + 9923 = 16637, 16637 - 9904 = 6733. The result is 6733
+       gen: 6714+ 9923= 14328, 14328- 9904= 4033The result is 4033
+       match: False
+
+  [4] ref: 618 times 696 = 430128
+       gen: 618times 696= 454304
+       match: False
+
+  Exact match:    0.0000
+  Number accuracy:0.4134
+  Number MAE:     13883.9455
+
+======================================================================
+SUMMARY
+======================================================================
+Metric                          Base LoRA    Adapted LoRA      Delta
+-----------------------------------------------------------------
+Loss                               0.6097          0.0673   -0.5424 v
+Perplexity                         1.8399          1.0696   -0.7703 v
+Token Accuracy                     0.7716          0.9775   +0.2059 ^
+Exact Match                        0.5873          0.0000   -0.5873 v
+Number Accuracy                    0.8416          0.4134   -0.4282 v
+Number MAE                      1208.5401      13883.9455 +12675.4054 ^
+======================================================================
+
+Results saved to /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_iter2000_synth_zeroshot_bench/synth_zeroshot_iter2000_detailed.json
+Detailed output:
+  /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_iter2000_synth_zeroshot_bench/synth_zeroshot_iter2000_detailed.json
