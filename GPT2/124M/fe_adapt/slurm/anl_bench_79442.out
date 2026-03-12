@@ -1,0 +1,425 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+============================================================
+BENCHMARK: Arithmetic eval (few-shot)
+============================================================
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+======================================================================
+ARITHMETIC BENCHMARK: Base LoRA vs Adapted LoRA
+  (with ID / OOD-small / OOD-large splits)
+======================================================================
+Loaded 1000 problems from /tmpdir/m24047brmn/numbers/data/arithmetic_bench.json
+
+  By distribution:
+    ?                    1000
+
+  By category:
+    addition             200
+    comparison           150
+    multiplication       150
+    multistep            150
+    percentage           150
+    subtraction          200
+
+  By category_type:
+    ?                    1000
+
+============================================================
+Evaluating: Base LoRA
+  Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_s2_base_lora/ckpt_merged.pt
+  use_adapter=False
+============================================================
+
+Loading /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_s2_base_lora/ckpt_merged.pt...
+number of parameters: 114.83M
+  Loaded Nemotron (135 keys), use_adapter=False
+  [0] ✓ (multistep/id)
+       ref: 6978 + 7589 = 14567, 14567 - 1129 = 13438. The result is 13438
+       gen: 6978 + 7589 = 14567, 14567 - 1129 = 13438. The result is 13438
+       expected=13438.0, got=13438.0
+
+  [1] ✗ (percentage/id)
+       ref: 75% of 772 = 579.0
+       gen: 75% of 772 = 589.0
+       expected=579.0, got=589.0
+
+  [2] ✗ (comparison/id)
+       ref: 97137.65 is larger than 95410.02
+       gen: 97135.65 is larger than 95410.02
+       expected=97137.65, got=97135.65
+
+  [3] ✗ (multistep/id)
+       ref: 63852 + 57749 = 121601, 121601 - 98652 = 22949. The result is 22949
+       gen: 6385 + 5749 = 12134, 12134 - 9865 = 2269. The result is 2269
+       expected=22949.0, got=2269.0
+
+  [4] ✓ (subtraction/id)
+       ref: 9612 - 3025 = 6587
+       gen: 9612 - 3025 = 6587
+       expected=6587.0, got=6587.0
+
+  [5] ✗ (percentage/id)
+       ref: 40% of 35 = 14.0
+       gen: 40% of 35 = 13.0
+       expected=14.0, got=13.0
+
+  [6] ✗ (addition/id)
+       ref: 13 + 49 = 62
+       gen: 1340 divided by 49 = 30
+       expected=62.0, got=30.0
+
+  [7] ✓ (subtraction/id)
+       ref: 76469 - 49363 = 27106
+       gen: 76469 - 49363 = 27106
+       expected=27106.0, got=27106.0
+
+  [8] ✓ (subtraction/id)
+       ref: 60140 - 24168 = 35972
+       gen: 60140 - 24168 = 35972
+       expected=35972.0, got=35972.0
+
+  [9] ✓ (percentage/id)
+       ref: 30% of 9399 = 2819.7
+       gen: 30% of 9399 = 2819.7
+       expected=2819.7, got=2819.7
+
+  [10] ✗ (comparison/id)
+       ref: 76803.47 is larger than 47720.99
+       gen: 77723.99 is larger than 46000.47
+       expected=76803.47, got=77723.99
+
+  [11] ✗ (subtraction/id)
+       ref: 75 - 14 = 61
+       gen: 7 is larger than 75
+       expected=61.0, got=75.0
+
+  [12] ✓ (percentage/id)
+       ref: 30% of 2854 = 856.2
+       gen: 30% of 2854 = 856.2
+       expected=856.2, got=856.2
+
+  [13] ✗ (addition/id)
+       ref: 66 + 11 = 77
+       gen: 664 + 61 = 675
+       expected=77.0, got=675.0
+
+  [14] ✓ (percentage/id)
+       ref: 20% of 49 = 9.8
+       gen: 20% of 49 = 9.8
+       expected=9.8, got=9.8
+
+
+--- Base LoRA — By Category ---
+Group                    N   ExactM   NumAcc   Parse          MAE
+--------------------------------------------------------------
+addition               200   0.5600   0.5600   1.000      1367.99
+comparison             150   0.4333   0.5467   1.000       839.98
+multiplication         150   0.1067   0.1133   1.000      7473.41
+multistep              150   0.2400   0.2467   1.000     16017.10
+percentage             150   0.4400   0.4933   1.000      5030.57
+subtraction            200   0.5050   0.5050   1.000      2004.26
+OVERALL               1000   0.3960   0.4230   1.000      5078.61
+
+--- Base LoRA — By Distribution ---
+Group                    N   ExactM   NumAcc   Parse          MAE
+--------------------------------------------------------------
+id                    1000   0.3960   0.4230   1.000      5078.61
+OVERALL               1000   0.3960   0.4230   1.000      5078.61
+
+--- Base LoRA — By Type ---
+Group                    N   ExactM   NumAcc   Parse          MAE
+--------------------------------------------------------------
+numerical             1000   0.3960   0.4230   1.000      5078.61
+OVERALL               1000   0.3960   0.4230   1.000      5078.61
+
+============================================================
+Evaluating: Adapted LoRA
+  Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_s2_adapted_lora/ckpt_merged.pt
+  use_adapter=True
+============================================================
+
+Loading /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_s2_adapted_lora/ckpt_merged.pt...
+number of parameters: 115.12M
+  Loaded NemotronAnalytic (134 keys), use_adapter=True
+  [0] ✗ (multistep/id)
+       ref: 6978 + 7589 = 14567, 14567 - 1129 = 13438. The result is 13438
+       gen: H H  and  ED: 
+Assistant: 1.
+Assistant:  The difference between 1
+Assistant: 1. 
+Assistant:  The difference between 1. 1
+       expected=13438.0, got=1.0
+
+  [1] ✗ (percentage/id)
+       ref: 75% of 772 = 579.0
+       gen: Assistant: - 1.
+Assistant: 1. 1.
+Assistant: 1. 1.
+Assistant: 1. 1. 1. 1
+Assistant: 1. 1. 1.
+Assistant: 1.org, 1.
+Assista
+       expected=579.0, got=1.0
+
+  [2] ✗ (comparison/id)
+       ref: 97137.65 is larger than 95410.02
+       gen: 
+       expected=97137.65, got=None
+
+  [3] ✗ (multistep/id)
+       ref: 63852 + 57749 = 121601, 121601 - 98652 = 22949. The result is 22949
+       gen: OR  = 
+Assistant:  The difference between 
+Assistant:  The difference between 
+Assistant: 1. 1. 
+Assistant: 1. 1. 1. 
+As
+       expected=22949.0, got=1.0
+
+  [4] ✗ (subtraction/id)
+       ref: 9612 - 3025 = 6587
+       gen: -  G-100000000000000000000000000000000000000000. 111111.1.1.
+Assistant: 1.org 1
+Assistant: 1 1.
+Assistant: 1. 1.
+Assista
+       expected=6587.0, got=1.0
+
+  [5] ✗ (percentage/id)
+       ref: 40% of 35 = 14.0
+       gen: ± 
+Assistant: 1.
+Assistant: 1.
+Assistant: 1.org.
+Assistant: 1. 1.
+Assistant: 1. 1. 1
+Assistant: 1.
+Assistant: 1.org.
+Ass
+       expected=14.0, got=1.0
+
+  [6] ✗ (addition/id)
+       ref: 13 + 49 = 62
+       gen: Assistant: - 1.
+Assistant: 1. 
+Assistant: 1. 1. 1
+Assistant: 1. 
+Assistant: 1. 1.
+Assistant: 1. 1. 1. 
+Assistant: 1. 1.
+
+       expected=62.0, got=100000.1
+
+  [7] ✗ (subtraction/id)
+       ref: 76469 - 49363 = 27106
+       gen: G. 
+Assistant:  The difference between 1
+Assistant: 1. 1. 1. 1. 1.
+Assistant: 1. 1. 1
+Assistant: 1. 1. 1.
+Assistant: 1.o
+       expected=27106.0, got=1.0
+
+  [8] ✗ (subtraction/id)
+       ref: 60140 - 24168 = 35972
+       gen: - 
+Assistant: - 
+Assistant: 1. 1.
+Assistant: 1. 1. 1. 
+Assistant: 1. 1. 1.
+Assistant: 1.org. 1.
+Assistant: 1.org, 1.
+Ass
+       expected=35972.0, got=1.0
+
+  [9] ✗ (percentage/id)
+       ref: 30% of 9399 = 2819.7
+       gen: � .  ED: 1.
+Assistant: 1.org, 1.
+Assistant: 1.
+Assistant: 1.
+Assistant: 1.org. 1.
+Assistant: 1.
+Assistant: 1.org.
+Assist
+       expected=2819.7, got=1.0
+
+  [10] ✗ (comparison/id)
+       ref: 76803.47 is larger than 47720.99
+       gen: Assistant: 
+Assistant:  The difference between 
+Assistant:  The difference between 1.
+Assistant: 1.
+Assistant: 1. 1. 1.
+
+       expected=76803.47, got=1.0
+
+  [11] ✗ (subtraction/id)
+       ref: 75 - 14 = 61
+       gen: - 
+Assistant: 1.
+Assistant: 1.
+Assistant: 1. 1. 1. 1. 
+Assistant: 1. 1. 1.
+Assistant: 1. 1. 1.
+Assistant: 1.org, 1.
+Assi
+       expected=61.0, got=1000.0
+
+  [12] ✗ (percentage/id)
+       ref: 30% of 2854 = 856.2
+       gen: Assistant:  R/
+Assistant: 1. 1. 1.
+Assistant: 1. 1. 1.
+Assistant: 1. 1. 1.
+Assistant: 1.org, 1.
+Assistant: 1.
+Assistant:
+       expected=856.2, got=1.0
+
+  [13] ✗ (addition/id)
+       ref: 66 + 11 = 77
+       gen: - . . 
+Assistant: 1.
+Assistant: 1.org.
+Assistant: 1. 1.
+Assistant: 1. 1.
+Assistant: 1. 1.
+Assistant: 1.org. 1. 1. 1
+Assi
+       expected=77.0, got=1.0
+
+  [14] ✗ (percentage/id)
+       ref: 20% of 49 = 9.8
+       gen: ± . §.
+Assistant: 1.org.
+Assistant: 1.
+Assistant: 1. 1. 1.
+Assistant: 1.org is 1
+Assistant: 1.
+Assistant: 1.org.
+Assista
+       expected=9.8, got=1.0
+
+
+--- Adapted LoRA — By Category ---
+Group                    N   ExactM   NumAcc   Parse          MAE
+--------------------------------------------------------------
+addition               200   0.0000   0.0000   1.000          inf
+comparison             150   0.0000   0.0000   0.980     26879.96
+multiplication         150   0.0000   0.0000   1.000          inf
+multistep              150   0.0000   0.0000   0.973          inf
+percentage             150   0.0000   0.0133   1.000     75347.65
+subtraction            200   0.0000   0.0000   1.000          inf
+OVERALL               1000   0.0000   0.0020   0.993          inf
+
+--- Adapted LoRA — By Distribution ---
+Group                    N   ExactM   NumAcc   Parse          MAE
+--------------------------------------------------------------
+id                    1000   0.0000   0.0020   0.993          inf
+OVERALL               1000   0.0000   0.0020   0.993          inf
+
+--- Adapted LoRA — By Type ---
+Group                    N   ExactM   NumAcc   Parse          MAE
+--------------------------------------------------------------
+numerical             1000   0.0000   0.0020   0.993          inf
+OVERALL               1000   0.0000   0.0020   0.993          inf
+
+================================================================================
+COMPARISON: Base LoRA vs Adapted LoRA
+================================================================================
+
+--- By Category ---
+Group                Metric             Base    Adapted      Delta
+----------------------------------------------------------------
+OVERALL              num_accuracy     0.4230     0.0020    -0.4210 ↓
+OVERALL              exact_match      0.3960     0.0000    -0.3960 ↓
+OVERALL              mae              5078.6 121852971802618332253741840344663399561710474170258200288921326017961213624514660229307034709013658742138312551563264.0 +121852971802618332253741840344663399561710474170258200288921326017961213624514660229307034709013658742138312551563264.0 ↑
+
+addition             num_accuracy     0.5600     0.0000    -0.5600 ↓
+addition             exact_match      0.5600     0.0000    -0.5600 ↓
+addition             mae              1368.0 49999999999999998584394024780232100424968164183088578953216.0 +49999999999999998584394024780232100424968164183088578953216.0 ↑
+
+comparison           num_accuracy     0.5467     0.0000    -0.5467 ↓
+comparison           exact_match      0.4333     0.0000    -0.4333 ↓
+comparison           mae               840.0    26880.0   +26040.0 ↑
+
+multiplication       num_accuracy     0.1133     0.0000    -0.1133 ↓
+multiplication       exact_match      0.1067     0.0000    -0.1067 ↓
+multiplication       mae              7473.4 740740740740740735605197191706219504404469509721184912356926194361470879268864.0 +740740740740740735605197191706219504404469509721184912356926194361470879268864.0 ↑
+
+multistep            num_accuracy     0.2467     0.0000    -0.2467 ↓
+multistep            exact_match      0.2400     0.0000    -0.2400 ↓
+multistep            mae             16017.1 7534246575410958632484864.0 +7534246575410958632484864.0 ↑
+
+percentage           num_accuracy     0.4933     0.0133    -0.4800 ↓
+percentage           exact_match      0.4400     0.0000    -0.4400 ↓
+percentage           mae              5030.6    75347.7   +70317.1 ↑
+
+subtraction          num_accuracy     0.5050     0.0000    -0.5050 ↓
+subtraction          exact_match      0.5050     0.0000    -0.5050 ↓
+subtraction          mae              2004.3 605000004999999964433619943788032807661936291806568702920497947934495530259265182251295727538004513493244133756633088.0 +605000004999999964433619943788032807661936291806568702920497947934495530259265182251295727538004513493244133756633088.0 ↑
+
+
+--- By Distribution ---
+Group                Metric             Base    Adapted      Delta
+----------------------------------------------------------------
+OVERALL              num_accuracy     0.4230     0.0020    -0.4210 ↓
+OVERALL              exact_match      0.3960     0.0000    -0.3960 ↓
+OVERALL              mae              5078.6 121852971802618332253741840344663399561710474170258200288921326017961213624514660229307034709013658742138312551563264.0 +121852971802618332253741840344663399561710474170258200288921326017961213624514660229307034709013658742138312551563264.0 ↑
+
+id                   num_accuracy     0.4230     0.0020    -0.4210 ↓
+id                   exact_match      0.3960     0.0000    -0.3960 ↓
+id                   mae              5078.6 121852971802618332253741840344663399561710474170258200288921326017961213624514660229307034709013658742138312551563264.0 +121852971802618332253741840344663399561710474170258200288921326017961213624514660229307034709013658742138312551563264.0 ↑
+
+
+--- By Type ---
+Group                Metric             Base    Adapted      Delta
+----------------------------------------------------------------
+OVERALL              num_accuracy     0.4230     0.0020    -0.4210 ↓
+OVERALL              exact_match      0.3960     0.0000    -0.3960 ↓
+OVERALL              mae              5078.6 121852971802618332253741840344663399561710474170258200288921326017961213624514660229307034709013658742138312551563264.0 +121852971802618332253741840344663399561710474170258200288921326017961213624514660229307034709013658742138312551563264.0 ↑
+
+numerical            num_accuracy     0.4230     0.0020    -0.4210 ↓
+numerical            exact_match      0.3960     0.0000    -0.3960 ↓
+numerical            mae              5078.6 121852971802618332253741840344663399561710474170258200288921326017961213624514660229307034709013658742138312551563264.0 +121852971802618332253741840344663399561710474170258200288921326017961213624514660229307034709013658742138312551563264.0 ↑
+
+================================================================================
+
+Results saved to /tmpdir/m24047brmn/numbers/data/arithmetic_benchmark_results.json
+
+============================================================
+BENCHMARK: Forward-pass on synth test data
+============================================================
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+======================================================================
+TULU-3 MATH BENCHMARK: Base LoRA vs Adapted LoRA
+======================================================================
+Loaded 3000 test examples from /tmpdir/m24047brmn/numbers/data/synth_arith_analytic/base/test_examples.json
+
+==================================================
+Evaluating: Base LoRA
+  Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_s2_base_lora/ckpt_merged.pt
+  Data: /tmpdir/m24047brmn/numbers/data/synth_arith_analytic/base
+==================================================
+Loading /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_s2_base_lora/ckpt_merged.pt...
+number of parameters: 114.83M
+  Loaded Nemotron (135 keys), use_adapter=False
+
+--- Forward-pass metrics (200 batches) ---
+Traceback (most recent call last):
+  File "/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/benchmark_tulu.py", line 448, in <module>
+    main()
+  File "/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/benchmark_tulu.py", line 366, in main
+    fwd = evaluate_forward(
+  File "/usr/local/lib/python3.10/dist-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+    return func(*args, **kwargs)
+  File "/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/benchmark_tulu.py", line 101, in evaluate_forward
+    logits, loss = model(x, y, num_values=nv, num_mask=nm,
+  File "/usr/local/lib/python3.10/dist-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/model.py", line 324, in forward
+    assert t <= self.config.block_size, \
+AssertionError: Cannot forward seq of length 512, block size is 256
