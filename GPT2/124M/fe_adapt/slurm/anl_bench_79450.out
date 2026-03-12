@@ -1,0 +1,409 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+============================================================
+BENCHMARK: Arithmetic eval (few-shot)
+============================================================
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+======================================================================
+ARITHMETIC BENCHMARK: Base LoRA vs Adapted LoRA
+  (with ID / OOD-small / OOD-large splits)
+======================================================================
+Loaded 1000 problems from /tmpdir/m24047brmn/numbers/data/arithmetic_bench.json
+
+  By distribution:
+    ?                    1000
+
+  By category:
+    addition             200
+    comparison           150
+    multiplication       150
+    multistep            150
+    percentage           150
+    subtraction          200
+
+  By category_type:
+    ?                    1000
+
+============================================================
+Evaluating: Base LoRA
+  Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_s2_base_lora/ckpt_merged.pt
+  use_adapter=False
+============================================================
+
+Loading /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_s2_base_lora/ckpt_merged.pt...
+number of parameters: 114.83M
+  Loaded Nemotron (135 keys), use_adapter=False
+  [0] ✓ (multistep/id)
+       ref: 6978 + 7589 = 14567, 14567 - 1129 = 13438. The result is 13438
+       gen: 6978 + 7589 = 14567, 14567 - 1129 = 13438. The result is 13438
+       expected=13438.0, got=13438.0
+
+  [1] ✗ (percentage/id)
+       ref: 75% of 772 = 579.0
+       gen: 75% of 772 = 589.0
+       expected=579.0, got=589.0
+
+  [2] ✗ (comparison/id)
+       ref: 97137.65 is larger than 95410.02
+       gen: 97135.65 is larger than 95410.02
+       expected=97137.65, got=97135.65
+
+  [3] ✗ (multistep/id)
+       ref: 63852 + 57749 = 121601, 121601 - 98652 = 22949. The result is 22949
+       gen: 6385 + 5749 = 12134, 12134 - 9865 = 2269. The result is 2269
+       expected=22949.0, got=2269.0
+
+  [4] ✓ (subtraction/id)
+       ref: 9612 - 3025 = 6587
+       gen: 9612 - 3025 = 6587
+       expected=6587.0, got=6587.0
+
+  [5] ✗ (percentage/id)
+       ref: 40% of 35 = 14.0
+       gen: 40% of 35 = 13.0
+       expected=14.0, got=13.0
+
+  [6] ✗ (addition/id)
+       ref: 13 + 49 = 62
+       gen: 1340 divided by 49 = 30
+       expected=62.0, got=30.0
+
+  [7] ✓ (subtraction/id)
+       ref: 76469 - 49363 = 27106
+       gen: 76469 - 49363 = 27106
+       expected=27106.0, got=27106.0
+
+  [8] ✓ (subtraction/id)
+       ref: 60140 - 24168 = 35972
+       gen: 60140 - 24168 = 35972
+       expected=35972.0, got=35972.0
+
+  [9] ✓ (percentage/id)
+       ref: 30% of 9399 = 2819.7
+       gen: 30% of 9399 = 2819.7
+       expected=2819.7, got=2819.7
+
+  [10] ✗ (comparison/id)
+       ref: 76803.47 is larger than 47720.99
+       gen: 77723.99 is larger than 46000.47
+       expected=76803.47, got=77723.99
+
+  [11] ✗ (subtraction/id)
+       ref: 75 - 14 = 61
+       gen: 7 is larger than 75
+       expected=61.0, got=75.0
+
+  [12] ✓ (percentage/id)
+       ref: 30% of 2854 = 856.2
+       gen: 30% of 2854 = 856.2
+       expected=856.2, got=856.2
+
+  [13] ✗ (addition/id)
+       ref: 66 + 11 = 77
+       gen: 664 + 61 = 675
+       expected=77.0, got=675.0
+
+  [14] ✓ (percentage/id)
+       ref: 20% of 49 = 9.8
+       gen: 20% of 49 = 9.8
+       expected=9.8, got=9.8
+
+
+--- Base LoRA — By Category ---
+Group                    N   ExactM   NumAcc   Parse          MAE
+--------------------------------------------------------------
+addition               200   0.5600   0.5600   1.000      1367.99
+comparison             150   0.4333   0.5467   1.000       839.98
+multiplication         150   0.1067   0.1133   1.000      7416.41
+multistep              150   0.2400   0.2467   1.000     16017.10
+percentage             150   0.4400   0.4933   1.000      5144.89
+subtraction            200   0.5050   0.5050   1.000      2004.26
+OVERALL               1000   0.3960   0.4230   1.000      5087.21
+
+--- Base LoRA — By Distribution ---
+Group                    N   ExactM   NumAcc   Parse          MAE
+--------------------------------------------------------------
+id                    1000   0.3960   0.4230   1.000      5087.21
+OVERALL               1000   0.3960   0.4230   1.000      5087.21
+
+--- Base LoRA — By Type ---
+Group                    N   ExactM   NumAcc   Parse          MAE
+--------------------------------------------------------------
+numerical             1000   0.3960   0.4230   1.000      5087.21
+OVERALL               1000   0.3960   0.4230   1.000      5087.21
+
+============================================================
+Evaluating: Adapted LoRA
+  Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_s2_adapted_lora/ckpt_merged.pt
+  use_adapter=True
+============================================================
+
+Loading /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_s2_adapted_lora/ckpt_merged.pt...
+number of parameters: 115.12M
+  Loaded NemotronAnalytic (134 keys), use_adapter=True
+  [0] ✗ (multistep/id)
+       ref: 6978 + 7589 = 14567, 14567 - 1129 = 13438. The result is 13438
+       gen: 6978+ 7589= 13101, 13101- 1129= 12009The result is 12009
+       expected=13438.0, got=12009.0
+
+  [1] ✗ (percentage/id)
+       ref: 75% of 772 = 579.0
+       gen: 75% of 772= 544
+       expected=579.0, got=544.0
+
+  [2] ✗ (comparison/id)
+       ref: 97137.65 is larger than 95410.02
+       gen: 96136.8484375is larger than 95420.8494375
+       expected=97137.65, got=96136.0
+
+  [3] ✗ (multistep/id)
+       ref: 63852 + 57749 = 121601, 121601 - 98652 = 22949. The result is 22949
+       gen: 63852+ 5774.9= 70200
+       expected=22949.0, got=70200.0
+
+  [4] ✗ (subtraction/id)
+       ref: 9612 - 3025 = 6587
+       gen: 9612- 3025- 3024The result is 3023
+       expected=6587.0, got=3023.0
+
+  [5] ✗ (percentage/id)
+       ref: 40% of 35 = 14.0
+       gen: 40% of 35= 10.50009924481825
+       expected=14.0, got=10.50009924481825
+
+  [6] ✗ (addition/id)
+       ref: 13 + 49 = 62
+       gen: 13+ 40.2= 42.50990847
+       expected=62.0, got=42.50990847
+
+  [7] ✗ (subtraction/id)
+       ref: 76469 - 49363 = 27106
+       gen: 76469- 49363= 32757
+       expected=27106.0, got=32757.0
+
+  [8] ✗ (subtraction/id)
+       ref: 60140 - 24168 = 35972
+       gen: 60140- 24168= 37559
+       expected=35972.0, got=37559.0
+
+  [9] ✗ (percentage/id)
+       ref: 30% of 9399 = 2819.7
+       gen: 30% of 9399= 2856.809991326755
+       expected=2819.7, got=2856.809991326755
+
+  [10] ✗ (comparison/id)
+       ref: 76803.47 is larger than 47720.99
+       gen: 76903.5685315is larger than 56730.9894855is 84800.590535
+       expected=76803.47, got=76903.0
+
+  [11] ✗ (subtraction/id)
+       ref: 75 - 14 = 61
+       gen: 75- 15= 7.25
+       expected=61.0, got=7.25
+
+  [12] ✗ (percentage/id)
+       ref: 30% of 2854 = 856.2
+       gen: 30% of 2854= 753.0009244170625
+       expected=856.2, got=753.0009244170625
+
+  [13] ✗ (addition/id)
+       ref: 66 + 11 = 77
+       gen: 66+ 11= 60
+       expected=77.0, got=60.0
+
+  [14] ✗ (percentage/id)
+       ref: 20% of 49 = 9.8
+       gen: 20% of 40= 7.000009024885725
+       expected=9.8, got=7.000009024885725
+
+
+--- Adapted LoRA — By Category ---
+Group                    N   ExactM   NumAcc   Parse          MAE
+--------------------------------------------------------------
+addition               200   0.0000   0.0000   1.000      5879.55
+comparison             150   0.0000   0.0867   0.993    107885.57
+multiplication         150   0.0000   0.0000   1.000     10819.05
+multistep              150   0.0000   0.0067   1.000     25316.63
+percentage             150   0.0000   0.0667   1.000      9199.85
+subtraction            200   0.0000   0.0000   1.000      1827.70
+OVERALL               1000   0.0000   0.0240   0.999     24441.17
+
+--- Adapted LoRA — By Distribution ---
+Group                    N   ExactM   NumAcc   Parse          MAE
+--------------------------------------------------------------
+id                    1000   0.0000   0.0240   0.999     24441.17
+OVERALL               1000   0.0000   0.0240   0.999     24441.17
+
+--- Adapted LoRA — By Type ---
+Group                    N   ExactM   NumAcc   Parse          MAE
+--------------------------------------------------------------
+numerical             1000   0.0000   0.0240   0.999     24441.17
+OVERALL               1000   0.0000   0.0240   0.999     24441.17
+
+================================================================================
+COMPARISON: Base LoRA vs Adapted LoRA
+================================================================================
+
+--- By Category ---
+Group                Metric             Base    Adapted      Delta
+----------------------------------------------------------------
+OVERALL              num_accuracy     0.4230     0.0240    -0.3990 ↓
+OVERALL              exact_match      0.3960     0.0000    -0.3960 ↓
+OVERALL              mae              5087.2    24441.2   +19354.0 ↑
+
+addition             num_accuracy     0.5600     0.0000    -0.5600 ↓
+addition             exact_match      0.5600     0.0000    -0.5600 ↓
+addition             mae              1368.0     5879.5    +4511.6 ↑
+
+comparison           num_accuracy     0.5467     0.0867    -0.4600 ↓
+comparison           exact_match      0.4333     0.0000    -0.4333 ↓
+comparison           mae               840.0   107885.6  +107045.6 ↑
+
+multiplication       num_accuracy     0.1133     0.0000    -0.1133 ↓
+multiplication       exact_match      0.1067     0.0000    -0.1067 ↓
+multiplication       mae              7416.4    10819.0    +3402.6 ↑
+
+multistep            num_accuracy     0.2467     0.0067    -0.2400 ↓
+multistep            exact_match      0.2400     0.0000    -0.2400 ↓
+multistep            mae             16017.1    25316.6    +9299.5 ↑
+
+percentage           num_accuracy     0.4933     0.0667    -0.4267 ↓
+percentage           exact_match      0.4400     0.0000    -0.4400 ↓
+percentage           mae              5144.9     9199.9    +4055.0 ↑
+
+subtraction          num_accuracy     0.5050     0.0000    -0.5050 ↓
+subtraction          exact_match      0.5050     0.0000    -0.5050 ↓
+subtraction          mae              2004.3     1827.7     -176.6 ↓
+
+
+--- By Distribution ---
+Group                Metric             Base    Adapted      Delta
+----------------------------------------------------------------
+OVERALL              num_accuracy     0.4230     0.0240    -0.3990 ↓
+OVERALL              exact_match      0.3960     0.0000    -0.3960 ↓
+OVERALL              mae              5087.2    24441.2   +19354.0 ↑
+
+id                   num_accuracy     0.4230     0.0240    -0.3990 ↓
+id                   exact_match      0.3960     0.0000    -0.3960 ↓
+id                   mae              5087.2    24441.2   +19354.0 ↑
+
+
+--- By Type ---
+Group                Metric             Base    Adapted      Delta
+----------------------------------------------------------------
+OVERALL              num_accuracy     0.4230     0.0240    -0.3990 ↓
+OVERALL              exact_match      0.3960     0.0000    -0.3960 ↓
+OVERALL              mae              5087.2    24441.2   +19354.0 ↑
+
+numerical            num_accuracy     0.4230     0.0240    -0.3990 ↓
+numerical            exact_match      0.3960     0.0000    -0.3960 ↓
+numerical            mae              5087.2    24441.2   +19354.0 ↑
+
+================================================================================
+
+Results saved to /tmpdir/m24047brmn/numbers/data/arithmetic_benchmark_results.json
+
+============================================================
+BENCHMARK: Forward-pass on synth test data
+============================================================
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+======================================================================
+TULU-3 MATH BENCHMARK: Base LoRA vs Adapted LoRA
+======================================================================
+Loaded 3000 test examples from /tmpdir/m24047brmn/numbers/data/synth_arith_analytic/base/test_examples.json
+
+==================================================
+Evaluating: Base LoRA
+  Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_s2_base_lora/ckpt_merged.pt
+  Data: /tmpdir/m24047brmn/numbers/data/synth_arith_analytic/base
+==================================================
+Loading /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_s2_base_lora/ckpt_merged.pt...
+number of parameters: 114.83M
+  Loaded Nemotron (135 keys), use_adapter=False
+
+--- Forward-pass metrics (200 batches) ---
+  NOTE: clamping block_size from 512 to 256 for this checkpoint
+  Loss:       0.6155
+  Perplexity: 1.85
+  Accuracy:   0.7702
+
+--- Generation metrics (100 samples, greedy) ---
+  [0] ref: 57711 + 27644 = 85355
+       gen: 57711 + 27644 = 85355
+       match: True
+
+  [1] ref: 99204 + 54011 = 153215
+       gen: 99204 + 54011 = 153215
+       match: True
+
+  [2] ref: 9843 + 8943 = 18786, 18786 - 7010 = 11776. The result is 11776
+       gen: 9843 + 8943 = 18786, 18786 - 7010 = 11776. The result is 11776
+       match: True
+
+  [3] ref: 6714 + 9923 = 16637, 16637 - 9904 = 6733. The result is 6733
+       gen: 6714 + 9923 = 16637, 16637 - 9904 = 6733. The result is 6733
+       match: True
+
+  [4] ref: 618 times 696 = 430128
+       gen: 618 times 696 = 429048
+       match: False
+
+  Exact match:    0.6300
+  Number accuracy:0.8883
+  Number MAE:     495.6551
+
+==================================================
+Evaluating: Adapted LoRA
+  Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_s2_adapted_lora/ckpt_merged.pt
+  Data: /tmpdir/m24047brmn/numbers/data/synth_arith_analytic/adapted
+==================================================
+Loading /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_s2_adapted_lora/ckpt_merged.pt...
+number of parameters: 115.12M
+  Loaded NemotronAnalytic (134 keys), use_adapter=True
+
+--- Forward-pass metrics (200 batches) ---
+  NOTE: clamping block_size from 512 to 256 for this checkpoint
+  Loss:       0.0654
+  Perplexity: 1.07
+  Accuracy:   0.9775
+
+--- Generation metrics (100 samples, greedy) ---
+  [0] ref: 57711 + 27644 = 85355
+       gen: 57711+ 27644= 83266
+       match: False
+
+  [1] ref: 99204 + 54011 = 153215
+       gen: 99204+ 54011= 140033
+       match: False
+
+  [2] ref: 9843 + 8943 = 18786, 18786 - 7010 = 11776. The result is 11776
+       gen: 9843+ 8943= 17033, 17033- 7010= 10440The result is 10440
+       match: False
+
+  [3] ref: 6714 + 9923 = 16637, 16637 - 9904 = 6733. The result is 6733
+       gen: 6714+ 9923= 14406, 14406- 9904= 4424The result is 4424
+       match: False
+
+  [4] ref: 618 times 696 = 430128
+       gen: 618times 696= 445008
+       match: False
+
+  Exact match:    0.0000
+  Number accuracy:0.4355
+  Number MAE:     18856.9953
+
+======================================================================
+SUMMARY
+======================================================================
+Metric                          Base LoRA    Adapted LoRA      Delta
+-----------------------------------------------------------------
+Loss                               0.6155          0.0654   -0.5501 v
+Perplexity                         1.8505          1.0676   -0.7829 v
+Token Accuracy                     0.7702          0.9775   +0.2073 ^
+Exact Match                        0.6300          0.0000   -0.6300 v
+Number Accuracy                    0.8883          0.4355   -0.4527 v
+Number MAE                       495.6551      18856.9953 +18361.3402 ^
+======================================================================
+
+Results saved to /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_s2_base_lora/../benchmark_results.json
+All benchmarks complete.
