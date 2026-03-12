@@ -1,0 +1,30 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+tokens per iteration will be: 40,960
+data directory: /tmpdir/m24047brmn/numbers/data/surface_stage1
+Initializing from pretrained Baby Luciole checkpoint
+number of parameters: 116.19M
+  partial: transformer.wte.weight (50256→50304)
+Loaded 123 tensors from /tmpdir/m24047brmn/numbers/checkpoints/baby_luciole_converted.pt (skipped 0)
+Stage 1: Freezing base model, training adapter + decoder only
+  Trainable: 2,023,845 / 116,193,189 (1.7%)
+optimizer parameter groups:
+  adapter_decay: 13 tensors, 2,020,320 params, weight_decay=0.1, lr_scale=1.0
+  adapter_nodecay: 9 tensors, 3,525 params, weight_decay=0.0, lr_scale=1.0
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+step 0: train text=6.3940 num=12.5566 total=18.9506 | val text=6.3861 num=12.6003 total=18.9864
+iter 0: loss 18.8127, time 93277.50ms, mfu -100.00%
+  === DIAG iter 0 ===
+  text_loss: 6.4240, num_loss: 12.3887 (sign=0.8959 scale=4.1886 len=4.3929 digit=2.9114)
+  grads: total 93.1022, transformer 0.0000, adapter 93.1022
+  <NUM> input: 111/1024, <NUM> target: 110/1024
+  lr: 9.99e-07, adapter_lr: 9.99e-07
+  text token accuracy: 0.306 (264/863)
+  <NUM> token prediction: 0/110 (0.000)
+iter 10: loss 17.9231, time 1968.80ms, mfu 0.27%
+iter 20: loss 15.2123, time 1968.84ms, mfu 0.27%
+iter 30: loss 12.2512, time 1952.56ms, mfu 0.27%
+iter 40: loss 10.1894, time 1958.03ms, mfu 0.27%

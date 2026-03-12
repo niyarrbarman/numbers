@@ -1,0 +1,15 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+AnalyticNumberCodec (K=32, exp=[-32,32], dim=80)
+Generating 108000 problems (train=100000, val=5000, test=3000)
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+  train: 100000 problems (numeric=70067, nl=19942, plain=9991)
+     2,047,853 tokens, 261046 <NUM>, components shape: (2047853, 34), surface shape: (2047853, 35)
+  val: 5000 problems (numeric=3530, nl=991, plain=479)
+       102,682 tokens,  13201 <NUM>, components shape: (102682, 34), surface shape: (102682, 35)
+  test: 3000 problems (numeric=2086, nl=586, plain=328)
+        61,350 tokens,   7725 <NUM>, components shape: (61350, 34), surface shape: (61350, 35)
+
+Done! Data saved to: /tmpdir/m24047brmn/numbers/data/surface_stage1
+  test_examples.json: 3000 examples
+  codec_config.json: {"K": 32, "exp_min": -32, "exp_max": 32, "total_dim": 80, "surface_max_digits": 32, "surface_scale_min": 0, "surface_scale_max": 32}
