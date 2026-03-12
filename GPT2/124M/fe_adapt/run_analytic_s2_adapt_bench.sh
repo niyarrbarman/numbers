@@ -91,6 +91,66 @@ elif [[ -n "${RESUME_FROM_ADAPT}" ]]; then
 fi
 echo "=========================================================="
 
+slurm_job_state() {
+    local job_id="$1"
+    local state=""
+
+    state=$(squeue -h -j "${job_id}" -o "%T" 2>/dev/null | head -n 1 || true)
+    if [[ -n "${state}" ]]; then
+        echo "${state}"
+        return 0
+    fi
+
+    if command -v sacct >/dev/null 2>&1; then
+        state=$(sacct -n -X -j "${job_id}" -o State 2>/dev/null | head -n 1 | awk '{print $1}' || true)
+        state="${state%%+*}"
+    fi
+    echo "${state}"
+}
+
+resume_dependency() {
+    local job_id="$1"
+    local expected_path="$2"
+    local label="$3"
+    local state=""
+
+    state=$(slurm_job_state "${job_id}")
+    case "${state}" in
+        PENDING|CONFIGURING|RUNNING|COMPLETING|SUSPENDED|STAGE_OUT)
+            echo "--dependency=afterok:${job_id}"
+            return 0
+            ;;
+        COMPLETED)
+            if [[ ! -e "${expected_path}" ]]; then
+                echo "Job ${job_id} completed, but expected ${label} is missing: ${expected_path}" >&2
+                exit 1
+            fi
+            echo ""
+            return 0
+            ;;
+        FAILED|CANCELLED|TIMEOUT|NODE_FAIL|OUT_OF_MEMORY|BOOT_FAIL|PREEMPTED|DEADLINE|DEADLINE_EXCEEDED)
+            echo "Job ${job_id} is in state ${state}; refusing to resume from a failed dependency." >&2
+            exit 1
+            ;;
+        "")
+            if [[ -e "${expected_path}" ]]; then
+                echo ""
+                return 0
+            fi
+            echo "Could not resolve job ${job_id}, and expected ${label} is missing: ${expected_path}" >&2
+            exit 1
+            ;;
+        *)
+            if [[ -e "${expected_path}" ]]; then
+                echo ""
+                return 0
+            fi
+            echo "Job ${job_id} is in unexpected state ${state}, and ${label} is missing: ${expected_path}" >&2
+            exit 1
+            ;;
+    esac
+}
+
 submit_adapt_job() {
     local dependency="$1"
     sbatch --parsable ${dependency} <<EOF
@@ -178,16 +238,26 @@ EOF
 }
 
 if [[ -n "${RESUME_FROM_ADAPT}" ]]; then
+    ADAPT_DEP=$(resume_dependency "${RESUME_FROM_ADAPT}" "${S2_ADAPTED_OUT}/ckpt_merged.pt" "adapted checkpoint")
     JOB_S2_ADAPT="${RESUME_FROM_ADAPT}"
-    JOB_BENCH=$(submit_bench_job "--dependency=afterok:${JOB_S2_ADAPT}")
+    JOB_BENCH=$(submit_bench_job "${ADAPT_DEP}")
     echo "  [2] S2 Analytic LoRA (EXISTING): ${JOB_S2_ADAPT}"
-    echo "  [3] Benchmark: ${JOB_BENCH} (afterok:${JOB_S2_ADAPT})"
+    if [[ -n "${ADAPT_DEP}" ]]; then
+        echo "  [3] Benchmark: ${JOB_BENCH} (afterok:${JOB_S2_ADAPT})"
+    else
+        echo "  [3] Benchmark: ${JOB_BENCH} (adapt checkpoint already ready)"
+    fi
 elif [[ -n "${RESUME_FROM_DATA}" ]]; then
+    DATA_DEP=$(resume_dependency "${RESUME_FROM_DATA}" "${S2_ADAPTED_DATA}/train_components.bin" "analytic stage-2 data")
     JOB_S2_DATA="${RESUME_FROM_DATA}"
-    JOB_S2_ADAPT=$(submit_adapt_job "--dependency=afterok:${JOB_S2_DATA}")
+    JOB_S2_ADAPT=$(submit_adapt_job "${DATA_DEP}")
     JOB_BENCH=$(submit_bench_job "--dependency=afterok:${JOB_S2_ADAPT}")
     echo "  [1] S2 Data Gen (EXISTING): ${JOB_S2_DATA}"
-    echo "  [2] S2 Analytic LoRA: ${JOB_S2_ADAPT} (afterok:${JOB_S2_DATA})"
+    if [[ -n "${DATA_DEP}" ]]; then
+        echo "  [2] S2 Analytic LoRA: ${JOB_S2_ADAPT} (afterok:${JOB_S2_DATA})"
+    else
+        echo "  [2] S2 Analytic LoRA: ${JOB_S2_ADAPT} (data already ready)"
+    fi
     echo "  [3] Benchmark: ${JOB_BENCH} (afterok:${JOB_S2_ADAPT})"
 else
     # --- Step 1: S2 Data Gen (CPU) ---
