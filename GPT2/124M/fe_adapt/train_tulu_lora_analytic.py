@@ -821,6 +821,8 @@ while True:
         g = _grad_norms or {}
         num_count = int(_diag_nm.sum().item()) if _diag_nm is not None else 0
         total_tokens = batch_size * block_size
+        num_target_mask = (_diag_targets == NUM_TOKEN_ID)
+        n_num_targets = int(num_target_mask.sum().item())
 
         print(f"  === DIAG iter {iter_num} ===")
         print(f"  text_loss: {_diag_text_loss:.4f}, "
@@ -841,6 +843,11 @@ while True:
         if out_acc is not None:
             print(f"  token accuracy: {out_acc['overall']:.3f} "
                   f"({out_acc['n_correct']}/{out_acc['n_tokens']})")
+        if n_num_targets > 0:
+            preds = _diag_logits.argmax(dim=-1)
+            num_pred_correct = (preds[num_target_mask] == NUM_TOKEN_ID).sum().item()
+            print(f"  <NUM> token prediction: {num_pred_correct}/{n_num_targets} "
+                  f"({num_pred_correct / n_num_targets:.3f})")
 
     # === Sample eval ===
     if iter_num % sample_interval == 0 and iter_num > 0:

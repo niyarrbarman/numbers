@@ -106,7 +106,7 @@ def process_content_with_numbers(text):
     return ids, nums
 
 
-def _tokenize_turn(role, content, use_adapter, is_first, tokenizer):
+def _tokenize_turn(role, content, use_adapter, assistant_numeric, is_first, tokenizer):
     """Tokenize a single user/assistant turn."""
     ids, nums = [], []
     prefix = f"{role.capitalize()}: " if is_first else f"\n{role.capitalize()}: "
@@ -114,7 +114,8 @@ def _tokenize_turn(role, content, use_adapter, is_first, tokenizer):
     ids.extend(prefix_ids)
     nums.extend([0.0] * len(prefix_ids))
 
-    if use_adapter and role == 'user':
+    use_numeric_tokens = use_adapter and (role == 'user' or assistant_numeric)
+    if use_numeric_tokens:
         c_ids, c_nums = process_content_with_numbers(content)
         ids.extend(c_ids)
         nums.extend(c_nums)
@@ -125,7 +126,7 @@ def _tokenize_turn(role, content, use_adapter, is_first, tokenizer):
     return ids, nums
 
 
-def format_prompt(messages, use_adapter=False, category=None):
+def format_prompt(messages, use_adapter=False, category=None, assistant_numeric=False):
     """Format prompt with few-shot examples for generation."""
     tokenizer = _get_tokenizer()
     ids, nums = [], []
@@ -135,13 +136,15 @@ def format_prompt(messages, use_adapter=False, category=None):
     if category and category in FEW_SHOT_EXAMPLES:
         for ex in FEW_SHOT_EXAMPLES[category]:
             t_ids, t_nums = _tokenize_turn(
-                'user', ex['user'], use_adapter, turn_idx == 0, tokenizer)
+                'user', ex['user'], use_adapter, assistant_numeric,
+                turn_idx == 0, tokenizer)
             ids.extend(t_ids)
             nums.extend(t_nums)
             turn_idx += 1
 
             t_ids, t_nums = _tokenize_turn(
-                'assistant', ex['assistant'], False, False, tokenizer)
+                'assistant', ex['assistant'], use_adapter, assistant_numeric,
+                False, tokenizer)
             ids.extend(t_ids)
             nums.extend(t_nums)
             turn_idx += 1
@@ -149,20 +152,46 @@ def format_prompt(messages, use_adapter=False, category=None):
     # Actual problem
     for i, msg in enumerate(messages):
         if msg['role'] == 'assistant' and i == len(messages) - 1:
-            prefix = "\nAssistant:"
+            prefix = "\nAssistant: "
             prefix_ids = tokenizer.encode(prefix, add_special_tokens=False)
             ids.extend(prefix_ids)
             nums.extend([0.0] * len(prefix_ids))
             break
 
         t_ids, t_nums = _tokenize_turn(
-            msg['role'], msg['content'].strip(), use_adapter,
+            msg['role'], msg['content'].strip(), use_adapter, assistant_numeric,
             turn_idx == 0, tokenizer)
         ids.extend(t_ids)
         nums.extend(t_nums)
         turn_idx += 1
 
     return ids, nums
+
+
+def render_generated_text(tokenizer, gen_ids, generated_numbers=None, prompt_len=0):
+    """Decode generated IDs, replacing analytic <NUM> tokens with decoded strings."""
+    num_by_pos = {}
+    if generated_numbers is not None:
+        num_by_pos = {pos: text for pos, text in generated_numbers}
+
+    parts = []
+    text_buf = []
+    for offset, tok in enumerate(gen_ids):
+        abs_pos = prompt_len + offset
+        if tok == EOT_TOKEN_ID:
+            break
+        if tok == NUM_TOKEN_ID:
+            if text_buf:
+                parts.append(tokenizer.decode(text_buf))
+                text_buf = []
+            parts.append(num_by_pos.get(abs_pos, '<NUM>'))
+            continue
+        if 0 <= tok < NUM_TOKEN_ID:
+            text_buf.append(tok)
+
+    if text_buf:
+        parts.append(tokenizer.decode(text_buf))
+    return ''.join(parts).strip()
 
 
 # =============================================================================
@@ -255,42 +284,56 @@ def evaluate_model(model, problems, device, use_adapter=False,
         expected = problem['expected_answer']
         ref_text = messages[-1]['content'].strip()
 
+        assistant_numeric = use_adapter and isinstance(model, NemotronAnalytic)
+
         # Tokenize prompt with few-shot
-        ids, num_vals = format_prompt(messages, use_adapter=use_adapter,
-                                      category=category)
+        ids, num_vals = format_prompt(
+            messages,
+            use_adapter=use_adapter,
+            category=category,
+            assistant_numeric=assistant_numeric,
+        )
         x = torch.tensor([ids], dtype=torch.long, device=device)
         nv = torch.tensor([num_vals], dtype=torch.float32, device=device)
         nm = (x == NUM_TOKEN_ID)
 
-        # Greedy decode
-        for _ in range(max_new_tokens):
-            T = x.size(1)
-            if T > model.config.block_size:
-                x_cond = x[:, -model.config.block_size:]
-                nv_cond = nv[:, -model.config.block_size:]
-                nm_cond = nm[:, -model.config.block_size:]
-            else:
-                x_cond, nv_cond, nm_cond = x, nv, nm
-
+        generated_numbers = None
+        if isinstance(model, NemotronAnalytic):
             with ctx:
-                if isinstance(model, NemotronAnalytic):
-                    logits, _, _ = model(x_cond, num_values=nv_cond, num_mask=nm_cond)
+                x, generated_numbers = model.generate(
+                    x,
+                    max_new_tokens=max_new_tokens,
+                    temperature=0.0,
+                    top_k=1,
+                    num_values=nv,
+                    num_mask=nm,
+                )
+        else:
+            for _ in range(max_new_tokens):
+                T = x.size(1)
+                if T > model.config.block_size:
+                    x_cond = x[:, -model.config.block_size:]
+                    nv_cond = nv[:, -model.config.block_size:]
+                    nm_cond = nm[:, -model.config.block_size:]
                 else:
-                    logits, _ = model(x_cond, num_values=nv_cond, num_mask=nm_cond)
-            next_tok = logits[:, -1, :].argmax(dim=-1, keepdim=True)
-            if next_tok.item() == EOT_TOKEN_ID:
-                break
-            x = torch.cat([x, next_tok], dim=1)
-            nv = torch.cat([nv, torch.zeros(1, 1, device=device)], dim=1)
-            nm = torch.cat([nm, torch.zeros(1, 1, dtype=torch.bool,
-                                            device=device)], dim=1)
+                    x_cond, nv_cond, nm_cond = x, nv, nm
 
-        # Decode
+                with ctx:
+                    logits, _ = model(x_cond, num_values=nv_cond, num_mask=nm_cond)
+                next_tok = logits[:, -1, :].argmax(dim=-1, keepdim=True)
+                if next_tok.item() == EOT_TOKEN_ID:
+                    break
+                x = torch.cat([x, next_tok], dim=1)
+                nv = torch.cat([nv, torch.zeros(1, 1, device=device)], dim=1)
+                nm = torch.cat([nm, torch.zeros(1, 1, dtype=torch.bool, device=device)], dim=1)
+
         gen_ids = x[0, len(ids):].tolist()
-        if EOT_TOKEN_ID in gen_ids:
-            gen_ids = gen_ids[:gen_ids.index(EOT_TOKEN_ID)]
-        gen_text = tokenizer.decode(
-            [t for t in gen_ids if 0 <= t < 50256]).strip()
+        gen_text = render_generated_text(
+            tokenizer,
+            gen_ids,
+            generated_numbers=generated_numbers,
+            prompt_len=len(ids),
+        )
 
         # Category-aware extraction
         gen_num = extract_answer(gen_text, category, expected)

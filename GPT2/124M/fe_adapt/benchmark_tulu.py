@@ -79,18 +79,22 @@ def evaluate_forward(model, data_dir, device, block_size=512, batch_size=4,
     total_correct = 0
     total_tokens = 0
 
-    max_start = len(data) - block_size - 1
+    eval_block_size = min(block_size, model.config.block_size)
+    if eval_block_size != block_size:
+        print(f"  NOTE: clamping block_size from {block_size} to {eval_block_size} for this checkpoint")
+
+    max_start = len(data) - eval_block_size - 1
     if max_start < 1:
         print(f"  WARNING: test data too small ({len(data)} tokens)")
         return {'loss': float('inf'), 'perplexity': float('inf'), 'accuracy': 0.0}
 
     for _ in range(n_batches):
         ix = torch.randint(max_start, (batch_size,))
-        x = torch.stack([torch.from_numpy(data[i:i + block_size].astype(np.int64))
+        x = torch.stack([torch.from_numpy(data[i:i + eval_block_size].astype(np.int64))
                          for i in ix]).to(device)
-        y = torch.stack([torch.from_numpy(data[i + 1:i + 1 + block_size].astype(np.int64))
+        y = torch.stack([torch.from_numpy(data[i + 1:i + 1 + eval_block_size].astype(np.int64))
                          for i in ix]).to(device)
-        nv = torch.stack([torch.from_numpy(nums[i:i + block_size].copy())
+        nv = torch.stack([torch.from_numpy(nums[i:i + eval_block_size].copy())
                           for i in ix]).to(device)
         nm = (x == NUM_TOKEN_ID)
 
@@ -153,7 +157,7 @@ def process_content_with_numbers(text):
     return ids, nums
 
 
-def format_prompt(messages, use_adapter=False):
+def format_prompt(messages, use_adapter=False, assistant_numeric=False):
     """Format conversation prompt up to 'Assistant:' for generation.
 
     Returns (token_ids, num_values) ready for model input.
@@ -167,7 +171,7 @@ def format_prompt(messages, use_adapter=False):
     for i, msg in enumerate(messages):
         if msg['role'] == 'assistant' and i == len(messages) - 1:
             # This is the answer — add only the prefix
-            prefix = "\nAssistant:"
+            prefix = "\nAssistant: "
             prefix_ids = tokenizer.encode(prefix, add_special_tokens=False)
             ids.extend(prefix_ids)
             nums.extend([0.0] * len(prefix_ids))
@@ -184,7 +188,8 @@ def format_prompt(messages, use_adapter=False):
         ids.extend(prefix_ids)
         nums.extend([0.0] * len(prefix_ids))
 
-        if use_adapter and role == 'user':
+        use_numeric_tokens = use_adapter and (role == 'user' or assistant_numeric)
+        if use_numeric_tokens:
             c_ids, c_nums = process_content_with_numbers(content)
             ids.extend(c_ids)
             nums.extend(c_nums)
@@ -194,6 +199,32 @@ def format_prompt(messages, use_adapter=False):
             nums.extend([0.0] * len(c_ids))
 
     return ids, nums
+
+
+def render_generated_text(tokenizer, gen_ids, generated_numbers=None, prompt_len=0):
+    """Decode generated IDs, replacing analytic <NUM> tokens with decoded strings."""
+    num_by_pos = {}
+    if generated_numbers is not None:
+        num_by_pos = {pos: text for pos, text in generated_numbers}
+
+    parts = []
+    text_buf = []
+    for offset, tok in enumerate(gen_ids):
+        abs_pos = prompt_len + offset
+        if tok == EOT_TOKEN_ID:
+            break
+        if tok == NUM_TOKEN_ID:
+            if text_buf:
+                parts.append(tokenizer.decode(text_buf))
+                text_buf = []
+            parts.append(num_by_pos.get(abs_pos, '<NUM>'))
+            continue
+        if 0 <= tok < NUM_TOKEN_ID:
+            text_buf.append(tok)
+
+    if text_buf:
+        parts.append(tokenizer.decode(text_buf))
+    return ''.join(parts).strip()
 
 
 def extract_numbers(text):
@@ -215,6 +246,7 @@ def evaluate_generation(model, test_examples, device, use_adapter=False,
     results = []
     for idx, ex in enumerate(test_examples[:max_samples]):
         messages = ex['messages']
+        assistant_numeric = use_adapter and isinstance(model, NemotronAnalytic)
 
         # Get reference answer
         ref_msg = None
@@ -226,44 +258,58 @@ def evaluate_generation(model, test_examples, device, use_adapter=False,
         ref_text = ref_msg['content'].strip()
 
         # Format prompt
-        ids, num_vals = format_prompt(messages, use_adapter=use_adapter)
+        ids, num_vals = format_prompt(
+            messages,
+            use_adapter=use_adapter,
+            assistant_numeric=assistant_numeric,
+        )
 
         x = torch.tensor([ids], dtype=torch.long, device=device)
         nv = torch.tensor([num_vals], dtype=torch.float32, device=device)
         nm = (x == NUM_TOKEN_ID)
 
-        # Generate (greedy if temperature=0)
-        if temperature <= 0:
-            # Greedy decoding
-            for _ in range(max_new_tokens):
-                T = x.size(1)
-                if T > model.config.block_size:
-                    x_cond = x[:, -model.config.block_size:]
-                    nv_cond = nv[:, -model.config.block_size:]
-                    nm_cond = nm[:, -model.config.block_size:]
-                else:
-                    x_cond, nv_cond, nm_cond = x, nv, nm
-
-                with ctx:
-                    if isinstance(model, NemotronAnalytic):
-                        logits, _, _ = model(x_cond, num_values=nv_cond, num_mask=nm_cond)
-                    else:
-                        logits, _ = model(x_cond, num_values=nv_cond, num_mask=nm_cond)
-                next_tok = logits[:, -1, :].argmax(dim=-1, keepdim=True)
-                if next_tok.item() == EOT_TOKEN_ID:
-                    break
-                x = torch.cat([x, next_tok], dim=1)
-                nv = torch.cat([nv, torch.zeros(1, 1, device=device)], dim=1)
-                nm = torch.cat([nm, torch.zeros(1, 1, dtype=torch.bool, device=device)], dim=1)
+        generated_numbers = None
+        if isinstance(model, NemotronAnalytic):
+            with ctx:
+                x, generated_numbers = model.generate(
+                    x,
+                    max_new_tokens=max_new_tokens,
+                    temperature=temperature,
+                    top_k=1 if temperature <= 0 else None,
+                    num_values=nv,
+                    num_mask=nm,
+                )
         else:
-            x = model.generate(x, max_new_tokens, temperature=temperature,
-                               num_values=nv, num_mask=nm)
+            if temperature <= 0:
+                for _ in range(max_new_tokens):
+                    T = x.size(1)
+                    if T > model.config.block_size:
+                        x_cond = x[:, -model.config.block_size:]
+                        nv_cond = nv[:, -model.config.block_size:]
+                        nm_cond = nm[:, -model.config.block_size:]
+                    else:
+                        x_cond, nv_cond, nm_cond = x, nv, nm
+
+                    with ctx:
+                        logits, _ = model(x_cond, num_values=nv_cond, num_mask=nm_cond)
+                    next_tok = logits[:, -1, :].argmax(dim=-1, keepdim=True)
+                    if next_tok.item() == EOT_TOKEN_ID:
+                        break
+                    x = torch.cat([x, next_tok], dim=1)
+                    nv = torch.cat([nv, torch.zeros(1, 1, device=device)], dim=1)
+                    nm = torch.cat([nm, torch.zeros(1, 1, dtype=torch.bool, device=device)], dim=1)
+            else:
+                x = model.generate(x, max_new_tokens, temperature=temperature,
+                                   num_values=nv, num_mask=nm)
 
         # Decode generated part
         gen_ids = x[0, len(ids):].tolist()
-        if EOT_TOKEN_ID in gen_ids:
-            gen_ids = gen_ids[:gen_ids.index(EOT_TOKEN_ID)]
-        gen_text = tokenizer.decode([t for t in gen_ids if 0 <= t < 50256]).strip()
+        gen_text = render_generated_text(
+            tokenizer,
+            gen_ids,
+            generated_numbers=generated_numbers,
+            prompt_len=len(ids),
+        )
 
         # Compare
         exact_match = gen_text == ref_text

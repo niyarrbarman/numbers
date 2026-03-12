@@ -31,6 +31,7 @@ from torch.nn import functional as F
 # Add project root so we can import AnalyticNumberCodec
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..'))
 from num_analytic import AnalyticNumberCodec, NumberComponents
+from prepare import EOT_TOKEN_ID
 
 NUM_TOKEN_ID = 50256  # luciole_50k vocab is 0..50255; 50256 = <NUM>
 
@@ -199,6 +200,7 @@ class NemotronAnalyticConfig:
     analytic_exp_max: int = 32
     # Loss weights
     num_loss_lambda: float = 1.0
+    num_token_text_weight: float = 1.0
     digit_loss_lambda: float = 1.0 / 32.0
     digit_decay: float = 0.85         # positional weight decay for digit positions
     exp_ordinal_weight: float = 0.1   # weight for ordinal MSE on exponent
@@ -345,13 +347,14 @@ class NemotronAnalytic(nn.Module):
         tok_emb = self.transformer.wte(idx)  # (B, T, n_embd)
 
         # Inject number embeddings at <NUM> positions (additive)
-        if num_mask is not None and num_mask.any():
-            num_vals_flat = num_values[num_mask]                     # (K,)
+        input_num_mask = num_mask if num_mask is not None else (idx == NUM_TOKEN_ID)
+        if input_num_mask.any() and num_values is not None:
+            num_vals_flat = num_values[input_num_mask]               # (K,)
             analytic_emb = self._batch_encode_analytic(num_vals_flat)  # (K, 80)
             num_proj = self.num_adapter(analytic_emb)                 # (K, n_embd)
 
             tok_emb = tok_emb.clone()
-            tok_emb[num_mask] = tok_emb[num_mask] + num_proj.to(tok_emb.dtype)
+            tok_emb[input_num_mask] = tok_emb[input_num_mask] + num_proj.to(tok_emb.dtype)
 
         x = self.transformer.drop(tok_emb)
 
@@ -366,15 +369,19 @@ class NemotronAnalytic(nn.Module):
         if targets is not None:
             logits = self.lm_head(x)
 
-            # --- Text loss: CE on non-<NUM> target positions ---
+            # --- Text loss: include <NUM> targets so the model learns to emit them ---
             target_num_mask = (targets == NUM_TOKEN_ID)
-            text_targets = targets.clone()
-            text_targets[target_num_mask] = -1  # ignore <NUM> positions in text CE
-            text_loss = F.cross_entropy(
+            token_ce = F.cross_entropy(
                 logits.view(-1, logits.size(-1)),
-                text_targets.view(-1),
-                ignore_index=-1,
-            )
+                targets.view(-1),
+                reduction='none',
+            ).view_as(targets)
+            if self.config.num_token_text_weight != 1.0:
+                token_weights = torch.ones_like(token_ce)
+                token_weights[target_num_mask] = self.config.num_token_text_weight
+                text_loss = (token_ce * token_weights).sum() / token_weights.sum().clamp_min(1.0)
+            else:
+                text_loss = token_ce.mean()
 
             # --- Numeric loss: at output <NUM> positions ---
             if target_num_mask.any() and num_target_components is not None:
@@ -591,16 +598,23 @@ class NemotronAnalytic(nn.Module):
                 nm_cond = num_mask
 
             logits, _, _ = self(idx_cond, num_values=nv_cond, num_mask=nm_cond)
-            logits = logits[:, -1, :] / temperature
+            logits = logits[:, -1, :]
 
-            if top_k is not None:
-                v, _ = torch.topk(logits, min(top_k, logits.size(-1)))
-                logits[logits < v[:, [-1]]] = -float('Inf')
+            if temperature is None or temperature <= 0:
+                idx_next = torch.argmax(logits, dim=-1, keepdim=True)
+            else:
+                logits = logits / temperature
 
-            probs = F.softmax(logits, dim=-1)
-            idx_next = torch.multinomial(probs, num_samples=1)
+                if top_k is not None:
+                    v, _ = torch.topk(logits, min(top_k, logits.size(-1)))
+                    logits[logits < v[:, [-1]]] = -float('Inf')
+
+                probs = F.softmax(logits, dim=-1)
+                idx_next = torch.multinomial(probs, num_samples=1)
 
             # If model emitted <NUM>, decode the number from hidden state
+            next_is_num = idx_next.item() == NUM_TOKEN_ID
+            decoded_value = 0.0
             if idx_next.item() == NUM_TOKEN_ID:
                 # Re-run forward to get hidden states at the last position
                 tok_emb = self.transformer.wte(idx_cond)
@@ -617,11 +631,21 @@ class NemotronAnalytic(nn.Module):
                 hidden_last = x[:, -1:, :]  # (1, 1, n_embd)
                 decoded = self.decode_numeric_output(hidden_last.squeeze(1))
                 generated_numbers.append((T, decoded[0]))
+                try:
+                    decoded_value = float(decoded[0])
+                except (TypeError, ValueError, OverflowError):
+                    decoded_value = 0.0
 
             idx = torch.cat([idx, idx_next], dim=1)
-            new_nv = torch.zeros_like(idx_next, dtype=torch.float32)
-            new_nm = torch.zeros_like(idx_next, dtype=torch.bool)
+            if next_is_num:
+                new_nv = torch.full_like(idx_next, decoded_value, dtype=torch.float32)
+                new_nm = torch.ones_like(idx_next, dtype=torch.bool)
+            else:
+                new_nv = torch.zeros_like(idx_next, dtype=torch.float32)
+                new_nm = torch.zeros_like(idx_next, dtype=torch.bool)
             num_values = torch.cat([num_values, new_nv], dim=1)
             num_mask = torch.cat([num_mask, new_nm], dim=1)
+            if idx_next.item() == EOT_TOKEN_ID:
+                break
 
         return idx, generated_numbers
