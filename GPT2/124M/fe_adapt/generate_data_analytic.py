@@ -229,11 +229,19 @@ def gen_plain_text(rng):
 # Tokenization — <NUM> in both input and output
 # =============================================================================
 
-def process_text_with_numbers(text):
-    """Replace numbers with <NUM> tokens. Returns (ids, nums) without EOT."""
+def process_text_with_numbers(text, return_num_texts=False):
+    """Replace numbers with <NUM> tokens.
+
+    Returns:
+        (ids, nums) without EOT by default
+        (ids, nums, num_texts) when return_num_texts=True, where num_texts is
+        parallel to ids and stores the original matched numeric string at each
+        <NUM> position.
+    """
     tokenizer = _get_tokenizer()
     ids = []
     nums = []
+    num_texts = [] if return_num_texts else None
     last_end = 0
     for match in NUMBER_PATTERN.finditer(text):
         start, end = match.span()
@@ -242,6 +250,8 @@ def process_text_with_numbers(text):
                                        add_special_tokens=False)
             ids.extend(seg_ids)
             nums.extend([0.0] * len(seg_ids))
+            if return_num_texts:
+                num_texts.extend([None] * len(seg_ids))
         try:
             value = float(match.group())
         except ValueError:
@@ -249,66 +259,94 @@ def process_text_with_numbers(text):
                                        add_special_tokens=False)
             ids.extend(seg_ids)
             nums.extend([0.0] * len(seg_ids))
+            if return_num_texts:
+                num_texts.extend([None] * len(seg_ids))
             last_end = end
             continue
         ids.append(NUM_TOKEN_ID)
         nums.append(value)
+        if return_num_texts:
+            num_texts.append(match.group())
         last_end = end
     if last_end < len(text):
         seg_ids = tokenizer.encode(text[last_end:],
                                    add_special_tokens=False)
         ids.extend(seg_ids)
         nums.extend([0.0] * len(seg_ids))
+        if return_num_texts:
+            num_texts.extend([None] * len(seg_ids))
+    if return_num_texts:
+        return ids, nums, num_texts
     return ids, nums
 
 
-def tokenize_problem(problem, use_num=True):
+def tokenize_problem(problem, use_num=True, return_num_texts=False):
     """Tokenize user/assistant pair with <NUM> in BOTH turns.
 
     Args:
         problem: dict with 'user' and 'assistant' keys
         use_num: if True, replace numbers with <NUM>; if False, plain text
+        return_num_texts: if True, return a third list preserving the original
+            matched numeric strings at <NUM> positions
 
     Returns:
         ids: list[int], nums: list[float]
+        optionally num_texts: list[str | None]
     """
     tokenizer = _get_tokenizer()
     ids = []
     nums = []
+    num_texts = [] if return_num_texts else None
 
     # User turn
     prefix = "User: "
     prefix_ids = tokenizer.encode(prefix, add_special_tokens=False)
     ids.extend(prefix_ids)
     nums.extend([0.0] * len(prefix_ids))
+    if return_num_texts:
+        num_texts.extend([None] * len(prefix_ids))
 
     if use_num:
-        c_ids, c_nums = process_text_with_numbers(problem['user'])
+        c_ids, c_nums, c_texts = process_text_with_numbers(
+            problem['user'], return_num_texts=True)
     else:
         c_ids = tokenizer.encode(problem['user'], add_special_tokens=False)
         c_nums = [0.0] * len(c_ids)
+        c_texts = [None] * len(c_ids)
     ids.extend(c_ids)
     nums.extend(c_nums)
+    if return_num_texts:
+        num_texts.extend(c_texts)
 
     # Separator
     sep = "\nAssistant: "
     sep_ids = tokenizer.encode(sep, add_special_tokens=False)
     ids.extend(sep_ids)
     nums.extend([0.0] * len(sep_ids))
+    if return_num_texts:
+        num_texts.extend([None] * len(sep_ids))
 
     # Assistant turn — <NUM> in output too
     if use_num:
-        c_ids, c_nums = process_text_with_numbers(problem['assistant'])
+        c_ids, c_nums, c_texts = process_text_with_numbers(
+            problem['assistant'], return_num_texts=True)
     else:
         c_ids = tokenizer.encode(problem['assistant'], add_special_tokens=False)
         c_nums = [0.0] * len(c_ids)
+        c_texts = [None] * len(c_ids)
     ids.extend(c_ids)
     nums.extend(c_nums)
+    if return_num_texts:
+        num_texts.extend(c_texts)
 
     # EOT
     ids.append(EOT_TOKEN_ID)
     nums.append(0.0)
+    if return_num_texts:
+        num_texts.append(None)
 
+    if return_num_texts:
+        return ids, nums, num_texts
     return ids, nums
 
 
@@ -335,7 +373,7 @@ def encode_num_components(codec, value):
     return [sign_class, exp_class] + digits
 
 
-def build_components_array(ids, nums, codec):
+def build_components_array(ids, num_texts, codec):
     """Build (N, 34) uint8 component array parallel to token IDs.
 
     Components are meaningful only at NUM_TOKEN_ID positions.
@@ -343,13 +381,11 @@ def build_components_array(ids, nums, codec):
     n = len(ids)
     components = np.zeros((n, 2 + codec.K), dtype=np.uint8)
     for i in range(n):
-        if ids[i] == NUM_TOKEN_ID and nums[i] != 0.0:
-            # Match the exact float32 values persisted in *_nums.bin.
-            value_f32 = float(np.float32(nums[i]))
-            components[i] = encode_num_components(codec, value_f32)
-        elif ids[i] == NUM_TOKEN_ID and nums[i] == 0.0:
-            # <NUM> for the value 0.0 — encode it
-            components[i] = encode_num_components(codec, 0.0)
+        if ids[i] != NUM_TOKEN_ID:
+            continue
+        if num_texts[i] is None:
+            raise ValueError(f"Missing numeric text for <NUM> at position {i}")
+        components[i] = encode_num_components(codec, num_texts[i])
     return components
 
 
@@ -427,10 +463,11 @@ def main():
             cat_counts[cat] += 1
             # Plain text: no <NUM> replacement
             use_num = (cat != 'plain')
-            p_ids, p_nums = tokenize_problem(p, use_num=use_num)
+            p_ids, p_nums, p_num_texts = tokenize_problem(
+                p, use_num=use_num, return_num_texts=True)
 
             # Build components
-            p_components = build_components_array(p_ids, p_nums, codec)
+            p_components = build_components_array(p_ids, p_num_texts, codec)
 
             all_ids.extend(p_ids)
             all_nums.extend(p_nums)

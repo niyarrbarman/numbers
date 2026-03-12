@@ -170,11 +170,19 @@ def generate_problems(n, seed=42):
 # Tokenization — base vs adapted
 # =============================================================================
 
-def process_content_with_numbers(text):
-    """Replace numbers with <NUM> tokens. Returns (ids, nums) without EOT."""
+def process_content_with_numbers(text, return_num_texts=False):
+    """Replace numbers with <NUM> tokens.
+
+    Returns:
+        (ids, nums) without EOT by default
+        (ids, nums, num_texts) when return_num_texts=True, where num_texts is
+        parallel to ids and preserves the original matched numeric string at
+        <NUM> positions.
+    """
     tokenizer = _get_tokenizer()
     ids = []
     nums = []
+    num_texts = [] if return_num_texts else None
     last_end = 0
     for match in NUMBER_PATTERN.finditer(text):
         start, end = match.span()
@@ -183,6 +191,8 @@ def process_content_with_numbers(text):
                                        add_special_tokens=False)
             ids.extend(seg_ids)
             nums.extend([0.0] * len(seg_ids))
+            if return_num_texts:
+                num_texts.extend([None] * len(seg_ids))
         try:
             value = float(match.group())
         except ValueError:
@@ -190,16 +200,24 @@ def process_content_with_numbers(text):
                                        add_special_tokens=False)
             ids.extend(seg_ids)
             nums.extend([0.0] * len(seg_ids))
+            if return_num_texts:
+                num_texts.extend([None] * len(seg_ids))
             last_end = end
             continue
         ids.append(NUM_TOKEN_ID)
         nums.append(value)
+        if return_num_texts:
+            num_texts.append(match.group())
         last_end = end
     if last_end < len(text):
         seg_ids = tokenizer.encode(text[last_end:],
                                    add_special_tokens=False)
         ids.extend(seg_ids)
         nums.extend([0.0] * len(seg_ids))
+        if return_num_texts:
+            num_texts.extend([None] * len(seg_ids))
+    if return_num_texts:
+        return ids, nums, num_texts
     return ids, nums
 
 
@@ -253,30 +271,38 @@ def tokenize_adapted_analytic(problem):
     tokenizer = _get_tokenizer()
     ids = []
     nums = []
+    num_texts = []
 
     # User turn
     prefix = "User: "
     prefix_ids = tokenizer.encode(prefix, add_special_tokens=False)
     ids.extend(prefix_ids)
     nums.extend([0.0] * len(prefix_ids))
+    num_texts.extend([None] * len(prefix_ids))
 
-    c_ids, c_nums = process_content_with_numbers(problem['user'])
+    c_ids, c_nums, c_texts = process_content_with_numbers(
+        problem['user'], return_num_texts=True)
     ids.extend(c_ids)
     nums.extend(c_nums)
+    num_texts.extend(c_texts)
 
     # Assistant turn
     prefix = "\nAssistant: "
     prefix_ids = tokenizer.encode(prefix, add_special_tokens=False)
     ids.extend(prefix_ids)
     nums.extend([0.0] * len(prefix_ids))
+    num_texts.extend([None] * len(prefix_ids))
 
-    c_ids, c_nums = process_content_with_numbers(problem['assistant'])
+    c_ids, c_nums, c_texts = process_content_with_numbers(
+        problem['assistant'], return_num_texts=True)
     ids.extend(c_ids)
     nums.extend(c_nums)
+    num_texts.extend(c_texts)
 
     ids.append(EOT_TOKEN_ID)
     nums.append(0.0)
-    return ids, nums
+    num_texts.append(None)
+    return ids, nums, num_texts
 
 
 def encode_num_components(codec, value):
@@ -291,16 +317,17 @@ def encode_num_components(codec, value):
     return [sign_class, exp_class] + digits
 
 
-def build_components_array(ids, nums, codec):
+def build_components_array(ids, num_texts, codec):
     """Build per-token analytic component labels aligned with token IDs."""
     components = np.zeros((len(ids), 2 + codec.K), dtype=np.uint8)
     for i, tok in enumerate(ids):
         if tok != NUM_TOKEN_ID:
             continue
-        # Match the exact float32 values persisted in *_nums.bin so later
-        # validation/training sees identical numeric targets.
-        value_f32 = float(np.float32(nums[i]))
-        components[i] = encode_num_components(codec, value_f32)
+        if not num_texts[i]:
+            raise ValueError(f"Missing numeric text for <NUM> at position {i}")
+        # Preserve the original source-string formatting instead of teaching the
+        # decoder float32 round-trip artifacts like 149.8000030517578.
+        components[i] = encode_num_components(codec, num_texts[i])
     return components
 
 
@@ -361,9 +388,9 @@ def main():
             all_base_nums.extend(b_nums)
 
             if args.analytic_adapted:
-                a_ids, a_nums = tokenize_adapted_analytic(p)
+                a_ids, a_nums, a_num_texts = tokenize_adapted_analytic(p)
                 all_adapted_components.append(
-                    build_components_array(a_ids, a_nums, codec))
+                    build_components_array(a_ids, a_num_texts, codec))
             else:
                 a_ids, a_nums = tokenize_adapted(p)
             all_adapted_ids.extend(a_ids)

@@ -30,7 +30,12 @@ from torch.nn import functional as F
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import init_process_group, destroy_process_group, barrier
 
-from model_analytic import NemotronAnalyticConfig, NemotronAnalytic, NUM_TOKEN_ID
+from model_analytic import (
+    NemotronAnalyticConfig,
+    NemotronAnalytic,
+    NUM_TOKEN_ID,
+    NumberComponents,
+)
 from prepare import EOT_TOKEN_ID
 
 
@@ -437,16 +442,13 @@ raw_model = model.module if ddp else model
 # Helpers
 # =============================================================================
 
-def encode_num_components(codec, value):
-    """Encode a scalar into [sign_class, exp_class, d0..dK-1] as uint8."""
-    comps = codec.to_components(value)
-    sign_class = 0 if comps.sign >= 0 else 1
-    exp_class = comps.exponent - codec.exp_min
-    exp_class = max(0, min(codec.exp_max - codec.exp_min, exp_class))
-    digits = list(comps.digits[:codec.K])
-    while len(digits) < codec.K:
-        digits.append(0)
-    return np.asarray([sign_class, exp_class] + digits, dtype=np.uint8)
+def decode_num_components(codec, components):
+    """Decode a stored component row back to a scalar value."""
+    sign = 1 if int(components[0]) == 0 else -1
+    exponent = int(components[1]) + codec.exp_min
+    digits = [int(d) for d in components[2:2 + codec.K]]
+    comps = NumberComponents(sign=sign, exponent=exponent, digits=digits)
+    return float(codec.components_to_decimal(comps))
 
 
 def validate_numeric_supervision(split, codec, max_checks=2048):
@@ -479,18 +481,27 @@ def validate_numeric_supervision(split, codec, max_checks=2048):
     sample_positions = num_positions[:max_checks]
     mismatches = []
     for pos in sample_positions:
+        want_value = float(nums[pos])
         got = comps[pos]
-        want = encode_num_components(codec, float(nums[pos]))
-        if not np.array_equal(got, want):
-            mismatches.append((int(pos), float(nums[pos]), got.tolist(), want.tolist()))
+        got_value = decode_num_components(codec, got)
+        if want_value == 0.0:
+            tol = 1e-6
+        else:
+            tol = max(1e-6, float(abs(np.spacing(np.float32(want_value)))) * 4.0)
+        if (not np.isfinite(got_value)
+                or abs(got_value - want_value) > tol):
+            mismatches.append((
+                int(pos), want_value, got_value, tol, got[:6].tolist(),
+            ))
             if len(mismatches) >= 3:
                 break
 
     if mismatches:
         details = []
-        for pos, value, got, want in mismatches:
+        for pos, want_value, got_value, tol, got in mismatches:
             details.append(
-                f"pos={pos} value={value:g} got={got[:6]}... want={want[:6]}..."
+                f"pos={pos} want={want_value:g} got={got_value:g} "
+                f"tol={tol:g} label={got}..."
             )
         raise ValueError(
             f"Invalid numeric supervision in {comp_path}. Sample mismatches: "
