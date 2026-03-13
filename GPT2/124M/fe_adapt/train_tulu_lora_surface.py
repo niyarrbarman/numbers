@@ -123,6 +123,9 @@ numeric_output_mode = 'surface'
 surface_max_digits = 32
 surface_scale_min = 0
 surface_scale_max = 32
+numeric_trunk_hidden = 1024
+same_number_consistency_lambda = 0.1
+same_number_digit_consistency_weight = 2.0
 
 # LoRA
 lora_rank = 16
@@ -155,6 +158,7 @@ rollout_steps = 4
 rollout_future_steps = 8
 rollout_prefix_tokens = 128
 rollout_loss_lambda = 0.25
+rollout_consistency_lambda = 0.25
 
 # loss
 num_loss_lambda = 1.0
@@ -302,6 +306,13 @@ if init_from == 'fresh':
     model_args['surface_max_digits'] = surface_max_digits
     model_args['surface_scale_min'] = surface_scale_min
     model_args['surface_scale_max'] = surface_scale_max
+    model_args['numeric_trunk_hidden'] = model_args.get('numeric_trunk_hidden', numeric_trunk_hidden)
+    model_args['same_number_consistency_lambda'] = model_args.get(
+        'same_number_consistency_lambda', same_number_consistency_lambda
+    )
+    model_args['same_number_digit_consistency_weight'] = model_args.get(
+        'same_number_digit_consistency_weight', same_number_digit_consistency_weight
+    )
 
     nemconf = NemotronAnalyticConfig(**model_args)
     model = NemotronAnalytic(nemconf)
@@ -325,6 +336,13 @@ elif init_from == 'resume':
     model_args['surface_max_digits'] = model_args.get('surface_max_digits', surface_max_digits)
     model_args['surface_scale_min'] = model_args.get('surface_scale_min', surface_scale_min)
     model_args['surface_scale_max'] = model_args.get('surface_scale_max', surface_scale_max)
+    model_args['numeric_trunk_hidden'] = model_args.get('numeric_trunk_hidden', numeric_trunk_hidden)
+    model_args['same_number_consistency_lambda'] = model_args.get(
+        'same_number_consistency_lambda', same_number_consistency_lambda
+    )
+    model_args['same_number_digit_consistency_weight'] = model_args.get(
+        'same_number_digit_consistency_weight', same_number_digit_consistency_weight
+    )
 
     lora_cfg = checkpoint['lora_config']
     nemconf = NemotronAnalyticConfig(**model_args)
@@ -718,7 +736,8 @@ def eval_samples(max_samples=3):
                   f"(sign={num_loss_dict['sign_loss'].item():.4f} "
                   f"scale={num_loss_dict['scale_loss'].item():.4f} "
                   f"len={num_loss_dict['len_loss'].item():.4f} "
-                  f"digit={num_loss_dict['digit_loss'].item():.4f})")
+                  f"digit={num_loss_dict['digit_loss'].item():.4f} "
+                  f"consistency={num_loss_dict.get('consistency_loss', torch.tensor(0.0)).item():.4f})")
         else:
             print(f"  numeric loss: total={num_loss_dict['total'].item():.4f} "
                   f"(sign={num_loss_dict['sign_loss'].item():.4f} "
@@ -786,6 +805,19 @@ def build_rollout_batch(model_ref, x, y, nv, nm, nc):
                 gen_surface_rows[0, local_idx] = comp_rows[row_idx]
                 gen_surface_mask[0, local_idx] = True
 
+    generated_alias_map = {}
+    gen_gold_start = prefix_len - 1
+    for local_idx in range(gen_len):
+        source_idx = gen_gold_start + local_idx
+        if source_idx < 0 or source_idx >= y.size(1):
+            continue
+        if int(y[0, source_idx].item()) != NUM_TOKEN_ID:
+            continue
+        if not bool(gen_surface_mask[0, local_idx].item()):
+            continue
+        gold_row = nc[0, source_idx].tolist()
+        generated_alias_map[tuple(int(v) for v in gold_row)] = gen_surface_rows[0, local_idx].clone()
+
     suffix_x = x[:1, future_start:future_start + future_len]
     suffix_nv = nv[:1, future_start:future_start + future_len]
     suffix_nm = nm[:1, future_start:future_start + future_len]
@@ -813,6 +845,18 @@ def build_rollout_batch(model_ref, x, y, nv, nm, nc):
     roll_targets[:, target_start:target_start + future_len] = y[:1, source_start:source_start + future_len]
     roll_nc[:, target_start:target_start + future_len] = nc[:1, source_start:source_start + future_len]
 
+    rollout_consistency_rows = torch.zeros_like(roll_nc)
+    rollout_consistency_mask = torch.zeros((1, roll_x.size(1)), dtype=torch.bool, device=x.device)
+    for offset in range(future_len):
+        roll_pos = target_start + offset
+        if int(roll_targets[0, roll_pos].item()) != NUM_TOKEN_ID:
+            continue
+        gold_key = tuple(int(v) for v in roll_nc[0, roll_pos].tolist())
+        if gold_key not in generated_alias_map:
+            continue
+        rollout_consistency_rows[0, roll_pos] = generated_alias_map[gold_key]
+        rollout_consistency_mask[0, roll_pos] = True
+
     return {
         'x': roll_x,
         'targets': roll_targets,
@@ -821,9 +865,12 @@ def build_rollout_batch(model_ref, x, y, nv, nm, nc):
         'num_surface_rows': roll_surface_rows,
         'num_surface_mask': roll_surface_mask,
         'num_targets': roll_nc,
+        'rollout_consistency_rows': rollout_consistency_rows,
+        'rollout_consistency_mask': rollout_consistency_mask,
         'generated_steps': gen_len,
         'future_steps': future_len,
         'generated_num_count': int(gen_surface_mask.sum().item()),
+        'consistency_targets': int(rollout_consistency_mask.sum().item()),
     }
 
 
@@ -928,6 +975,7 @@ while True:
                 loss = loss + num_loss_lambda * num_loss_dict['total']
 
             rollout_value = 0.0
+            rollout_consistency_value = 0.0
             rollout_meta = None
             if should_run_rollout(iter_num):
                 rollout_batch = build_rollout_batch(raw_model, X, Y, NV, NM, NC)
@@ -947,6 +995,25 @@ while True:
                     rollout_value = float(rollout_loss.detach().item())
                     rollout_meta = rollout_batch
                     loss = loss + rollout_loss_lambda * rollout_loss
+                    if rollout_consistency_lambda > 0.0 and rollout_batch['rollout_consistency_mask'].any():
+                        rollout_hidden = raw_model.compute_hidden_states(
+                            rollout_batch['x'],
+                            num_values=rollout_batch['num_values'],
+                            num_mask=rollout_batch['num_mask'],
+                            num_surface_rows=rollout_batch['num_surface_rows'],
+                            num_surface_mask=rollout_batch['num_surface_mask'],
+                        )
+                        consistency_mask = rollout_batch['rollout_consistency_mask']
+                        consistency_hidden = rollout_hidden[consistency_mask]
+                        consistency_rows = rollout_batch['rollout_consistency_rows'][consistency_mask]
+                        rollout_consistency_dict = raw_model.compute_numeric_loss_from_hidden(
+                            consistency_hidden,
+                            num_target_surface=consistency_rows,
+                            consistency_scale=0.0,
+                        )
+                        rollout_consistency_loss = rollout_consistency_dict['total']
+                        rollout_consistency_value = float(rollout_consistency_loss.detach().item())
+                        loss = loss + rollout_consistency_lambda * rollout_consistency_loss
             loss = loss / gradient_accumulation_steps
 
         if (micro_step == gradient_accumulation_steps - 1
@@ -962,11 +1029,14 @@ while True:
             _diag_len_loss = num_loss_dict.get('len_loss', torch.tensor(0.0)).item() if num_loss_dict else 0.0
             _diag_exp_loss = num_loss_dict.get('exp_loss', torch.tensor(0.0)).item() if num_loss_dict else 0.0
             _diag_digit_loss = num_loss_dict['digit_loss'].item() if num_loss_dict else 0.0
+            _diag_consistency_loss = num_loss_dict.get('consistency_loss', torch.tensor(0.0)).item() if num_loss_dict else 0.0
             _diag_mantissa_mse = num_loss_dict.get('mantissa_mse', torch.tensor(0.0)).item() if num_loss_dict else 0.0
             _diag_rollout_loss = rollout_value
+            _diag_rollout_consistency = rollout_consistency_value
             _diag_rollout_gen = rollout_meta['generated_steps'] if rollout_meta is not None else 0
             _diag_rollout_future = rollout_meta['future_steps'] if rollout_meta is not None else 0
             _diag_rollout_nums = rollout_meta['generated_num_count'] if rollout_meta is not None else 0
+            _diag_rollout_consistency_targets = rollout_meta['consistency_targets'] if rollout_meta is not None else 0
 
         X, Y, NV, NM, NC = get_batch('train')
         scaler.scale(loss).backward()
@@ -1014,7 +1084,8 @@ while True:
             print(f"  text_loss: {_diag_text_loss:.4f}, "
                   f"num_loss: {_diag_num_loss:.4f} "
                   f"(sign={_diag_sign_loss:.4f} scale={_diag_scale_loss:.4f} "
-                  f"len={_diag_len_loss:.4f} digit={_diag_digit_loss:.4f})")
+                  f"len={_diag_len_loss:.4f} digit={_diag_digit_loss:.4f} "
+                  f"consistency={_diag_consistency_loss:.4f})")
         else:
             print(f"  text_loss: {_diag_text_loss:.4f}, "
                   f"num_loss: {_diag_num_loss:.4f} "
@@ -1032,7 +1103,9 @@ while True:
         if _diag_rollout_gen > 0:
             print(f"  rollout: loss={_diag_rollout_loss:.4f}, "
                   f"gen_steps={_diag_rollout_gen}, future_steps={_diag_rollout_future}, "
-                  f"gen_nums={_diag_rollout_nums}")
+                  f"gen_nums={_diag_rollout_nums}, "
+                  f"consistency={_diag_rollout_consistency:.4f}, "
+                  f"consistency_targets={_diag_rollout_consistency_targets}")
         else:
             print(f"  rollout: disabled or skipped")
 
@@ -1054,7 +1127,9 @@ while True:
                 "diag/scale_loss": _diag_scale_loss,
                 "diag/len_loss": _diag_len_loss,
                 "diag/digit_loss": _diag_digit_loss,
+                "diag/consistency_loss": _diag_consistency_loss,
                 "diag/rollout_loss": _diag_rollout_loss,
+                "diag/rollout_consistency_loss": _diag_rollout_consistency,
                 "diag/rollout_gen_steps": _diag_rollout_gen,
                 "diag/rollout_future_steps": _diag_rollout_future,
                 "grad/total": g.get('total', 0.0),

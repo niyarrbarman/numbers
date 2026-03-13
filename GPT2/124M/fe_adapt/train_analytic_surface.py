@@ -37,6 +37,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import init_process_group, destroy_process_group, barrier
 
 from model_analytic_surface import NemotronAnalyticConfig, NemotronAnalytic, NUM_TOKEN_ID
+from numeric_surface import render_surface_row
 from prepare import NUM_TOKEN_ID as _NUM_CHECK, EOT_TOKEN_ID
 
 
@@ -80,6 +81,9 @@ numeric_output_mode = 'surface'
 surface_max_digits = 32
 surface_scale_min = 0
 surface_scale_max = 32
+numeric_trunk_hidden = 1024
+same_number_consistency_lambda = 0.1
+same_number_digit_consistency_weight = 2.0
 # loss config
 num_loss_lambda = 1.0
 digit_loss_lambda = 1.0 / 32.0
@@ -224,6 +228,9 @@ model_args = dict(
     surface_max_digits=surface_max_digits,
     surface_scale_min=surface_scale_min,
     surface_scale_max=surface_scale_max,
+    numeric_trunk_hidden=numeric_trunk_hidden,
+    same_number_consistency_lambda=same_number_consistency_lambda,
+    same_number_digit_consistency_weight=same_number_digit_consistency_weight,
     num_loss_lambda=num_loss_lambda, digit_loss_lambda=digit_loss_lambda,
 )
 if init_from == 'scratch':
@@ -264,6 +271,10 @@ elif init_from == 'resume':
     for k in ['n_layer', 'n_head', 'n_kv_head', 'n_embd', 'ffn_hidden',
               'block_size', 'bias', 'vocab_size',
               'analytic_K', 'analytic_exp_min', 'analytic_exp_max',
+              'numeric_output_mode', 'surface_max_digits', 'surface_scale_min',
+              'surface_scale_max',
+              'numeric_trunk_hidden', 'same_number_consistency_lambda',
+              'same_number_digit_consistency_weight',
               'num_loss_lambda', 'digit_loss_lambda']:
         if k in checkpoint_model_args:
             model_args[k] = checkpoint_model_args[k]
@@ -379,7 +390,7 @@ def collect_group_grad_norms(named_parameters):
             continue
         sq = p.grad.data.norm(2).item() ** 2
         total_sq += sq
-        if ('num_adapter' in name or 'num_decoder' in name):
+        if ('num_adapter' in name or 'num_decoder' in name or 'num_surface' in name):
             key = 'adapter'
         else:
             key = 'transformer'
@@ -510,17 +521,22 @@ def eval_samples(eval_model, raw_model_ref, max_samples=5):
                     # Decode number from hidden state
                     h = x[b:b+1, pos:pos+1, :]  # (1, 1, n_embd)
                     decoded = raw_model_ref.decode_numeric_output(h.squeeze(1))
-                    target_val = NV[b, pos].item() if pos < T else 0.0
                     nc_row = NC[b, pos].tolist()
                     target_sign = "+" if nc_row[0] == 0 else "-"
                     if numeric_output_mode == 'surface':
+                        target_text = render_surface_row(
+                            nc_row,
+                            max_digits=surface_max_digits,
+                            scale_min=surface_scale_min,
+                        )
                         target_scale = nc_row[1] + surface_scale_min
                         target_len = nc_row[2]
                         target_digits = "".join(str(d) for d in nc_row[3:3 + min(target_len, 6)]) + "..."
                         print(f"    NUM@{pos}: predicted={decoded[0]}, "
-                              f"target_val={target_val:g} "
+                              f"target={target_text} "
                               f"(s={target_sign} scale={target_scale} len={target_len} d={target_digits})")
                     else:
+                        target_val = NV[b, pos].item() if pos < T else 0.0
                         target_exp = nc_row[1] + analytic_exp_min
                         target_digits = "".join(str(d) for d in nc_row[2:8]) + "..."
                         print(f"    NUM@{pos}: predicted={decoded[0]}, "
@@ -637,6 +653,7 @@ while True:
             _diag_len_loss = num_loss_dict.get('len_loss', torch.tensor(0.0)).item() if num_loss_dict else 0.0
             _diag_exp_loss = num_loss_dict.get('exp_loss', torch.tensor(0.0)).item() if num_loss_dict else 0.0
             _diag_digit_loss = num_loss_dict['digit_loss'].item() if num_loss_dict else 0.0
+            _diag_consistency_loss = num_loss_dict.get('consistency_loss', torch.tensor(0.0)).item() if num_loss_dict else 0.0
             _diag_mantissa_mse = num_loss_dict.get('mantissa_mse', torch.tensor(0.0)).item() if num_loss_dict else 0.0
 
         X, Y, NV, NM, NC = get_batch('train')
@@ -684,7 +701,8 @@ while True:
             print(f"  text_loss: {_diag_text_loss:.4f}, "
                   f"num_loss: {_diag_num_loss:.4f} "
                   f"(sign={_diag_sign_loss:.4f} scale={_diag_scale_loss:.4f} "
-                  f"len={_diag_len_loss:.4f} digit={_diag_digit_loss:.4f})")
+                  f"len={_diag_len_loss:.4f} digit={_diag_digit_loss:.4f} "
+                  f"consistency={_diag_consistency_loss:.4f})")
         else:
             print(f"  text_loss: {_diag_text_loss:.4f}, "
                   f"num_loss: {_diag_num_loss:.4f} "
@@ -727,6 +745,7 @@ while True:
                 "diag/len_loss": _diag_len_loss,
                 "diag/exp_loss": _diag_exp_loss,
                 "diag/digit_loss": _diag_digit_loss,
+                "diag/consistency_loss": _diag_consistency_loss,
                 "grad/total": grad_norm_total,
                 "grad/transformer": grad_norm_transformer,
                 "grad/adapter": grad_norm_adapter,

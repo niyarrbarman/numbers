@@ -210,6 +210,9 @@ class NemotronAnalyticConfig:
     surface_scale_min: int = 0
     surface_scale_max: int = 32
     surface_embed_dim: int = 16
+    numeric_trunk_hidden: int = 1024
+    same_number_consistency_lambda: float = 0.1
+    same_number_digit_consistency_weight: float = 2.0
     # Loss weights
     num_loss_lambda: float = 1.0
     num_token_text_weight: float = 1.0
@@ -266,6 +269,12 @@ class NemotronAnalytic(nn.Module):
         self.num_decoder_digits = nn.Linear(config.n_embd, self.num_digit_slots * 10)
         self.num_decoder_scale = nn.Linear(config.n_embd, n_scale_classes)
         self.num_decoder_len = nn.Linear(config.n_embd, config.surface_max_digits + 1)
+        self.num_decoder_trunk = nn.Sequential(
+            nn.Linear(config.n_embd, config.numeric_trunk_hidden),
+            nn.GELU(),
+            nn.Linear(config.numeric_trunk_hidden, config.n_embd),
+            nn.GELU(),
+        )
 
         # === Structured numeric feedback embedding path (trainable) ===
         e = config.surface_embed_dim
@@ -426,20 +435,100 @@ class NemotronAnalytic(nn.Module):
         x = self.transformer.ln_f(x)
         return x
 
+    def compute_numeric_head_outputs(self, hidden_num):
+        """Project hidden states through the numeric trunk and decoder heads."""
+        numeric_hidden = hidden_num
+        if self.config.numeric_output_mode == 'surface':
+            numeric_hidden = hidden_num + self.num_decoder_trunk(hidden_num)
+
+        out = {
+            'numeric_hidden': numeric_hidden,
+            'sign_logits': self.num_decoder_sign(numeric_hidden),
+            'digit_logits': self.num_decoder_digits(numeric_hidden).view(
+                -1, self.num_digit_slots, 10
+            ),
+        }
+        if self.config.numeric_output_mode == 'surface':
+            out['scale_logits'] = self.num_decoder_scale(numeric_hidden)
+            out['len_logits'] = self.num_decoder_len(numeric_hidden)
+        else:
+            out['exp_logits'] = self.num_decoder_exp(numeric_hidden)
+        return out
+
+    @torch.compiler.disable
+    def _compute_surface_consistency_loss(
+        self,
+        surface_targets,
+        batch_indices,
+        sign_logits,
+        scale_logits,
+        len_logits,
+        digit_logits,
+    ):
+        """Penalize inconsistent predictions for repeated mentions of the same number."""
+        if self.config.same_number_consistency_lambda <= 0.0:
+            return sign_logits.new_zeros(())
+        if batch_indices is None or sign_logits.size(0) < 2:
+            return sign_logits.new_zeros(())
+
+        rows = surface_targets.detach().cpu().tolist()
+        batch_ids = batch_indices.detach().cpu().tolist()
+        groups = {}
+        for idx, (batch_id, row) in enumerate(zip(batch_ids, rows)):
+            key = (int(batch_id), tuple(int(v) for v in row))
+            groups.setdefault(key, []).append(idx)
+
+        losses = []
+        for idxs in groups.values():
+            if len(idxs) < 2:
+                continue
+            idx = torch.as_tensor(idxs, device=sign_logits.device, dtype=torch.long)
+
+            sign_probs = F.softmax(sign_logits[idx], dim=-1)
+            scale_probs = F.softmax(scale_logits[idx], dim=-1)
+            len_probs = F.softmax(len_logits[idx], dim=-1)
+            digit_probs = F.softmax(digit_logits[idx], dim=-1)
+
+            sign_loss = (sign_probs - sign_probs.mean(dim=0, keepdim=True)).pow(2).mean()
+            scale_loss = (scale_probs - scale_probs.mean(dim=0, keepdim=True)).pow(2).mean()
+            len_loss = (len_probs - len_probs.mean(dim=0, keepdim=True)).pow(2).mean()
+
+            active_len = int(surface_targets[idxs[0], 2].item())
+            if active_len > 0:
+                active_digits = digit_probs[:, :active_len, :]
+                digit_loss = (
+                    active_digits - active_digits.mean(dim=0, keepdim=True)
+                ).pow(2).mean()
+            else:
+                digit_loss = sign_logits.new_zeros(())
+
+            losses.append(
+                sign_loss
+                + scale_loss
+                + len_loss
+                + self.config.same_number_digit_consistency_weight * digit_loss
+            )
+
+        if not losses:
+            return sign_logits.new_zeros(())
+        return torch.stack(losses).mean()
+
     def compute_numeric_loss_from_hidden(
         self,
         hidden_num,
         num_target_components=None,
         num_target_surface=None,
+        batch_indices=None,
+        consistency_scale=None,
     ):
         """Compute numeric loss from hidden states at output <NUM> positions."""
         if hidden_num.numel() == 0:
             return None
 
         device = hidden_num.device
-        sign_logits = self.num_decoder_sign(hidden_num)
-        digit_logits = self.num_decoder_digits(hidden_num)
-        digit_logits = digit_logits.view(-1, self.num_digit_slots, 10)
+        outputs = self.compute_numeric_head_outputs(hidden_num)
+        sign_logits = outputs['sign_logits']
+        digit_logits = outputs['digit_logits']
 
         if self.config.numeric_output_mode == 'surface':
             assert num_target_surface is not None, "surface targets required in surface mode"
@@ -449,8 +538,8 @@ class NemotronAnalytic(nn.Module):
             len_targets = surface[:, 2].clamp(min=1, max=self.config.surface_max_digits)
             digit_targets = surface[:, 3:3 + self.config.surface_max_digits]
 
-            scale_logits = self.num_decoder_scale(hidden_num)
-            len_logits = self.num_decoder_len(hidden_num)
+            scale_logits = outputs['scale_logits']
+            len_logits = outputs['len_logits']
 
             sign_loss = F.cross_entropy(sign_logits, sign_targets)
             scale_loss = F.cross_entropy(scale_logits, scale_targets)
@@ -472,12 +561,26 @@ class NemotronAnalytic(nn.Module):
             denom = (digit_weights.unsqueeze(0) * active_mask).sum(dim=-1).clamp_min(1.0)
             digit_loss = (weighted.sum(dim=-1) / denom).mean()
 
+            if consistency_scale is None:
+                consistency_scale = self.config.same_number_consistency_lambda
+            consistency_loss = self._compute_surface_consistency_loss(
+                surface,
+                batch_indices,
+                sign_logits,
+                scale_logits,
+                len_logits,
+                digit_logits[:, :K, :],
+            )
+
             total_num_loss = sign_loss + scale_loss + len_loss + digit_loss
+            if consistency_scale > 0.0:
+                total_num_loss = total_num_loss + consistency_scale * consistency_loss
             return {
                 'sign_loss': sign_loss,
                 'scale_loss': scale_loss,
                 'len_loss': len_loss,
                 'digit_loss': digit_loss,
+                'consistency_loss': consistency_loss,
                 'total': total_num_loss,
             }
 
@@ -488,7 +591,7 @@ class NemotronAnalytic(nn.Module):
         digit_targets = components[:, 2:]
         digit_logits = digit_logits[:, :self.config.analytic_K, :]
 
-        exp_logits = self.num_decoder_exp(hidden_num)
+        exp_logits = outputs['exp_logits']
         sign_loss = F.cross_entropy(sign_logits, sign_targets)
 
         exp_ce = F.cross_entropy(exp_logits, exp_targets)
@@ -541,17 +644,17 @@ class NemotronAnalytic(nn.Module):
 
     def decode_numeric_components_from_hidden(self, hidden_states):
         """Decode structured numeric components from hidden states."""
-        sign_logits = self.num_decoder_sign(hidden_states)
-        digit_logits = self.num_decoder_digits(hidden_states)
-        digit_logits = digit_logits.view(-1, self.num_digit_slots, 10)
+        outputs = self.compute_numeric_head_outputs(hidden_states)
+        sign_logits = outputs['sign_logits']
+        digit_logits = outputs['digit_logits']
 
         signs = sign_logits.argmax(dim=-1)
         digits = digit_logits.argmax(dim=-1)
         results = []
 
         if self.config.numeric_output_mode == 'surface':
-            scale_logits = self.num_decoder_scale(hidden_states)
-            len_logits = self.num_decoder_len(hidden_states)
+            scale_logits = outputs['scale_logits']
+            len_logits = outputs['len_logits']
             scales = scale_logits.argmax(dim=-1)
             lengths = len_logits.argmax(dim=-1).clamp(min=1, max=self.config.surface_max_digits)
             for i in range(hidden_states.size(0)):
@@ -567,7 +670,7 @@ class NemotronAnalytic(nn.Module):
                 ))
             return results
 
-        exps = self.num_decoder_exp(hidden_states).argmax(dim=-1)
+        exps = outputs['exp_logits'].argmax(dim=-1)
         for i in range(hidden_states.size(0)):
             sign = 1 if signs[i].item() == 0 else -1
             exponent = exps[i].item() + self.config.analytic_exp_min
@@ -678,6 +781,11 @@ class NemotronAnalytic(nn.Module):
             # --- Numeric loss: at output <NUM> positions ---
             if target_num_mask.any():
                 hidden_num = x[target_num_mask]
+                batch_indices = (
+                    torch.arange(idx.size(0), device=idx.device)
+                    .unsqueeze(1)
+                    .expand_as(targets)[target_num_mask]
+                )
                 target_components = None
                 target_surface = None
                 if num_target_components is not None:
@@ -688,6 +796,7 @@ class NemotronAnalytic(nn.Module):
                     hidden_num,
                     num_target_components=target_components,
                     num_target_surface=target_surface,
+                    batch_indices=batch_indices,
                 )
         else:
             logits = self.lm_head(x[:, [-1], :])

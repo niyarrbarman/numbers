@@ -131,6 +131,9 @@ ${APPTAINER} python3 ${SCRIPT_DIR}/train_analytic_surface.py \
   surface_max_digits=32 \
   surface_scale_min=0 \
   surface_scale_max=32 \
+  numeric_trunk_hidden=1024 \
+  same_number_consistency_lambda=0.1 \
+  same_number_digit_consistency_weight=2.0 \
   block_size=256 \
   batch_size=4 \
   gradient_accumulation_steps=40 \
@@ -196,6 +199,9 @@ ${APPTAINER} python3 ${SCRIPT_DIR}/train_tulu_lora_surface.py \
   surface_max_digits=32 \
   surface_scale_min=0 \
   surface_scale_max=32 \
+  numeric_trunk_hidden=1024 \
+  same_number_consistency_lambda=0.1 \
+  same_number_digit_consistency_weight=2.0 \
   block_size=256 \
   batch_size=8 \
   gradient_accumulation_steps=20 \
@@ -218,6 +224,7 @@ ${APPTAINER} python3 ${SCRIPT_DIR}/train_tulu_lora_surface.py \
   rollout_future_steps=8 \
   rollout_prefix_tokens=128 \
   rollout_loss_lambda=0.25 \
+  rollout_consistency_lambda=0.25 \
   eval_interval=1000 \
   diag_interval=100 \
   sample_interval=500 \
