@@ -1967,3 +1967,410 @@ iter 10440: loss 5.0555, time 3528.87ms, mfu 0.15%
 iter 10450: loss 4.7437, time 3555.94ms, mfu 0.15%
 iter 10460: loss 5.1173, time 3529.02ms, mfu 0.15%
 iter 10470: loss 4.8926, time 3495.06ms, mfu 0.15%
+iter 10480: loss 4.9538, time 3522.81ms, mfu 0.15%
+iter 10490: loss 5.0006, time 3491.33ms, mfu 0.15%
+iter 10500: loss 5.0140, time 3528.90ms, mfu 0.15%
+  === DIAG iter 10500 ===
+  text_loss: 2.1446, num_loss: 2.8694 (sign=0.0093 scale=0.0442 len=0.6765 digit=2.1388 consistency=0.0065)
+  grads: total 2.9003, transformer 0.0000, adapter 2.9003
+  <NUM> input: 123/1024, <NUM> target: 123/1024
+  lr: 3.11e-04, adapter_lr: 3.11e-04
+  text token accuracy: 0.651 (554/851)
+  <NUM> token prediction: 91/123 (0.740)
+iter 10510: loss 5.1930, time 3518.86ms, mfu 0.15%
+iter 10520: loss 4.8285, time 3503.08ms, mfu 0.15%
+iter 10530: loss 4.8071, time 3569.76ms, mfu 0.15%
+iter 10540: loss 4.7026, time 3518.56ms, mfu 0.15%
+iter 10550: loss 4.9430, time 3524.74ms, mfu 0.15%
+iter 10560: loss 5.0375, time 3459.80ms, mfu 0.15%
+iter 10570: loss 5.0088, time 3518.08ms, mfu 0.15%
+iter 10580: loss 4.9620, time 3514.08ms, mfu 0.15%
+iter 10590: loss 4.9580, time 3489.20ms, mfu 0.15%
+iter 10600: loss 4.6845, time 3429.11ms, mfu 0.15%
+  === DIAG iter 10600 ===
+  text_loss: 1.9573, num_loss: 2.7272 (sign=0.0020 scale=0.0206 len=0.4943 digit=2.2100 consistency=0.0025)
+  grads: total 2.0651, transformer 0.0000, adapter 2.0651
+  <NUM> input: 137/1024, <NUM> target: 137/1024
+  lr: 3.02e-04, adapter_lr: 3.02e-04
+  text token accuracy: 0.656 (549/837)
+  <NUM> token prediction: 105/137 (0.766)
+iter 10610: loss 5.0580, time 3398.42ms, mfu 0.15%
+iter 10620: loss 4.9415, time 3538.76ms, mfu 0.15%
+iter 10630: loss 5.1382, time 3476.93ms, mfu 0.15%
+iter 10640: loss 4.9535, time 3535.40ms, mfu 0.15%
+iter 10650: loss 5.1974, time 3529.33ms, mfu 0.15%
+iter 10660: loss 5.0206, time 3417.31ms, mfu 0.15%
+iter 10670: loss 4.7661, time 3389.02ms, mfu 0.15%
+iter 10680: loss 5.0302, time 3442.90ms, mfu 0.15%
+iter 10690: loss 4.9095, time 3506.67ms, mfu 0.15%
+iter 10700: loss 5.1497, time 3428.14ms, mfu 0.15%
+  === DIAG iter 10700 ===
+  text_loss: 2.1347, num_loss: 3.0149 (sign=0.0082 scale=0.0528 len=0.7736 digit=2.1800 consistency=0.0033)
+  grads: total 1.9735, transformer 0.0000, adapter 1.9735
+  <NUM> input: 139/1024, <NUM> target: 139/1024
+  lr: 2.94e-04, adapter_lr: 2.94e-04
+  text token accuracy: 0.622 (521/838)
+  <NUM> token prediction: 104/139 (0.748)
+iter 10710: loss 4.9156, time 3575.93ms, mfu 0.15%
+iter 10720: loss 4.7245, time 3473.76ms, mfu 0.15%
+iter 10730: loss 4.5343, time 3519.97ms, mfu 0.15%
+iter 10740: loss 5.0683, time 3508.27ms, mfu 0.15%
+iter 10750: loss 4.9369, time 3607.42ms, mfu 0.15%
+iter 10760: loss 5.0306, time 3649.11ms, mfu 0.15%
+iter 10770: loss 4.8443, time 3639.54ms, mfu 0.15%
+iter 10780: loss 4.9855, time 3628.39ms, mfu 0.15%
+iter 10790: loss 4.9190, time 3620.53ms, mfu 0.15%
+iter 10800: loss 4.9576, time 3613.62ms, mfu 0.15%
+  === DIAG iter 10800 ===
+  text_loss: 2.1445, num_loss: 2.8131 (sign=0.0048 scale=0.0275 len=0.5589 digit=2.2215 consistency=0.0035)
+  grads: total 1.3215, transformer 0.0000, adapter 1.3215
+  <NUM> input: 129/1024, <NUM> target: 129/1024
+  lr: 2.85e-04, adapter_lr: 2.85e-04
+  text token accuracy: 0.651 (549/843)
+  <NUM> token prediction: 99/129 (0.767)
+iter 10810: loss 4.6722, time 3581.76ms, mfu 0.15%
+iter 10820: loss 4.6348, time 3528.92ms, mfu 0.15%
+iter 10830: loss 4.4103, time 3579.19ms, mfu 0.15%
+iter 10840: loss 4.6970, time 3469.15ms, mfu 0.15%
+iter 10850: loss 4.7825, time 3495.01ms, mfu 0.15%
+iter 10860: loss 4.9944, time 3484.75ms, mfu 0.15%
+iter 10870: loss 5.0204, time 3457.31ms, mfu 0.15%
+iter 10880: loss 5.0059, time 3479.94ms, mfu 0.15%
+iter 10890: loss 5.0758, time 3521.34ms, mfu 0.15%
+iter 10900: loss 4.7721, time 3489.11ms, mfu 0.15%
+  === DIAG iter 10900 ===
+  text_loss: 2.0000, num_loss: 2.7721 (sign=0.0173 scale=0.0053 len=0.5121 digit=2.2372 consistency=0.0022)
+  grads: total 1.2661, transformer 0.0000, adapter 1.2661
+  <NUM> input: 141/1024, <NUM> target: 140/1024
+  lr: 2.77e-04, adapter_lr: 2.77e-04
+  text token accuracy: 0.639 (533/834)
+  <NUM> token prediction: 108/140 (0.771)
+iter 10910: loss 4.9471, time 3508.87ms, mfu 0.15%
+iter 10920: loss 5.0231, time 3400.34ms, mfu 0.15%
+iter 10930: loss 4.5697, time 3522.32ms, mfu 0.15%
+iter 10940: loss 4.9171, time 3484.50ms, mfu 0.15%
+iter 10950: loss 4.9977, time 3429.08ms, mfu 0.15%
+iter 10960: loss 5.1595, time 3445.69ms, mfu 0.15%
+iter 10970: loss 4.8671, time 3490.79ms, mfu 0.15%
+iter 10980: loss 5.2652, time 3493.13ms, mfu 0.15%
+iter 10990: loss 5.0005, time 3462.91ms, mfu 0.15%
+iter 11000: loss 5.0632, time 3446.91ms, mfu 0.15%
+  === DIAG iter 11000 ===
+  text_loss: 2.1415, num_loss: 2.9217 (sign=0.0315 scale=0.0731 len=0.6565 digit=2.1593 consistency=0.0133)
+  grads: total 2.7910, transformer 0.0000, adapter 2.7910
+  <NUM> input: 128/1024, <NUM> target: 128/1024
+  lr: 2.69e-04, adapter_lr: 2.69e-04
+  text token accuracy: 0.656 (554/845)
+  <NUM> token prediction: 92/128 (0.719)
+  --- Sample eval (val) ---
+  User:Round<6296.92>to<2>decimalplaces.
+Assistant:
+    NUM@30: predicted=-522.9453, target=6296.92 (s=+ scale=2 len=6 d=629692...)
+    NUM@33: predicted=4, target=2 (s=+ scale=0 len=1 d=2...)
+    NUM@43: predicted=630.78, target=6296.92 (s=+ scale=2 len=6 d=629692...)
+
+  User:Whatis<61296>+<47328>?
+Assistant:
+    NUM@5: predicted=50508, target=61296 (s=+ scale=0 len=5 d=61296...)
+    NUM@8: predicted=32265, target=47328 (s=+ scale=0 len=5 d=47328...)
+    NUM@16: predicted=112972, target=108624 (s=+ scale=0 len=6 d=108624...)
+
+  
+Assistant:
+    NUM@5: predicted=12518, target=1095.9 (s=+ scale=1 len=5 d=10959...)
+
+iter 11010: loss 5.1271, time 3404.03ms, mfu 0.15%
+iter 11020: loss 4.8268, time 3464.19ms, mfu 0.15%
+iter 11030: loss 4.9106, time 3569.28ms, mfu 0.15%
+iter 11040: loss 4.8320, time 3620.15ms, mfu 0.15%
+iter 11050: loss 5.0011, time 4310.41ms, mfu 0.15%
+iter 11060: loss 4.8012, time 3644.87ms, mfu 0.15%
+iter 11070: loss 5.1042, time 3670.39ms, mfu 0.15%
+iter 11080: loss 4.7981, time 3585.95ms, mfu 0.15%
+iter 11090: loss 4.9327, time 3604.07ms, mfu 0.15%
+iter 11100: loss 4.7152, time 3566.11ms, mfu 0.15%
+  === DIAG iter 11100 ===
+  text_loss: 1.8293, num_loss: 2.8859 (sign=0.0594 scale=0.1243 len=0.5703 digit=2.1302 consistency=0.0169)
+  grads: total 2.2436, transformer 0.0000, adapter 2.2436
+  <NUM> input: 139/1024, <NUM> target: 139/1024
+  lr: 2.62e-04, adapter_lr: 2.62e-04
+  text token accuracy: 0.668 (558/835)
+  <NUM> token prediction: 118/139 (0.849)
+iter 11110: loss 4.9342, time 3578.69ms, mfu 0.15%
+iter 11120: loss 5.0336, time 3516.16ms, mfu 0.15%
+iter 11130: loss 4.8386, time 3638.11ms, mfu 0.15%
+iter 11140: loss 4.7078, time 3688.45ms, mfu 0.15%
+iter 11150: loss 4.7853, time 3605.74ms, mfu 0.15%
+iter 11160: loss 4.6813, time 3535.62ms, mfu 0.15%
+iter 11170: loss 4.8421, time 3522.49ms, mfu 0.15%
+iter 11180: loss 5.0277, time 3432.27ms, mfu 0.15%
+iter 11190: loss 5.0198, time 3380.17ms, mfu 0.15%
+iter 11200: loss 4.8007, time 3473.49ms, mfu 0.15%
+  === DIAG iter 11200 ===
+  text_loss: 2.0617, num_loss: 2.7390 (sign=0.0147 scale=0.0379 len=0.5237 digit=2.1625 consistency=0.0024)
+  grads: total 1.2109, transformer 0.0000, adapter 1.2109
+  <NUM> input: 135/1024, <NUM> target: 134/1024
+  lr: 2.54e-04, adapter_lr: 2.54e-04
+  text token accuracy: 0.635 (533/840)
+  <NUM> token prediction: 105/134 (0.784)
+iter 11210: loss 4.9334, time 3549.17ms, mfu 0.15%
+iter 11220: loss 4.8543, time 3531.72ms, mfu 0.15%
+iter 11230: loss 4.8049, time 3506.09ms, mfu 0.15%
+iter 11240: loss 4.8229, time 3385.09ms, mfu 0.15%
+iter 11250: loss 5.0465, time 3458.74ms, mfu 0.15%
+iter 11260: loss 4.9460, time 3548.00ms, mfu 0.15%
+iter 11270: loss 4.8187, time 3502.75ms, mfu 0.15%
+iter 11280: loss 4.9500, time 3506.25ms, mfu 0.15%
+iter 11290: loss 4.9934, time 3446.92ms, mfu 0.15%
+iter 11300: loss 4.8423, time 3495.05ms, mfu 0.15%
+  === DIAG iter 11300 ===
+  text_loss: 1.8639, num_loss: 2.9784 (sign=0.0115 scale=0.0631 len=0.7228 digit=2.1804 consistency=0.0063)
+  grads: total 1.3965, transformer 0.0000, adapter 1.3965
+  <NUM> input: 140/1024, <NUM> target: 140/1024
+  lr: 2.46e-04, adapter_lr: 2.46e-04
+  text token accuracy: 0.672 (560/833)
+  <NUM> token prediction: 115/140 (0.821)
+iter 11310: loss 4.6868, time 3443.04ms, mfu 0.15%
+iter 11320: loss 4.7877, time 3397.37ms, mfu 0.15%
+iter 11330: loss 4.9449, time 3479.76ms, mfu 0.15%
+iter 11340: loss 4.9755, time 3399.89ms, mfu 0.15%
+iter 11350: loss 4.6708, time 3384.60ms, mfu 0.15%
+iter 11360: loss 5.1440, time 3400.68ms, mfu 0.15%
+iter 11370: loss 4.9966, time 3414.70ms, mfu 0.15%
+iter 11380: loss 5.1361, time 3387.66ms, mfu 0.15%
+iter 11390: loss 5.0038, time 3297.04ms, mfu 0.15%
+iter 11400: loss 4.5985, time 3381.04ms, mfu 0.15%
+  === DIAG iter 11400 ===
+  text_loss: 1.7399, num_loss: 2.8586 (sign=0.0631 scale=0.0239 len=0.6042 digit=2.1644 consistency=0.0298)
+  grads: total 1.5390, transformer 0.0000, adapter 1.5390
+  <NUM> input: 144/1024, <NUM> target: 145/1024
+  lr: 2.39e-04, adapter_lr: 2.39e-04
+  text token accuracy: 0.682 (565/828)
+  <NUM> token prediction: 124/145 (0.855)
+iter 11410: loss 4.8158, time 3309.33ms, mfu 0.16%
+iter 11420: loss 4.7869, time 3370.94ms, mfu 0.16%
+iter 11430: loss 4.9242, time 3344.62ms, mfu 0.16%
+iter 11440: loss 4.8518, time 3410.78ms, mfu 0.16%
+iter 11450: loss 5.0515, time 3448.91ms, mfu 0.16%
+iter 11460: loss 4.8201, time 3431.54ms, mfu 0.16%
+iter 11470: loss 4.7905, time 3392.26ms, mfu 0.16%
+iter 11480: loss 4.8050, time 3363.12ms, mfu 0.16%
+iter 11490: loss 4.8053, time 3329.85ms, mfu 0.16%
+iter 11500: loss 4.9829, time 3338.92ms, mfu 0.16%
+  === DIAG iter 11500 ===
+  text_loss: 2.0233, num_loss: 2.9596 (sign=0.0202 scale=0.0750 len=0.6721 digit=2.1919 consistency=0.0036)
+  grads: total 1.7638, transformer 0.0000, adapter 1.7638
+  <NUM> input: 134/1024, <NUM> target: 134/1024
+  lr: 2.32e-04, adapter_lr: 2.32e-04
+  text token accuracy: 0.653 (549/841)
+  <NUM> token prediction: 93/134 (0.694)
+iter 11510: loss 4.7839, time 3700.38ms, mfu 0.16%
+iter 11520: loss 5.2754, time 3552.65ms, mfu 0.15%
+iter 11530: loss 4.8480, time 3549.96ms, mfu 0.15%
+iter 11540: loss 4.8113, time 3569.92ms, mfu 0.15%
+iter 11550: loss 4.7370, time 3498.66ms, mfu 0.15%
+iter 11560: loss 4.8150, time 3556.32ms, mfu 0.15%
+iter 11570: loss 4.6100, time 3616.24ms, mfu 0.15%
+iter 11580: loss 4.7098, time 3579.54ms, mfu 0.15%
+iter 11590: loss 4.8656, time 3557.59ms, mfu 0.15%
+iter 11600: loss 4.7089, time 3610.01ms, mfu 0.15%
+  === DIAG iter 11600 ===
+  text_loss: 1.8860, num_loss: 2.8229 (sign=0.0191 scale=0.0238 len=0.5810 digit=2.1979 consistency=0.0108)
+  grads: total 1.2125, transformer 0.0000, adapter 1.2125
+  <NUM> input: 141/1024, <NUM> target: 140/1024
+  lr: 2.25e-04, adapter_lr: 2.25e-04
+  text token accuracy: 0.673 (561/833)
+  <NUM> token prediction: 123/140 (0.879)
+iter 11610: loss 4.8080, time 3549.17ms, mfu 0.15%
+iter 11620: loss 5.0725, time 3575.90ms, mfu 0.15%
+iter 11630: loss 4.7516, time 3578.76ms, mfu 0.15%
+iter 11640: loss 5.0850, time 3464.04ms, mfu 0.15%
+iter 11650: loss 5.1831, time 3463.28ms, mfu 0.15%
+iter 11660: loss 4.8843, time 3523.71ms, mfu 0.15%
+iter 11670: loss 5.2964, time 3508.16ms, mfu 0.15%
+iter 11680: loss 4.9727, time 3488.48ms, mfu 0.15%
+iter 11690: loss 4.8222, time 3446.05ms, mfu 0.15%
+iter 11700: loss 4.8099, time 3396.20ms, mfu 0.15%
+  === DIAG iter 11700 ===
+  text_loss: 1.9530, num_loss: 2.8569 (sign=0.0248 scale=0.0145 len=0.6481 digit=2.1689 consistency=0.0063)
+  grads: total 2.0618, transformer 0.0000, adapter 2.0618
+  <NUM> input: 132/1024, <NUM> target: 131/1024
+  lr: 2.18e-04, adapter_lr: 2.18e-04
+  text token accuracy: 0.654 (552/844)
+  <NUM> token prediction: 103/131 (0.786)
+iter 11710: loss 4.5608, time 3563.14ms, mfu 0.15%
+iter 11720: loss 5.4810, time 3505.88ms, mfu 0.15%
+iter 11730: loss 4.7215, time 3513.81ms, mfu 0.15%
+iter 11740: loss 4.6015, time 3455.05ms, mfu 0.15%
+iter 11750: loss 4.8991, time 3473.93ms, mfu 0.15%
+iter 11760: loss 4.9572, time 3414.85ms, mfu 0.15%
+iter 11770: loss 4.4309, time 3485.12ms, mfu 0.15%
+iter 11780: loss 4.9242, time 3455.42ms, mfu 0.15%
+iter 11790: loss 4.8267, time 3479.94ms, mfu 0.15%
+iter 11800: loss 4.9272, time 3431.55ms, mfu 0.15%
+  === DIAG iter 11800 ===
+  text_loss: 2.1982, num_loss: 2.7290 (sign=0.0140 scale=0.0060 len=0.5242 digit=2.1845 consistency=0.0022)
+  grads: total 1.4415, transformer 0.0000, adapter 1.4415
+  <NUM> input: 136/1024, <NUM> target: 137/1024
+  lr: 2.11e-04, adapter_lr: 2.11e-04
+  text token accuracy: 0.580 (487/840)
+  <NUM> token prediction: 112/137 (0.818)
+iter 11810: loss 5.0992, time 3371.43ms, mfu 0.15%
+iter 11820: loss 4.6240, time 3423.45ms, mfu 0.15%
+iter 11830: loss 5.0947, time 3505.38ms, mfu 0.15%
+iter 11840: loss 4.7280, time 3390.58ms, mfu 0.15%
+iter 11850: loss 4.6139, time 3533.57ms, mfu 0.15%
+iter 11860: loss 4.6570, time 3506.56ms, mfu 0.15%
+iter 11870: loss 5.0918, time 3487.68ms, mfu 0.15%
+iter 11880: loss 5.1447, time 3483.87ms, mfu 0.15%
+iter 11890: loss 4.8950, time 3417.42ms, mfu 0.15%
+iter 11900: loss 4.9628, time 3586.33ms, mfu 0.15%
+  === DIAG iter 11900 ===
+  text_loss: 2.1507, num_loss: 2.8121 (sign=0.0407 scale=0.0426 len=0.5923 digit=2.1362 consistency=0.0022)
+  grads: total 1.3362, transformer 0.0000, adapter 1.3362
+  <NUM> input: 128/1024, <NUM> target: 128/1024
+  lr: 2.05e-04, adapter_lr: 2.05e-04
+  text token accuracy: 0.617 (523/847)
+  <NUM> token prediction: 95/128 (0.742)
+iter 11910: loss 5.2539, time 3679.80ms, mfu 0.15%
+iter 11920: loss 5.1608, time 3683.04ms, mfu 0.15%
+iter 11930: loss 4.8465, time 4345.43ms, mfu 0.15%
+iter 11940: loss 5.4140, time 3473.06ms, mfu 0.15%
+iter 11950: loss 5.0559, time 3488.04ms, mfu 0.15%
+iter 11960: loss 4.9398, time 3455.96ms, mfu 0.15%
+iter 11970: loss 4.8673, time 3384.13ms, mfu 0.15%
+iter 11980: loss 4.7774, time 3564.07ms, mfu 0.15%
+iter 11990: loss 4.9851, time 3656.53ms, mfu 0.15%
+step 12000: train text=2.0957 num=2.8595 total=4.9553 | val text=2.0525 num=2.9091 total=4.9616
+saving checkpoint to /tmpdir/m24047brmn/numbers/model_checkpoints/luciole_surface_s1/ckpt_iter12000.pt
+  new best val loss: 4.9616
+iter 12000: loss 4.7604, time 26357.22ms, mfu 0.14%
+  === DIAG iter 12000 ===
+  text_loss: 1.8795, num_loss: 2.8809 (sign=0.0353 scale=0.0449 len=0.6105 digit=2.1900 consistency=0.0023)
+  grads: total 1.5952, transformer 0.0000, adapter 1.5952
+  <NUM> input: 134/1024, <NUM> target: 134/1024
+  lr: 1.98e-04, adapter_lr: 1.98e-04
+  text token accuracy: 0.705 (590/837)
+  <NUM> token prediction: 99/134 (0.739)
+  --- Sample eval (val) ---
+  times<963>?
+Assistant:
+    NUM@1: predicted=305, target=963 (s=+ scale=0 len=3 d=963...)
+    NUM@9: predicted=954230, target=368829 (s=+ scale=0 len=6 d=368829...)
+
+  User:Whatis<21856>+<76784>?
+Assistant:
+    NUM@33: predicted=55303, target=21856 (s=+ scale=0 len=5 d=21856...)
+    NUM@36: predicted=55106, target=76784 (s=+ scale=0 len=5 d=76784...)
+    NUM@44: predicted=167654, target=98640 (s=+ scale=0 len=5 d=98640...)
+
+  User:Whatistheminimumof<16473>,<59233>,<30674>,<29647>?
+Assistant:
+    NUM@31: predicted=19494, target=16473 (s=+ scale=0 len=5 d=16473...)
+    NUM@34: predicted=87391, target=59233 (s=+ scale=0 len=5 d=59233...)
+    NUM@37: predicted=18372, target=30674 (s=+ scale=0 len=5 d=30674...)
+
+iter 12010: loss 5.1340, time 3450.80ms, mfu 0.14%
+iter 12020: loss 4.8668, time 3472.40ms, mfu 0.14%
+iter 12030: loss 4.7674, time 3496.89ms, mfu 0.14%
+iter 12040: loss 4.5837, time 3630.98ms, mfu 0.14%
+iter 12050: loss 4.8778, time 3502.60ms, mfu 0.14%
+iter 12060: loss 5.2117, time 3627.47ms, mfu 0.14%
+iter 12070: loss 5.0924, time 3582.38ms, mfu 0.14%
+iter 12080: loss 4.8347, time 3645.90ms, mfu 0.14%
+iter 12090: loss 4.7722, time 3589.47ms, mfu 0.14%
+iter 12100: loss 5.0745, time 3568.91ms, mfu 0.14%
+  === DIAG iter 12100 ===
+  text_loss: 2.4177, num_loss: 2.6568 (sign=0.0123 scale=0.0374 len=0.4805 digit=2.1262 consistency=0.0028)
+  grads: total 1.3949, transformer 0.0000, adapter 1.3949
+  <NUM> input: 112/1024, <NUM> target: 113/1024
+  lr: 1.92e-04, adapter_lr: 1.92e-04
+  text token accuracy: 0.607 (521/859)
+  <NUM> token prediction: 77/113 (0.681)
+iter 12110: loss 4.7851, time 3666.88ms, mfu 0.14%
+iter 12120: loss 4.9096, time 3623.34ms, mfu 0.14%
+iter 12130: loss 4.7903, time 3578.17ms, mfu 0.15%
+iter 12140: loss 5.4785, time 3518.07ms, mfu 0.15%
+iter 12150: loss 4.8292, time 3475.11ms, mfu 0.15%
+iter 12160: loss 4.8868, time 3505.48ms, mfu 0.15%
+iter 12170: loss 5.0942, time 3445.09ms, mfu 0.15%
+iter 12180: loss 5.2618, time 3497.79ms, mfu 0.15%
+iter 12190: loss 4.9068, time 3499.72ms, mfu 0.15%
+iter 12200: loss 4.8871, time 3437.87ms, mfu 0.15%
+  === DIAG iter 12200 ===
+  text_loss: 2.0741, num_loss: 2.8130 (sign=0.0147 scale=0.0342 len=0.5888 digit=2.1751 consistency=0.0018)
+  grads: total 1.2960, transformer 0.0000, adapter 1.2960
+  <NUM> input: 128/1024, <NUM> target: 128/1024
+  lr: 1.86e-04, adapter_lr: 1.86e-04
+  text token accuracy: 0.649 (550/847)
+  <NUM> token prediction: 94/128 (0.734)
+iter 12210: loss 5.1065, time 3435.83ms, mfu 0.15%
+iter 12220: loss 4.8289, time 3521.60ms, mfu 0.15%
+iter 12230: loss 5.1123, time 3422.05ms, mfu 0.15%
+iter 12240: loss 5.0511, time 3404.69ms, mfu 0.15%
+iter 12250: loss 4.9502, time 3452.69ms, mfu 0.15%
+iter 12260: loss 4.9400, time 3418.81ms, mfu 0.15%
+iter 12270: loss 5.5155, time 3477.24ms, mfu 0.15%
+iter 12280: loss 5.1740, time 3429.46ms, mfu 0.15%
+iter 12290: loss 4.9271, time 3451.70ms, mfu 0.15%
+iter 12300: loss 4.8848, time 3383.58ms, mfu 0.15%
+  === DIAG iter 12300 ===
+  text_loss: 2.0084, num_loss: 2.8764 (sign=0.0152 scale=0.0671 len=0.6063 digit=2.1875 consistency=0.0041)
+  grads: total 1.6199, transformer 0.0000, adapter 1.6199
+  <NUM> input: 132/1024, <NUM> target: 133/1024
+  lr: 1.80e-04, adapter_lr: 1.80e-04
+  text token accuracy: 0.663 (557/840)
+  <NUM> token prediction: 102/133 (0.767)
+iter 12310: loss 5.0582, time 3449.63ms, mfu 0.15%
+iter 12320: loss 5.0126, time 3385.62ms, mfu 0.15%
+iter 12330: loss 5.1474, time 3457.23ms, mfu 0.15%
+iter 12340: loss 4.8568, time 3479.03ms, mfu 0.15%
+iter 12350: loss 4.8895, time 3383.68ms, mfu 0.15%
+iter 12360: loss 5.1837, time 3448.65ms, mfu 0.15%
+iter 12370: loss 5.0230, time 3571.34ms, mfu 0.15%
+iter 12380: loss 4.6400, time 3579.88ms, mfu 0.15%
+iter 12390: loss 5.0655, time 3594.14ms, mfu 0.15%
+iter 12400: loss 4.7936, time 3518.89ms, mfu 0.15%
+  === DIAG iter 12400 ===
+  text_loss: 1.9409, num_loss: 2.8527 (sign=0.0262 scale=0.0346 len=0.6320 digit=2.1594 consistency=0.0034)
+  grads: total 1.2137, transformer 0.0000, adapter 1.2137
+  <NUM> input: 133/1024, <NUM> target: 134/1024
+  lr: 1.74e-04, adapter_lr: 1.74e-04
+  text token accuracy: 0.670 (562/839)
+  <NUM> token prediction: 107/134 (0.799)
+iter 12410: loss 4.6586, time 3614.45ms, mfu 0.15%
+iter 12420: loss 4.9055, time 3522.91ms, mfu 0.15%
+iter 12430: loss 4.8950, time 3545.19ms, mfu 0.15%
+iter 12440: loss 4.7688, time 3491.34ms, mfu 0.15%
+iter 12450: loss 4.8932, time 3412.98ms, mfu 0.15%
+iter 12460: loss 5.1550, time 3435.68ms, mfu 0.15%
+iter 12470: loss 4.9299, time 3330.50ms, mfu 0.15%
+iter 12480: loss 5.0894, time 3448.27ms, mfu 0.15%
+iter 12490: loss 5.0571, time 3403.36ms, mfu 0.15%
+iter 12500: loss 4.9026, time 3312.96ms, mfu 0.15%
+  === DIAG iter 12500 ===
+  text_loss: 1.9367, num_loss: 2.9659 (sign=0.0093 scale=0.0379 len=0.7101 digit=2.2083 consistency=0.0032)
+  grads: total 1.9267, transformer 0.0000, adapter 1.9267
+  <NUM> input: 132/1024, <NUM> target: 131/1024
+  lr: 1.69e-04, adapter_lr: 1.69e-04
+  text token accuracy: 0.681 (573/841)
+  <NUM> token prediction: 106/131 (0.809)
+iter 12510: loss 5.0641, time 3389.58ms, mfu 0.15%
+iter 12520: loss 4.9866, time 3426.35ms, mfu 0.15%
+iter 12530: loss 5.0439, time 3470.13ms, mfu 0.15%
+iter 12540: loss 4.9949, time 3566.05ms, mfu 0.15%
+iter 12550: loss 4.8237, time 3650.74ms, mfu 0.15%
+iter 12560: loss 4.9572, time 3600.11ms, mfu 0.15%
+iter 12570: loss 5.0033, time 3469.60ms, mfu 0.15%
+iter 12580: loss 4.9241, time 3508.43ms, mfu 0.15%
+iter 12590: loss 4.8045, time 3510.49ms, mfu 0.15%
+iter 12600: loss 4.7107, time 3504.13ms, mfu 0.15%
+  === DIAG iter 12600 ===
+  text_loss: 2.0100, num_loss: 2.7007 (sign=0.0268 scale=0.0231 len=0.4862 digit=2.1638 consistency=0.0080)
+  grads: total 1.5487, transformer 0.0000, adapter 1.5487
+  <NUM> input: 135/1024, <NUM> target: 135/1024
+  lr: 1.64e-04, adapter_lr: 1.64e-04
+  text token accuracy: 0.639 (537/841)
+  <NUM> token prediction: 100/135 (0.741)
+iter 12610: loss 4.7738, time 3460.41ms, mfu 0.15%
+iter 12620: loss 5.2600, time 3535.25ms, mfu 0.15%
