@@ -1,0 +1,48 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Mode: SURFACE ADAPTED (Stage1 Surface + LoRA)
+tokens per iteration will be: 40,960
+data directory: /tmpdir/m24047brmn/numbers/data/synth_arith_surface/adapted
+Loading Stage 1 surface checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/luciole_surface_s1/ckpt_best.pt
+number of parameters: 117.77M
+  Loaded Stage 1 weights (150 keys)
+  Applied LoRA (rank=16, alpha=32, dropout=0.05) to 48 layers
+  Target modules: ['q_proj', 'v_proj', 'k_proj', 'o_proj']
+Parameter budget (SURFACE ADAPTED):
+  LoRA:         983,040 params (0.83%)
+  Adapter:      652,800 params (0.55%)
+  Decoder:    2,945,701 params (2.48%)
+  Frozen:    114,169,344 params
+  Trainable:  4,581,541 / 118,750,885 (3.86%)
+optimizer parameter groups:
+  lora_decay: 96 tensors, 983,040 params, weight_decay=0.1, lr_scale=1.0
+  adapter_decay: 2 tensors, 651,264 params, weight_decay=0.1, lr_scale=0.3
+  adapter_nodecay: 2 tensors, 1,536 params, weight_decay=0.0, lr_scale=0.3
+  decoder_decay: 13 tensors, 2,941,920 params, weight_decay=0.1, lr_scale=0.3
+  decoder_nodecay: 9 tensors, 3,781 params, weight_decay=0.0, lr_scale=0.3
+using fused AdamW: True
+compiling the model... (takes a ~minute)
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+Validated numeric supervision for train: 2048 sampled <NUM> labels in sync
+Validated numeric supervision for val: 2048 sampled <NUM> labels in sync
+
+Starting training from iter 0 (max_iters=10000)
+step 0: train text=1.9418 num=3.9592 total=5.9009 | val text=1.9545 num=4.0991 total=6.0536
+iter 0: loss 5.8132, time 164043.00ms, mfu -100.00%
+  === DIAG iter 0 ===
+  text_loss: 1.9742, num_loss: 3.8391 (sign=0.0426 scale=0.3297 len=1.2513 digit=2.2152 consistency=0.0033)
+  grads: total 85.7455, lora 85.4939, adapter 5.3843, decoder 3.7532
+  <NUM> tokens: 390/2048 (19.0%)
+  lr: lora 0.00e+00, adapter 1.80e-07, decoder 1.80e-07
+  rollout: disabled or skipped
+  token accuracy: 0.662 (1309/1976)
+  <NUM> token prediction: 300/390 (0.769)
+iter 10: loss 6.2922, time 9368.88ms, mfu 0.08%
+iter 20: loss 5.8025, time 9312.98ms, mfu 0.08%
+iter 30: loss 5.8327, time 9351.04ms, mfu 0.08%
+iter 40: loss 5.6013, time 9342.02ms, mfu 0.08%
+iter 50: loss 5.3156, time 9312.81ms, mfu 0.08%
+iter 60: loss 5.0099, time 9302.18ms, mfu 0.08%
+iter 70: loss 5.0617, time 9332.54ms, mfu 0.08%
+slurmstepd: error: *** JOB 79570 ON turpancomp5 CANCELLED AT 2026-03-13T15:12:55 ***
