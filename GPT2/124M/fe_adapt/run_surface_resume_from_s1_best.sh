@@ -109,7 +109,7 @@ JOB_S2_TRAIN=$(sbatch --parsable <<EOF
 #SBATCH -n 1
 #SBATCH --gres=gpu:1
 #SBATCH -p small
-#SBATCH --time=18:00:00
+#SBATCH --time=24:00:00
 #SBATCH --output=slurm/%x_%j.out
 
 set -euo pipefail
@@ -133,13 +133,13 @@ ${APPTAINER} python3 ${SCRIPT_DIR}/train_tulu_lora_surface.py \
   lora_alpha=32 \
   lora_dropout=0.05 \
   lora_targets=q_proj,v_proj,k_proj,o_proj \
-  max_iters=10000 \
+  max_iters=8000 \
   learning_rate=3e-4 \
   lora_lr_scale=1.0 \
   adapter_lr_scale=0.3 \
   decoder_lr_scale=0.3 \
   warmup_iters=500 \
-  lr_decay_iters=10000 \
+  lr_decay_iters=8000 \
   min_lr=3e-5 \
   decoder_warmup_iters=1000 \
   rollout_start_iter=1000 \

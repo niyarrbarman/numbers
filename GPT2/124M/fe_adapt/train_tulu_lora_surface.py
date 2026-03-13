@@ -142,12 +142,12 @@ weight_decay = 0.1
 beta1 = 0.9
 beta2 = 0.95
 grad_clip = 1.0
-max_iters = 15000
+max_iters = 8000
 
 # lr schedule
 decay_lr = True
 warmup_iters = 500
-lr_decay_iters = 15000
+lr_decay_iters = 8000
 min_lr = 3e-5
 decoder_warmup_iters = 1000
 
