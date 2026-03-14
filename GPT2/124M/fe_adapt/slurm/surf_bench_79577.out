@@ -1,0 +1,91 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+number of parameters: 117.77M
+Merged checkpoint written to /tmpdir/m24047brmn/numbers/model_checkpoints/surface_synth_bench/surface_best_merged.pt
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+======================================================================
+ZERO-SHOT SYNTH ARITHMETIC BENCHMARK
+======================================================================
+Loaded 3000 zero-shot synth test examples from /tmpdir/m24047brmn/numbers/data/synth_arith_surface/base/test_examples.json
+
+==================================================
+Evaluating: Base LoRA
+  Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_s2_base_lora/ckpt_merged.pt
+  Data: /tmpdir/m24047brmn/numbers/data/synth_arith_surface/base
+==================================================
+Loading /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_s2_base_lora/ckpt_merged.pt...
+number of parameters: 114.83M
+
+--- Forward-pass metrics (200 batches) ---
+  Loss:       0.6143
+  Perplexity: 1.85
+  Accuracy:   0.7697
+
+--- Generation metrics (3000 samples, greedy) ---
+  [0] ref: 57711 + 27644 = 85355
+       gen: 57711 + 27644 = 85355
+       match: True
+
+  [1] ref: 99204 + 54011 = 153215
+       gen: 99204 + 54011 = 153215
+       match: True
+
+  [2] ref: 9843 + 8943 = 18786, 18786 - 7010 = 11776. The result is 11776
+       gen: 9843 + 8943 = 18786, 18786 - 7010 = 11776. The result is 11776
+       match: True
+
+  [3] ref: 6714 + 9923 = 16637, 16637 - 9904 = 6733. The result is 6733
+       gen: 6714 + 9923 = 16637, 16637 - 9904 = 6733. The result is 6733
+       match: True
+
+  [4] ref: 618 times 696 = 430128
+       gen: 618 times 696 = 429048
+       match: False
+
+  Full exact match:         0.5873
+  Number accuracy:          0.8416
+  Number MAE:               1208.5401
+  Digit accuracy:           0.9249
+  Scale accuracy:           0.9996
+  Length accuracy:          0.9817
+  Copied-number consistency:0.9657
+  First wrong digit pos:    2.01
+
+==================================================
+Evaluating: Surface Adapted LoRA
+  Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/surface_synth_bench/surface_best_merged.pt
+  Data: /tmpdir/m24047brmn/numbers/data/synth_arith_surface/adapted
+==================================================
+Loading /tmpdir/m24047brmn/numbers/model_checkpoints/surface_synth_bench/surface_best_merged.pt...
+number of parameters: 117.77M
+
+--- Forward-pass metrics (200 batches) ---
+  Loss:       0.0616
+  Perplexity: 1.06
+  Accuracy:   0.9784
+
+--- Generation metrics (3000 samples, greedy) ---
+  [0] ref: 57711 + 27644 = 85355
+       gen: 57711+ 27644= 88567
+3269195071951951955219552895528951789517895989598959895989598958895889598978897889788879847984798479
+       match: False
+
+  [1] ref: 99204 + 54011 = 153215
+       gen: 99204+ 54011= 124867
+Assistant: 8610310593105821058211582115521159214592865928959289592815928159238159238159281582815889
+       match: False
+
+  [2] ref: 9843 + 8943 = 18786, 18786 - 7010 = 11776. The result is 11776
+       gen: 9843+ 8943= 135018701957195819581658165185185185185818561856185618588958895889588958895889588958897889788978897889787978
+       match: False
+
+  [3] ref: 6714 + 9923 = 16637, 16637 - 9904 = 6733. The result is 6733
+       gen: 6714+ 9923= 188018801939193819581851851851831831858185618561858185818581058805880588958895889588978897889788978897879787
+       match: False
+
+  [4] ref: 618 times 696 = 430128
+       gen: 618times 696= 250840
+Assistant: 6181401401851151151158211518512512592825815815981598158827884788479847284728972897289728
+       match: False
+
