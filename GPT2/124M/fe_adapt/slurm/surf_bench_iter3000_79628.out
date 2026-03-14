@@ -1,0 +1,83 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+=== Merging LoRA weights: iter3000 ===
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+number of parameters: 117.77M
+Merged checkpoint written to /tmpdir/m24047brmn/numbers/model_checkpoints/surface_bench_iter3000/surface_iter3000_merged.pt
+=== Running benchmark ===
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+======================================================================
+ZERO-SHOT SYNTH ARITHMETIC BENCHMARK
+======================================================================
+Loaded 3000 zero-shot synth test examples from /tmpdir/m24047brmn/numbers/data/synth_arith_surface/base/test_examples.json
+
+==================================================
+Evaluating: Base LoRA
+  Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_s2_base_lora/ckpt_merged.pt
+  Data: /tmpdir/m24047brmn/numbers/data/synth_arith_surface/base
+==================================================
+Loading /tmpdir/m24047brmn/numbers/model_checkpoints/analytic_s2_base_lora/ckpt_merged.pt...
+number of parameters: 114.83M
+
+--- Forward-pass metrics (200 batches) ---
+  Loss:       0.6104
+  Perplexity: 1.84
+  Accuracy:   0.7713
+
+--- Generation metrics (3000 samples, greedy) ---
+  [0] ref: 57711 + 27644 = 85355
+       gen: 57711 + 27644 = 85355
+       match: True
+
+  [1] ref: 99204 + 54011 = 153215
+       gen: 99204 + 54011 = 153215
+       match: True
+
+  [2] ref: 9843 + 8943 = 18786, 18786 - 7010 = 11776. The result is 11776
+       gen: 9843 + 8943 = 18786, 18786 - 7010 = 11776. The result is 11776
+       match: True
+
+  [3] ref: 6714 + 9923 = 16637, 16637 - 9904 = 6733. The result is 6733
+       gen: 6714 + 9923 = 16637, 16637 - 9904 = 6733. The result is 6733
+       match: True
+
+  [4] ref: 618 times 696 = 430128
+       gen: 618 times 696 = 429048
+       match: False
+
+  Full exact match:         0.5873
+  Number accuracy:          0.8416
+  Number MAE:               1208.5401
+  Digit accuracy:           0.9249
+  Scale accuracy:           0.9996
+  Length accuracy:          0.9817
+  Copied-number consistency:0.9657
+  First wrong digit pos:    2.01
+
+==================================================
+Evaluating: Surface Adapted LoRA
+  Checkpoint: /tmpdir/m24047brmn/numbers/model_checkpoints/surface_bench_iter3000/surface_iter3000_merged.pt
+  Data: /tmpdir/m24047brmn/numbers/data/synth_arith_surface/adapted
+==================================================
+Loading /tmpdir/m24047brmn/numbers/model_checkpoints/surface_bench_iter3000/surface_iter3000_merged.pt...
+number of parameters: 117.77M
+
+--- Forward-pass metrics (200 batches) ---
+Traceback (most recent call last):
+  File "/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/benchmark_synth_surface.py", line 579, in <module>
+    main()
+  File "/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/benchmark_synth_surface.py", line 509, in main
+    fwd = evaluate_forward(
+  File "/usr/local/lib/python3.10/dist-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+    return func(*args, **kwargs)
+  File "/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/benchmark_synth_surface.py", line 74, in evaluate_forward
+    logits, _, _ = model(x, y, num_values=nv, num_mask=nm)
+  File "/usr/local/lib/python3.10/dist-packages/torch/nn/modules/module.py", line 1736, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/usr/local/lib/python3.10/dist-packages/torch/nn/modules/module.py", line 1747, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/model_analytic_surface.py", line 795, in forward
+    num_loss_dict = self.compute_numeric_loss_from_hidden(
+  File "/work/m24047/m24047brmn/numbers/GPT2/124M/fe_adapt/model_analytic_surface.py", line 534, in compute_numeric_loss_from_hidden
+    assert num_target_surface is not None, "surface targets required in surface mode"
+AssertionError: surface targets required in surface mode
