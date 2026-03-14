@@ -54,6 +54,14 @@ def evaluate_forward(model, data_dir, device, block_size=512, batch_size=4, n_ba
     ptdtype = torch.bfloat16 if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else torch.float16
     ctx = nullcontext() if device_type == 'cpu' else torch.amp.autocast(device_type=device_type, dtype=ptdtype)
 
+    # Load surface supervision if this is a surface-mode NemotronAnalytic
+    surface_comps = None
+    if isinstance(model, NemotronAnalytic) and model.config.numeric_output_mode == 'surface':
+        target_cols = 3 + model.config.surface_max_digits
+        surface_path = os.path.join(data_dir, 'test_surface.bin')
+        raw = np.memmap(surface_path, dtype=np.uint8, mode='r')
+        surface_comps = raw.reshape(len(data), target_cols)
+
     total_loss = 0.0
     total_correct = 0
     total_tokens = 0
@@ -71,7 +79,14 @@ def evaluate_forward(model, data_dir, device, block_size=512, batch_size=4, n_ba
 
         with ctx:
             if isinstance(model, NemotronAnalytic):
-                logits, _, _ = model(x, y, num_values=nv, num_mask=nm)
+                kwargs = {}
+                if surface_comps is not None:
+                    nc = torch.stack([
+                        torch.from_numpy(surface_comps[i + 1:i + 1 + eval_block_size].copy())
+                        for i in ix
+                    ]).to(device)
+                    kwargs['num_target_surface'] = nc
+                logits, _, _ = model(x, y, num_values=nv, num_mask=nm, **kwargs)
                 loss = F.cross_entropy(
                     logits.view(-1, logits.size(-1)),
                     y.view(-1),
