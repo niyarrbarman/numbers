@@ -1,0 +1,7 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+  train: 100000 samples -> /tmpdir/m24047brmn/numbers/data/qwen_s1/train.jsonl
+  val: 5000 samples -> /tmpdir/m24047brmn/numbers/data/qwen_s1/val.jsonl
+  test: 3000 samples -> /tmpdir/m24047brmn/numbers/data/qwen_s1/test.jsonl
+done
+S1 data gen complete.

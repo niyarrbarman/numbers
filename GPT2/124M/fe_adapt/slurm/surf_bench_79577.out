@@ -89,3 +89,24 @@ Assistant: 861031059310582105821158211552115921459286592895928959281592815923815
 Assistant: 6181401401851151151158211518512512592825815815981598158827884788479847284728972897289728
        match: False
 
+  Full exact match:         0.0000
+  Number accuracy:          0.3729
+  Number MAE:               41301507425258028680433631232.0000
+  Digit accuracy:           0.6580
+  Scale accuracy:           0.7935
+  Length accuracy:          0.6348
+  Copied-number consistency:0.5860
+  First wrong digit pos:    1.75
+
+======================================================================
+SUMMARY
+======================================================================
+Full Exact Match         base=0.5873 adapted=0.0000 delta=-0.5873
+Number Accuracy          base=0.8416 adapted=0.3729 delta=-0.4687
+Digit Accuracy           base=0.9249 adapted=0.6580 delta=-0.2668
+Scale Accuracy           base=0.9996 adapted=0.7935 delta=-0.2061
+Length Accuracy          base=0.9817 adapted=0.6348 delta=-0.3469
+Copy Consistency         base=0.9657 adapted=0.5860 delta=-0.3797
+======================================================================
+
+Results saved to /tmpdir/m24047brmn/numbers/model_checkpoints/surface_synth_bench/surface_synth_benchmark.json

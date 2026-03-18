@@ -1,0 +1,14 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+Processing GSM8K train: /tmpdir/m24047brmn/numbers/data/gsm8k/train.json
+  GSM8K: 7473 augmented, 7473 baseline
+Generating 50000 synthetic samples...
+  /tmpdir/m24047brmn/numbers/data/qwen_s2/augmented/train.jsonl: 54473 samples
+  /tmpdir/m24047brmn/numbers/data/qwen_s2/augmented/val.jsonl: 3000 samples
+  /tmpdir/m24047brmn/numbers/data/qwen_s2/baseline/train.jsonl: 54473 samples
+  /tmpdir/m24047brmn/numbers/data/qwen_s2/baseline/val.jsonl: 3000 samples
+Processing GSM8K test: /tmpdir/m24047brmn/numbers/data/gsm8k/test.json
+  /tmpdir/m24047brmn/numbers/data/qwen_s2/augmented/test.jsonl: 1319 samples
+  /tmpdir/m24047brmn/numbers/data/qwen_s2/baseline/test.jsonl: 1319 samples
+done
+S2 data gen complete.
