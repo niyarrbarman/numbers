@@ -1,0 +1,17 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+======================================================================
+BENCHMARK: Augmented (NumLM) vs Baseline (Vanilla Qwen)
+======================================================================
+
+Loading augmented model: /tmpdir/m24047brmn/numbers/checkpoints/qwen_s2_augmented/stage2_epoch3.pt
+Sliding Window Attention is enabled but not implemented for `sdpa`; unexpected results may be encountered.
+Traceback (most recent call last):
+  File "/work/m24047/m24047brmn/numbers/GPT2/llama3/benchmark.py", line 535, in <module>
+    main()
+  File "/work/m24047/m24047brmn/numbers/GPT2/llama3/benchmark.py", line 405, in main
+    total, trainable = aug_model.count_parameters()
+  File "/usr/local/lib/python3.10/dist-packages/torch/nn/modules/module.py", line 1931, in __getattr__
+    raise AttributeError(
+AttributeError: 'NumLM' object has no attribute 'count_parameters'. Did you mean: '_parameters'?
