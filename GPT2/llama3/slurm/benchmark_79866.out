@@ -1,0 +1,30 @@
+Loading gnu/11.2.0
+  Loading requirement: binutils/11.2.0
+Error in cpuinfo: prctl(PR_SVE_GET_VL) failed
+======================================================================
+BENCHMARK: Augmented (NumLM) vs Baseline (Vanilla Qwen)
+======================================================================
+
+Loading augmented model: /tmpdir/m24047brmn/numbers/checkpoints/qwen_s2_augmented/stage2_epoch3.pt
+Sliding Window Attention is enabled but not implemented for `sdpa`; unexpected results may be encountered.
+  params: 497,439,854 total, 497,439,854 trainable
+
+--- Augmented: GSM8K (/tmpdir/m24047brmn/numbers/data/qwen_s2/augmented/test.jsonl) ---
+Traceback (most recent call last):
+  File "/work/m24047/m24047brmn/numbers/GPT2/llama3/benchmark.py", line 535, in <module>
+    main()
+  File "/work/m24047/m24047brmn/numbers/GPT2/llama3/benchmark.py", line 413, in main
+    aug_results["gsm8k"] = evaluate_gsm8k(
+  File "/work/m24047/m24047brmn/numbers/GPT2/llama3/benchmark.py", line 252, in evaluate_gsm8k
+    gen_text = generate_fn(model, tokenizer, sample, device,
+  File "/usr/local/lib/python3.10/dist-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+    return func(*args, **kwargs)
+  File "/work/m24047/m24047brmn/numbers/GPT2/llama3/benchmark.py", line 146, in generate_augmented
+    gen_ids, generated_numbers = model.generate_with_numbers(
+  File "/usr/local/lib/python3.10/dist-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+    return func(*args, **kwargs)
+  File "/work/m24047/m24047brmn/numbers/GPT2/llama3/main_qwen.py", line 785, in generate_with_numbers
+    inputs_embeds = self._inject_num_embeddings(
+  File "/work/m24047/m24047brmn/numbers/GPT2/llama3/main_qwen.py", line 631, in _inject_num_embeddings
+    and num_surface_mask[b, i].item()
+IndexError: index 0 is out of bounds for dimension 1 with size 0
