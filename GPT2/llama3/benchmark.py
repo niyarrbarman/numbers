@@ -402,7 +402,7 @@ def main():
     print(f"\nLoading augmented model: {args.augmented_ckpt}")
     aug_model, aug_tokenizer = load_augmented_model(
         args.model_path, args.augmented_ckpt, args.device)
-    total, trainable = aug_model.count_parameters()
+    total, trainable = aug_model.param_count()
     print(f"  params: {total:,} total, {trainable:,} trainable")
 
     aug_results = {}
