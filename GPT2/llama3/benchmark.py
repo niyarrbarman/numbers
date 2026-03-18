@@ -135,9 +135,9 @@ def generate_augmented(model, tokenizer, sample, device, max_new_tokens=256):
     input_vals = [v for v, is_out in zip(num_values, num_is_output) if not is_out]
     n_found = min(len(num_positions_list), len(input_vals))
 
-    # build tensors
-    if input_vals:
-        nv = torch.tensor([input_vals], dtype=torch.float32, device=device)
+    # build tensors (must be same size)
+    if n_found > 0:
+        nv = torch.tensor([input_vals[:n_found]], dtype=torch.float32, device=device)
         np_tensor = torch.tensor([num_positions_list[:n_found]], dtype=torch.long, device=device)
     else:
         nv = torch.zeros(1, 0, device=device)
@@ -182,16 +182,21 @@ def generate_baseline(model, tokenizer, sample, device, max_new_tokens=256):
     input_ids = enc["input_ids"].to(device)
     prompt_len = input_ids.size(1)
 
+    generated = []
+    past_key_values = None
+    cur_input = input_ids
+
     for _ in range(max_new_tokens):
-        outputs = model(input_ids)
+        outputs = model(cur_input, past_key_values=past_key_values, use_cache=True)
+        past_key_values = outputs.past_key_values
         logits = outputs.logits[:, -1, :]
         next_tok = logits.argmax(dim=-1, keepdim=True)
         if next_tok.item() == tokenizer.eos_token_id:
             break
-        input_ids = torch.cat([input_ids, next_tok], dim=1)
+        generated.append(next_tok.item())
+        cur_input = next_tok
 
-    output_ids = input_ids[0, prompt_len:].tolist()
-    return tokenizer.decode(output_ids, skip_special_tokens=True).strip()
+    return tokenizer.decode(generated, skip_special_tokens=True).strip()
 
 
 # =============================================================================

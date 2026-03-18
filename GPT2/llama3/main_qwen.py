@@ -628,6 +628,7 @@ class NumLM(nn.Module):
                 use_surface = (
                     num_surface_mask is not None
                     and num_surface_rows is not None
+                    and i < num_surface_mask.size(1)
                     and num_surface_mask[b, i].item()
                 )
 
@@ -773,11 +774,12 @@ class NumLM(nn.Module):
             num_values = torch.zeros(1, 0, device=device)
         if num_positions is None:
             num_positions = torch.full((1, 0), -1, dtype=torch.long, device=device)
+        n_initial = num_values.size(1)
         if num_surface_rows is None:
-            num_surface_rows = torch.zeros(1, 0, 3 + self.max_digits,
+            num_surface_rows = torch.zeros(1, n_initial, 3 + self.max_digits,
                                            dtype=torch.long, device=device)
         if num_surface_mask is None:
-            num_surface_mask = torch.zeros(1, 0, dtype=torch.bool, device=device)
+            num_surface_mask = torch.zeros(1, n_initial, dtype=torch.bool, device=device)
 
         generated_numbers = []
 
